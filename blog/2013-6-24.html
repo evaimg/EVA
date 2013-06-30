@@ -36,7 +36,7 @@
 		    <script type="text/javascript">
         /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
         var disqus_shortname = 'eva-nde'; 
-        var disqus_identifier = 'blog/first';
+        var disqus_identifier = 'blog/2013-6-24';
         /* * * DON'T EDIT BELOW THIS LINE * * */
         (function() {
             var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
@@ -96,12 +96,25 @@
     <div class="container marketing">
 	   <div class="content">
 							<div class='article'>
-		<div class="page-header"><h1>First article of EVA-NDE</h1></div>
-		<div class="well small">Permalink: <a class="more" href="http://oeway.github.io/EVA-NDE/blog/first.html">2013-06-24 02:42:00</a>
-by <a class="url fn" href="http://oeway.github.io/EVA-NDE/author/wei-ouyang.html">Wei Ouyang </a>
+		<div class="page-header"><h1>1D signal presentation in Icy</h1></div>
+		<div class="well small">Permalink: <a class="more" href="http://oeway.github.io/EVA-NDE/blog/2013-6-24.html">2013-06-30 21:30:00</a>
+by <a class="url fn" href="http://oeway.github.io/EVA-NDE/author/will-ouyang.html">Will Ouyang </a>
  in <a href="http://oeway.github.io/EVA-NDE/category/blog.html">blog</a>
-tags: <a href="http://oeway.github.io/EVA-NDE/tag/pelican.html">pelican</a> <a href="http://oeway.github.io/EVA-NDE/tag/publishing.html">publishing</a> </div>
-		<div><p>This is the content.</p></div>
+tags: <a href="http://oeway.github.io/EVA-NDE/tag/plugin.html">plugin</a> <a href="http://oeway.github.io/EVA-NDE/tag/ultrasonic.html">ultrasonic</a> </div>
+		<div><h2>Motivation</h2>
+<p>Icy is designed for 2D+ image data processing, but in NDE, we often get 1D signal like ultrasonic waveform. The following picture shows a sample of typical ultrasonic waveform.</p>
+<p><img alt="ultrasonic waveform" src="/static/images/ultrasonicWave.JPG" /></p>
+<h2>Solution</h2>
+<p>So if we want to process 1d signal, or acquisite 1d signal in Micro-Manager within Icy, we need to figure out some way to presente 1d signal in Icy.
+Icy itself have Jfreechart included in its library, and there also some plugins like <a href="http://icy.bioimageanalysis.org/plugin/Intensity_Profile">Intensity Profile</a> can draw a profile of a line of pixel intensity.
+So a intuitive idea is acqusite the 1d signal as a 1-row image using Micro-Manager for Icy plugin and then plot the intensity profile of the 1-row image. The following image demostrate this idea.</p>
+<p><img alt="1-Row Image With Intensity Profile" src="/static/images/CaptureOfIcyGUI.PNG" /></p>
+<h2>The Plugin -- Chart1DCanvas</h2>
+<p>Following this idea, I fired <a href="">a thread</a> in the forum of Icy. Then I got some suggestions from Fabrice and Stephane. After some coding work, I finally implemented a canvas plugin named <a href="http://icy.bioimageanalysis.org/plugin/Chart1DCanvas">Chart1DCanvas</a> which can actually do the 1d signal representation work. This plugin will be act as a basis to the following NDE applications.
+Here goes a screen shot of the plugin.</p>
+<p><img alt="Chart1DCanvas screen shot" src="/static/images/chart1dscreen.png" /></p>
+<p>With this plugin, Icy will show a 1d signal in native way which actually is canvas.
+We can use the canvas to show all kinds of waveforms such as eddy current and ultrasonic etc.. </p></div>
 		<div>
 			<h2>Comments</h2>
 		 	<a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="oeway">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
