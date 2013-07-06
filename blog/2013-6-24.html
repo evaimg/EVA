@@ -108,7 +108,7 @@ tags: <a href="http://oeway.github.io/EVA-NDE/tag/plugin.html">plugin</a> <a hre
 <p>So if we want to process 1d signal, or acquisite 1d signal in Micro-Manager within Icy, we need to figure out some way to presente 1d signal in Icy.
 Icy itself have Jfreechart included in its library, and there also some plugins like <a href="http://icy.bioimageanalysis.org/plugin/Intensity_Profile">Intensity Profile</a> can draw a profile of a line of pixel intensity.
 So a intuitive idea is acqusite the 1d signal as a 1-row image using Micro-Manager for Icy plugin and then plot the intensity profile of the 1-row image. The following image demostrate this idea.</p>
-<p><img alt="1-Row Image With Intensity Profile" src="/static/images/CaptureOfIcyGUI.PNG" /></p>
+<p><img alt="1-Row Image With Intensity Profile" src="../static/images/CaptureOfIcyGUI.PNG" /></p>
 <h2>The Plugin -- Chart1DCanvas</h2>
 <p>Following this idea, I fired <a href="https://groups.google.com/forum/#!topic/icy-software/3il7rtCjPFI">a thread</a> in the forum of Icy. Then I got some suggestions from Fabrice and Stephane. After some coding work, I finally implemented a canvas plugin named <a href="http://icy.bioimageanalysis.org/plugin/Chart1DCanvas">Chart1DCanvas</a> which can actually do the 1d signal representation work. This plugin will be act as a basis to the following NDE applications.
 Here goes a screen shot of the plugin.</p>
