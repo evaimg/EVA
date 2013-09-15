@@ -1,17 +1,2 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>EVA-NDE</title><link href="http://oeway.github.io/EVA-NDE/" rel="alternate"></link><link href="http://oeway.github.io/EVA-NDE/feeds/blog.atom.xml" rel="self"></link><id>http://oeway.github.io/EVA-NDE/</id><updated>2013-06-30T21:30:00+08:00</updated><entry><title>1D signal presentation in Icy</title><link href="http://oeway.github.io/EVA-NDE/blog/2013-6-24.html" rel="alternate"></link><updated>2013-06-30T21:30:00+08:00</updated><author><name>Will Ouyang</name></author><id>tag:oeway.github.io/EVA-NDE,2013-06-30:blog/2013-6-24.html</id><summary type="html">&lt;h2&gt;Motivation&lt;/h2&gt;
-&lt;p&gt;Icy is designed for 2D+ image data processing, but in NDE, we often get 1D signal like ultrasonic waveform. The following picture shows a sample of typical ultrasonic waveform.&lt;/p&gt;
-&lt;p&gt;&lt;img alt="ultrasonic waveform" src="../static/images/ultrasonicWave.JPG" /&gt;&lt;/p&gt;
-&lt;h2&gt;Solution&lt;/h2&gt;
-&lt;p&gt;So if we want to process 1d signal, or acquisite 1d signal in Micro-Manager within Icy, we need to figure out some way to presente 1d signal in Icy.
-Icy itself have Jfreechart included in its library, and there also some plugins like &lt;a href="http://icy.bioimageanalysis.org/plugin/Intensity_Profile"&gt;Intensity Profile&lt;/a&gt; can draw a profile of a line of pixel intensity.
-So a intuitive idea is acqusite the 1d signal as a 1-row image using Micro-Manager for Icy plugin and then plot the intensity profile of the 1-row image. The following image demostrate this idea.&lt;/p&gt;
-&lt;p&gt;&lt;img alt="1-Row Image With Intensity Profile" src="../static/images/CaptureOfIcyGUI.PNG" /&gt;&lt;/p&gt;
-&lt;h2&gt;The Plugin -- Chart1DCanvas&lt;/h2&gt;
-&lt;p&gt;Following this idea, I fired &lt;a href="https://groups.google.com/forum/#!topic/icy-software/3il7rtCjPFI"&gt;a thread&lt;/a&gt; in the forum of Icy. Then I got some suggestions from Fabrice and Stephane. After some coding work, I finally implemented a canvas plugin named &lt;a href="http://icy.bioimageanalysis.org/plugin/Chart1DCanvas"&gt;Chart1DCanvas&lt;/a&gt; which can actually do the 1d signal representation work. This plugin will be act as a basis to the following NDE applications.
-Here goes a screen shot of the plugin.&lt;/p&gt;
-&lt;p&gt;&lt;img alt="Chart1DCanvas screen shot 1" src="../static/images/chart1dCanvas1.png" /&gt;&lt;/p&gt;
-&lt;p&gt;&lt;img alt="Chart1DCanvas screen shot 2" src="../static/images/chart1dCanvas2.png" /&gt;&lt;/p&gt;
-&lt;p&gt;&lt;img alt="Chart1DCanvas screen shot 3" src="../static/images/chart1dCanvas3.png" /&gt;&lt;/p&gt;
-&lt;p&gt;With this plugin, Icy will show a 1d signal in native way which actually is canvas.
-We can use the canvas to show all kinds of waveforms such as eddy current and ultrasonic etc..&lt;/p&gt;</summary><category term="plugin"></category><category term="ultrasonic"></category></entry></feed>
+<feed xmlns="http://www.w3.org/2005/Atom"><title>A Pelican Blog</title><link href="/" rel="alternate"></link><link href="/feeds/blog.atom.xml" rel="self"></link><id>/</id><updated>2013-06-24T02:42:00Z</updated><entry><title>First article of EVA-NDE</title><link href="/first.html" rel="alternate"></link><updated>2013-06-24T02:42:00Z</updated><author><name>Wei Ouyang</name></author><id>tag:,2013-06-24:first.html</id><summary type="html">&lt;p&gt;This is the content.&lt;/p&gt;</summary><category term="pelican"></category><category term="publishing"></category></entry></feed>
