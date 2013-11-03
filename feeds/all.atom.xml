@@ -2,11 +2,9 @@
 <feed xmlns="http://www.w3.org/2005/Atom"><title>EVA</title><link href="http://oeway.github.io/EVA/" rel="alternate"></link><link href="http://oeway.github.io/EVA/feeds/all.atom.xml" rel="self"></link><id>http://oeway.github.io/EVA/</id><updated>2013-07-04T10:30:00+08:00</updated><entry><title>Plugin to show 1D signal in Icy is out!</title><link href="http://oeway.github.io/EVA/blog/2013-7-4.html" rel="alternate"></link><updated>2013-07-04T10:30:00+08:00</updated><author><name>Will Ouyang</name></author><id>tag:oeway.github.io/EVA,2013-07-04:blog/2013-7-4.html</id><summary type="html">&lt;h2&gt;1D signal representation in Icy&lt;/h2&gt;
 &lt;p&gt;Previously, I mentioned there is no elegant way to show 1D signal in Icy, although 1D signal takes the most part NDT/NDE signal such as Ultrasonic, Eddy Current. Many imaging method is based on the analysis of 1D signal. For an instance, we should find the back wall echo in order to generate a simple C-Scan map.
 So show 1D signal as waveform is very important in a NDE system. But the previous method to do this is tedious, since we should put our profile line on the right position and should adjust two frames to get a better view. Operation in two frames makes the manipulation more complicated. &lt;/p&gt;
-&lt;p&gt;&lt;img alt="ultrasonic waveform" src="../images/ultrasonicWave.JPG" /&gt;&lt;/p&gt;
 &lt;h2&gt;Canvas plugin&lt;/h2&gt;
 &lt;p&gt;The answer is "Canvas", thanks Fabrice and Stephane. There is a mechanism called "Canvas" which is used for different type of representation of data. When you open a sequence in Icy, it will open in 2D canvas by default. And also you can shift different canvas on the top of the sequence window, for example you can expand your z-axis to make a montage view of your 3D data. Another good news is "Canvas" is supported in plugin developing. Then a Canvas Plugin will become an elegant way to extend Icy to support 1D signal representation.
 What's more, Icy itself have Jfreechart integrated in its library, which helps a lot when dealing with 1D signal GUI.&lt;/p&gt;
-&lt;p&gt;&lt;img alt="1-Row Image With Intensity Profile" src="../images/CaptureOfIcyGUI.PNG" /&gt;&lt;/p&gt;
 &lt;h2&gt;The Plugin -- Chart1DCanvas&lt;/h2&gt;
 &lt;p&gt;After some coding work, I finally implemented a canvas plugin named &lt;a href="http://icy.bioimageanalysis.org/plugin/Chart1DCanvas"&gt;Chart1DCanvas&lt;/a&gt; which can actually do the 1d signal representation work. This plugin will be act as a basis to the following NDE applications.
 Here goes a screen shot of the plugin.&lt;/p&gt;
@@ -17,10 +15,11 @@ We can use the canvas to show all kinds of waveforms such as eddy current and ul
 &lt;p&gt;Icy is designed for 2D+ image data processing, but in NDE, we often get 1D signal like ultrasonic waveform. The following picture shows a sample of typical ultrasonic waveform.&lt;/p&gt;
 &lt;p&gt;&lt;img alt="ultrasonic waveform" src="../images/ultrasonicWave.JPG" /&gt;&lt;/p&gt;
 &lt;h2&gt;Solution&lt;/h2&gt;
+&lt;p&gt;But there are a lot of plugins available on the Icy repository, and a user can alway find something they want. So I found the "Intensity Profile" plugin which can used a a temporary solution to show a waveform in Icy.
+The following picture shows the screen shot of using intensity profile to show a waveform stored as a picture with only one row pixels.&lt;/p&gt;
 &lt;p&gt;&lt;img alt="1-Row Image With Intensity Profile" src="../images/CaptureOfIcyGUI.PNG" /&gt;&lt;/p&gt;
-&lt;h2&gt;The Plugin -- Chart1DCanvas&lt;/h2&gt;
-&lt;p&gt;Following this idea, I fired &lt;a href=""&gt;a thread&lt;/a&gt; in the forum of Icy. Then I got some suggestions from Fabrice and Stephane. After some coding work, I finally implemented a canvas plugin named &lt;a href="http://icy.bioimageanalysis.org/plugin/Chart1DCanvas"&gt;Chart1DCanvas&lt;/a&gt; which can actually do the 1d signal representation work. This plugin will be act as a basis to the following NDE applications.
-Here goes a screen shot of the plugin.&lt;/p&gt;
-&lt;p&gt;&lt;img alt="Chart1DCanvas screen shot" src="../images/chart1dscreen.png" /&gt;&lt;/p&gt;
-&lt;p&gt;With this plugin, Icy will show a 1d signal in native way which actually is canvas.
-We can use the canvas to show all kinds of waveforms such as eddy current and ultrasonic etc.. &lt;/p&gt;</summary><category term="plugin"></category><category term="ultrasonic"></category></entry></feed>
+&lt;p&gt;Usage:
+1. Input "IntensityProfile" in the search bar of Icy, it located in the upper left of the main window. When it appears in the search result, just click to install.
+2. Open you image, we can store a waveform as a row of pixels, which also means one pixels is one sample value from your data acquisition device. Don't care much about the data range, Icy supports 32-bit gray image, which will be enough for most ADC device.
+3. Then put a line ROI on the image, adjust it to the right position, you can press shift key to make it orthogonal.
+4. Click "IntensityProfile" in the menu bar. And you will see a cure displayed in a chart window. You can zoom in and out, the chart is handled by a java chart library known as "JfreeChart".&lt;/p&gt;</summary><category term="plugin"></category><category term="ultrasonic"></category></entry></feed>
