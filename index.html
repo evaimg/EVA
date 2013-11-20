@@ -103,12 +103,19 @@
         }
         var youtube_src = "//www.youtube.com/embed/mT-2Ur6-tnc"
         var youku_src = "http://player.youku.com/embed/XNjM2NTgxNjA4"
-        jQuery.getJSON('http://freegeoip.net/json/', function(location) {
-            if (location.country_name == "China")
-                chooseVideo(youku_src);
-            else
-                chooseVideo(youtube_src);
-        });
+        try
+        {
+            jQuery.getJSON('http://freegeoip.net/json/', function(location) {
+                if (location.country_name == "China")
+                    chooseVideo(youku_src);
+                else
+                    chooseVideo(youtube_src);
+            });
+        }
+        catch(err)
+        {
+            chooseVideo(youku_src);
+        }
     </script>
 </div>
         <hr class="featurette-divider">
