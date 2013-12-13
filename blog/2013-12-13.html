@@ -33,6 +33,18 @@
                         <link rel="shortcut icon" href="http://oeway.github.io/EVA/theme/img/favicon.png">
                             
         
+    <script type="text/javascript">
+        /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
+        var disqus_shortname = 'eva-nde'; 
+        var disqus_identifier = 'blog/2013-12-13';
+        /* * * DON'T EDIT BELOW THIS LINE * * */
+        (function() {
+            var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
+            dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+            (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+        })();
+    </script>
+
 </head>
 <body>
     <!-- NAVBAR
@@ -75,32 +87,37 @@
     
     <div class="container marketing">
 	   <div class="content">
-<h2>2013</h2>
-<h3>June</h3>
+
+	<div class='article'>
+		<div class="page-header"><h1>Powerful intensity profile tool!</h1></div>
+		<div class="well small">Permalink: <a class="more" href="http://oeway.github.io/EVA/blog/2013-12-13.html">2013-12-13 11:27:00</a>
+by <a class="url fn" href="http://oeway.github.io/EVA/author/will-ouyang.html">Will Ouyang </a>
+ in <a href="http://oeway.github.io/EVA/category/blog.html">blog</a>
+tags: <a href="http://oeway.github.io/EVA/tag/plugin.html">plugin</a> </div>
+		<div><h2>Intensity profile is important</h2>
+<p>Since the first intensity profile tool for Icy is developed, improvement is never stoped, the reason is that this kind of tool is useful to 1D signal based image data. Sample point of 1D signal is displayed as image pixel, but we have get used to the waveform mode.</p>
+<h2>Features</h2>
+<p>Recently, some large scale improvement is made to IntensityInRectangle plugin. Here is some useful feature of the plugin.</p>
 <ul>
-	<li><a href="blog/2013-6-24.html">1D signal presentation in Icy</a></li>
+<li>Show any number of profiles simutaneously.</li>
+<li>Distinguish roi pairs with different color.</li>
+<li>Profile canvas can be resized and operated just like a rectangle ROI</li>
+<li>Use a cursor line to indicate mouse position, update in realtime</li>
+<li>Support line, point, rectangle and more</li>
 </ul>
-<h3>July</h3>
-<ul>
-	<li><a href="blog/2013-7-4.html">Plugin to show 1D signal in Icy is out!</a></li>
-</ul>
-<h3>September</h3>
-<ul>
-	<li><a href="blog/2013-9-27.html">Hardware connection with Micro-Manager</a></li>
-</ul>
-<h3>October</h3>
-<ul>
-	<li><a href="blog/2013-10-24.html">Envelop detecting plugin for Icy</a></li>
-	<li><a href="blog/2013-10-12.html">Surface tracking plugin for Icy</a></li>
-</ul>
-<h3>November</h3>
-<ul>
-	<li><a href="blog/2013-11-17.html">Machine learning plugin for Icy</a></li>
-</ul>
-<h3>December</h3>
-<ul>
-	<li><a href="blog/2013-12-13.html">Powerful intensity profile tool!</a></li>
-</ul>
+<h2>Modes</h2>
+<h3>Line Mode</h3>
+<p>In Line Mode, profile of the current image is calculated along the line roi.</p>
+<h3>Point Mode</h3>
+<p>Since there is only one point, so the profile is calcualted along Z axis.</p>
+<h3>Area Mode</h3>
+<p>All othe type of ROI except line and point is manipulated under this mode, in Area Mode, intensity profile is calculated along Z axis but the mean intensity of each Z layer is used.</p>
+<p>See more detail about the IntensityInRectangle plugins, see [Download][../pages/downloads].</p></div>
+		<div>
+			<h2>Comments</h2>
+<a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="oeway">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
+<div id="disqus_thread"></div>		<div>
+	</div>	
         <hr class="featurette-divider">
 		<footer>
 		  <p>Powered by <a href="http://icy.bioimageanalysis.org">Icy</a>/<a href="http://rsbweb.nih.gov/ij/‎">ImageJ</a>/<a href="http://www.micro-manager.org/‎">Micro-Manager</a>.</p>

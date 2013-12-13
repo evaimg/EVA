@@ -1,5 +1,23 @@
 <?xml version="1.0" encoding="utf-8"?>
-<feed xmlns="http://www.w3.org/2005/Atom"><title>EVA</title><link href="http://oeway.github.io/EVA/" rel="alternate"></link><link href="http://oeway.github.io/EVA/feeds/all.atom.xml" rel="self"></link><id>http://oeway.github.io/EVA/</id><updated>2013-11-17T22:40:00+08:00</updated><entry><title>Machine learning plugin for Icy</title><link href="http://oeway.github.io/EVA/blog/2013-11-17.html" rel="alternate"></link><updated>2013-11-17T22:40:00+08:00</updated><author><name>Will Ouyang</name></author><id>tag:oeway.github.io/EVA,2013-11-17:blog/2013-11-17.html</id><summary type="html">&lt;p&gt;Thanks to RapidMiner(formerly YALE) , which is a powerful and intuitive data mining tool implemented in Java and available under GPL (GNU General Public License).&lt;/p&gt;
+<feed xmlns="http://www.w3.org/2005/Atom"><title>EVA</title><link href="http://oeway.github.io/EVA/" rel="alternate"></link><link href="http://oeway.github.io/EVA/feeds/all.atom.xml" rel="self"></link><id>http://oeway.github.io/EVA/</id><updated>2013-12-13T11:27:00+08:00</updated><entry><title>Powerful intensity profile tool!</title><link href="http://oeway.github.io/EVA/blog/2013-12-13.html" rel="alternate"></link><updated>2013-12-13T11:27:00+08:00</updated><author><name>Will Ouyang</name></author><id>tag:oeway.github.io/EVA,2013-12-13:blog/2013-12-13.html</id><summary type="html">&lt;h2&gt;Intensity profile is important&lt;/h2&gt;
+&lt;p&gt;Since the first intensity profile tool for Icy is developed, improvement is never stoped, the reason is that this kind of tool is useful to 1D signal based image data. Sample point of 1D signal is displayed as image pixel, but we have get used to the waveform mode.&lt;/p&gt;
+&lt;h2&gt;Features&lt;/h2&gt;
+&lt;p&gt;Recently, some large scale improvement is made to IntensityInRectangle plugin. Here is some useful feature of the plugin.&lt;/p&gt;
+&lt;ul&gt;
+&lt;li&gt;Show any number of profiles simutaneously.&lt;/li&gt;
+&lt;li&gt;Distinguish roi pairs with different color.&lt;/li&gt;
+&lt;li&gt;Profile canvas can be resized and operated just like a rectangle ROI&lt;/li&gt;
+&lt;li&gt;Use a cursor line to indicate mouse position, update in realtime&lt;/li&gt;
+&lt;li&gt;Support line, point, rectangle and more&lt;/li&gt;
+&lt;/ul&gt;
+&lt;h2&gt;Modes&lt;/h2&gt;
+&lt;h3&gt;Line Mode&lt;/h3&gt;
+&lt;p&gt;In Line Mode, profile of the current image is calculated along the line roi.&lt;/p&gt;
+&lt;h3&gt;Point Mode&lt;/h3&gt;
+&lt;p&gt;Since there is only one point, so the profile is calcualted along Z axis.&lt;/p&gt;
+&lt;h3&gt;Area Mode&lt;/h3&gt;
+&lt;p&gt;All othe type of ROI except line and point is manipulated under this mode, in Area Mode, intensity profile is calculated along Z axis but the mean intensity of each Z layer is used.&lt;/p&gt;
+&lt;p&gt;See more detail about the IntensityInRectangle plugins, see [Download][../pages/downloads].&lt;/p&gt;</summary><category term="plugin"></category></entry><entry><title>Machine learning plugin for Icy</title><link href="http://oeway.github.io/EVA/blog/2013-11-17.html" rel="alternate"></link><updated>2013-11-17T22:40:00+08:00</updated><author><name>Will Ouyang</name></author><id>tag:oeway.github.io/EVA,2013-11-17:blog/2013-11-17.html</id><summary type="html">&lt;p&gt;Thanks to RapidMiner(formerly YALE) , which is a powerful and intuitive data mining tool implemented in Java and available under GPL (GNU General Public License).&lt;/p&gt;
 &lt;p&gt;The plugin, Rapid Learning, brings the power of RapidMiner to Icy, enables infinite probability, you can do all kinds things such as data loading and transformation (Extract, transform, load, a.k.a. ETL), data preprocessing and visualisation, modelling, evaluation, and deployment.&lt;/p&gt;
 &lt;p&gt;In Rapid Learning plugin, dimensions of (Z,T and C) are treated as features, packaged as an ExampleSet, the ExampleSet then can be used for training and predicting in RapidMiner process. &lt;/p&gt;
 &lt;p&gt;Currently, you can do supervised learning and unsupervised learning to sequence. In supervised learning, you need to define some labels in Mask Editor and draw then on your sequence, then you can train your data and do predicting to other data. You also can do unsupervised learning like clustering, you will use Mask Editor to define your training set and then you can train the model and predicting other sequence.&lt;/p&gt;
