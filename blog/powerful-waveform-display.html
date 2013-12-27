@@ -36,7 +36,7 @@
     <script type="text/javascript">
         /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
         var disqus_shortname = 'eva-nde'; 
-        var disqus_identifier = 'blog/2013-10-12';
+        var disqus_identifier = 'blog/powerful-waveform-display';
         /* * * DON'T EDIT BELOW THIS LINE * * */
         (function() {
             var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
@@ -89,17 +89,30 @@
 	   <div class="content">
 
 	<div class='article'>
-		<div class="page-header"><h1>Surface tracking plugin for Icy</h1></div>
-		<div class="well small">Permalink: <a class="more" href="http://oeway.github.io/EVA/blog/2013-10-12.html">2013-10-12 07:40:00</a>
+		<div class="page-header"><h1>Powerful intensity profile tool!</h1></div>
+		<div class="well small">Permalink: <a class="more" href="http://oeway.github.io/EVA/blog/powerful-waveform-display.html">2013-12-13 11:27:00</a>
 by <a class="url fn" href="http://oeway.github.io/EVA/author/will-ouyang.html">Will Ouyang </a>
  in <a href="http://oeway.github.io/EVA/category/blog.html">blog</a>
-tags: <a href="http://oeway.github.io/EVA/tag/plugin.html">plugin</a> <a href="http://oeway.github.io/EVA/tag/ultrasonic.html">ultrasonic</a> </div>
-		<div><h2>Motivation</h2>
-<p>Immersion testing is one of the most common method in Ultrasonic testing. A technology named "surface tracking" always used in immersion testing. By finding the first echo of the whole sequence of wave, we can get the echo of the liquid-specimen interface. With the offset of the interface, we can inspect the status of the surface, or we can align all the echoes to the same time position.</p>
-<h2>pixelRowAlign plugin</h2>
-<p>The simplest method to achieve this goal is using a simple threshold to find the interface echo position. We have implement a plugin named "pixelRowAlign". With this plugin, you will able to find the echo by defining a threshold, you can choose differenet stratage to find the echoes.</p>
-<p><img alt="pixelRowAlignPlugin" src="http://i.imgur.com/YGQABo6.jpg" /></p>
-<p>See more detail about the plugins, see <a href="../pages/downloads">Download</a>.</p></div>
+tags: <a href="http://oeway.github.io/EVA/tag/plugin.html">plugin</a> </div>
+		<div><h2>Intensity profile is important</h2>
+<p>Since the first intensity profile tool for Icy is developed, improvement is never stoped, the reason is that this kind of tool is useful to 1D signal based image data. Sample point of 1D signal is displayed as image pixel, but we have get used to the waveform mode.</p>
+<h2>Features</h2>
+<p>Recently, some large scale improvement is made to IntensityInRectangle plugin. Here is some useful feature of the plugin.</p>
+<ul>
+<li>Show any number of profiles simutaneously.</li>
+<li>Distinguish roi pairs with different color.</li>
+<li>Profile canvas can be resized and operated just like a rectangle ROI</li>
+<li>Use a cursor line to indicate mouse position, update in realtime</li>
+<li>Support line, point, rectangle and more</li>
+</ul>
+<h2>Modes</h2>
+<h3>Line Mode</h3>
+<p>In Line Mode, profile of the current image is calculated along the line roi.</p>
+<h3>Point Mode</h3>
+<p>Since there is only one point, so the profile is calcualted along Z axis.</p>
+<h3>Area Mode</h3>
+<p>All othe type of ROI except line and point is manipulated under this mode, in Area Mode, intensity profile is calculated along Z axis but the mean intensity of each Z layer is used.</p>
+<p>See more detail about the IntensityInRectangle plugins, see [Download][../pages/downloads].</p></div>
 		<div>
 			<h2>Comments</h2>
 <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="oeway">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>

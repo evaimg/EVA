@@ -36,7 +36,7 @@
     <script type="text/javascript">
         /* * * CONFIGURATION VARIABLES: EDIT BEFORE PASTING INTO YOUR WEBPAGE * * */
         var disqus_shortname = 'eva-nde'; 
-        var disqus_identifier = 'blog/2013-11-17';
+        var disqus_identifier = 'blog/pixel-row-align';
         /* * * DON'T EDIT BELOW THIS LINE * * */
         (function() {
             var dsq = document.createElement('script'); dsq.type = 'text/javascript'; dsq.async = true;
@@ -89,21 +89,17 @@
 	   <div class="content">
 
 	<div class='article'>
-		<div class="page-header"><h1>Machine learning plugin for Icy</h1></div>
-		<div class="well small">Permalink: <a class="more" href="http://oeway.github.io/EVA/blog/2013-11-17.html">2013-11-17 22:40:00</a>
+		<div class="page-header"><h1>Surface tracking plugin for Icy</h1></div>
+		<div class="well small">Permalink: <a class="more" href="http://oeway.github.io/EVA/blog/pixel-row-align.html">2013-10-12 07:40:00</a>
 by <a class="url fn" href="http://oeway.github.io/EVA/author/will-ouyang.html">Will Ouyang </a>
  in <a href="http://oeway.github.io/EVA/category/blog.html">blog</a>
-tags: <a href="http://oeway.github.io/EVA/tag/plugin.html">plugin</a> <a href="http://oeway.github.io/EVA/tag/machine_learning.html">machine_learning</a> </div>
-		<div><p>Thanks to RapidMiner(formerly YALE) , which is a powerful and intuitive data mining tool implemented in Java and available under GPL (GNU General Public License).</p>
-<p>The plugin, Rapid Learning, brings the power of RapidMiner to Icy, enables infinite probability, you can do all kinds things such as data loading and transformation (Extract, transform, load, a.k.a. ETL), data preprocessing and visualisation, modelling, evaluation, and deployment.</p>
-<p>In Rapid Learning plugin, dimensions of (Z,T and C) are treated as features, packaged as an ExampleSet, the ExampleSet then can be used for training and predicting in RapidMiner process. </p>
-<p>Currently, you can do supervised learning and unsupervised learning to sequence. In supervised learning, you need to define some labels in Mask Editor and draw then on your sequence, then you can train your data and do predicting to other data. You also can do unsupervised learning like clustering, you will use Mask Editor to define your training set and then you can train the model and predicting other sequence.</p>
-<p>Of course, you should download RapidMiner first and put the "lib" folder into "plugins" of Icy. Maybe I should make another plugin to include RapidMiner, but the package is too big to a icy library and I should find some way to enables the user use it as a standalone software.
-You may also need the example process file needed by the plugin in the attachments. You can find some more information in the plugin page, about how to use them and how to generate it by yourself.</p>
-<p>Since it's a preview edition, it works under my tests, there still many work to do,so suggestions are highly appreciated.
-Welcome to have a try.</p>
-<p><img alt="RapidLearningPlugin" src="http://i.imgur.com/kGPOzoR.png?1" /></p>
-<p>See more detail about the plugins, see <a href="http://icy.bioimageanalysis.org/plugin/Rapid_Learning">Rapid Learning</a>.</p></div>
+tags: <a href="http://oeway.github.io/EVA/tag/plugin.html">plugin</a> <a href="http://oeway.github.io/EVA/tag/ultrasonic.html">ultrasonic</a> </div>
+		<div><h2>Motivation</h2>
+<p>Immersion testing is one of the most common method in Ultrasonic testing. A technology named "surface tracking" always used in immersion testing. By finding the first echo of the whole sequence of wave, we can get the echo of the liquid-specimen interface. With the offset of the interface, we can inspect the status of the surface, or we can align all the echoes to the same time position.</p>
+<h2>pixelRowAlign plugin</h2>
+<p>The simplest method to achieve this goal is using a simple threshold to find the interface echo position. We have implement a plugin named "pixelRowAlign". With this plugin, you will able to find the echo by defining a threshold, you can choose differenet stratage to find the echoes.</p>
+<p><img alt="pixelRowAlignPlugin" src="http://i.imgur.com/YGQABo6.jpg" /></p>
+<p>See more detail about the plugins, see <a href="../pages/downloads">Download</a>.</p></div>
 		<div>
 			<h2>Comments</h2>
 <a href="http://twitter.com/share" class="twitter-share-button" data-count="horizontal" data-via="oeway">Tweet</a><script type="text/javascript" src="http://platform.twitter.com/widgets.js"></script>
