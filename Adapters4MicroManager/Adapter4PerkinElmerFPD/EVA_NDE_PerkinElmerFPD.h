@@ -108,6 +108,7 @@ public:
   
    void GetName(char* name) const;      
    
+
    // MMCamera API
    // ------------
    int SnapImage();
@@ -174,6 +175,7 @@ public:
 
    unsigned  GetNumberOfComponents() const { return 1;};
 
+   bool WaitForExposureDone()throw();
    // action interface
    // ----------------
 	// floating point read-only properties for testing
@@ -184,8 +186,9 @@ public:
    int OnAcquisitionMode(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnTriggerDevice(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnIsSequenceable(MM::PropertyBase* pProp, MM::ActionType eAct);
-	int CEVA_NDE_PerkinElmerFPD::OnFrameTiming(MM::PropertyBase* pProp, MM::ActionType eAct);
-	int CEVA_NDE_PerkinElmerFPD::OnTriggerMode(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int OnFrameTiming(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int OnTriggerMode(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int OnSelectModel(MM::PropertyBase* pProp, MM::ActionType eAct);
 private:
    int SetAllowedBinning();
    void TestResourceLocking(const bool);
@@ -193,6 +196,7 @@ private:
    int ResizeImageBuffer();
    static const double nominalPixelSizeUm_;
 
+   MMThreadLock g_fpdLock;
    unsigned int	image_width;			// image width
    unsigned int	image_height;			// image height
    ImgBuffer img_;
@@ -218,7 +222,8 @@ private:
 	long byteDepth_;
 	std::string triggerDevice_;
 	long triggerMode_;
-
+	int selectedModel_;
+	int modelsCount_;
    bool stopOnOverflow_;
 
    HACQDESC hAcqDesc;

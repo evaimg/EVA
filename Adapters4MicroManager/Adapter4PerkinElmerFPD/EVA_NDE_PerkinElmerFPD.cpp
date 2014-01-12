@@ -190,7 +190,9 @@ CEVA_NDE_PerkinElmerFPD::CEVA_NDE_PerkinElmerFPD() :
    triggerDevice_(""),
    stopOnOverflow_(false),
    timeout_(5000),
-   hAcqDesc(NULL)
+   hAcqDesc(NULL),
+   selectedModel_(0),
+   modelsCount_(0)
 {
    // call the base class method to set-up default error codes/messages
    InitializeDefaultErrorMessages();
@@ -285,6 +287,11 @@ int CEVA_NDE_PerkinElmerFPD::Initialize()
    assert(nRet == DEVICE_OK);
    SetPropertyLimits(MM::g_Keyword_Exposure, 0, 5000);  //limit to 5s
 
+	// Selected Model
+   pAct = new CPropertyAction (this, &CEVA_NDE_PerkinElmerFPD::OnSelectModel);
+   nRet = CreateProperty("SelectModel", g_acquisitionMode_0, MM::Integer, false, pAct);
+   assert(nRet == DEVICE_OK);
+
 	// Acquisition mode
    pAct = new CPropertyAction (this, &CEVA_NDE_PerkinElmerFPD::OnAcquisitionMode);
    nRet = CreateProperty("AcquisitionMode", g_acquisitionMode_0, MM::String, false, pAct);
@@ -359,11 +366,19 @@ int CEVA_NDE_PerkinElmerFPD::Initialize()
    // initialize image buffer
    GenerateEmptyImage(img_);
 
-   nRet = init(hAcqDesc);
+   g_fpdLock.Lock();
+   int sensorCount;
+   nRet = init(hAcqDesc,modelsCount_,selectedModel_);
+   g_fpdLock.Unlock();
    if(nRet != HIS_ALL_OK)
 		return DEVICE_ERR;
+  
+   SetPropertyLimits("SelectModel", 0, modelsCount_-1);
 
+   g_fpdLock.Lock();
    nRet = openDevice(hAcqDesc);
+   g_fpdLock.Unlock();
+
    if(nRet != HIS_ALL_OK)
 		return DEVICE_ERR;
   
@@ -388,13 +403,42 @@ int CEVA_NDE_PerkinElmerFPD::Shutdown()
    ////EVA_NDE_PerkinElmerHub* pHub = static_cast<EVA_NDE_PerkinElmerHub*>(GetParentHub());
    //if (!pHub)
    //   return HUB_UNKNOWN_ERR;
-
+	g_fpdLock.Lock();
    closeDevice();
+   g_fpdLock.Unlock();
 
    initialized_ = false;
    return DEVICE_OK;
 }
+bool CEVA_NDE_PerkinElmerFPD::WaitForExposureDone()throw()
+{
 
+   MM::MMTime startTime = GetCurrentMMTime();
+   bool bRet=false;
+   bool rsbRet=0;
+
+   try
+   {
+      int status;
+      unsigned int not_needed;
+      // make the time out 2 seconds plus twice the exposure
+      // Added readout time, this caused troubles on very low readout speeds and large buffers, this code timeouted before the image was read out
+      MM::MMTime timeout((long)(100  + 2*GetExposure() * 0.001), (long)(2*GetExposure() * 1000));
+      MM::MMTime startTime = GetCurrentMMTime();
+      MM::MMTime elapsed(0,0);
+
+      do 
+      {
+         CDeviceUtils::SleepMs(1);
+         elapsed = GetCurrentMMTime()  - startTime;
+      } while(!_isReady && elapsed < timeout);   
+   }
+   catch(...)
+   {
+      LogMessage("Unknown exception while waiting for exposure to finish", false);
+   }
+   return bRet;
+}
 /**
 * Performs exposure and grabs a single image.
 * This function should block during the actual exposure and return immediately afterwards 
@@ -409,11 +453,20 @@ int CEVA_NDE_PerkinElmerFPD::SnapImage()
    int ret = DEVICE_ERR;
 	static int callCounter = 0;
 	++callCounter;
-
+	if(!_isReady)
+   {
+      LogMessage("Warning: Entering SnapImage while GetImage has not been done for previous frame", true);
+      return DEVICE_CAMERA_BUSY_ACQUIRING;
+   }
     MMThreadGuard g(imgPixelsLock_);
-	
-    unsigned short* pBuf = (unsigned short*)GetImageBuffer();
+    unsigned short* pBuf = ( unsigned short*)GetImageBuffer();
+	g_fpdLock.Lock();
 	ret = acquireImage(hAcqDesc,pBuf,1,exposureMs_);
+    g_fpdLock.Unlock();
+	if(ret != HIS_ALL_OK)
+		return DEVICE_ERR;
+	ret = WaitForExposureDone();
+
 	if(ret != HIS_ALL_OK)
 		return DEVICE_ERR;
    return DEVICE_OK;
@@ -810,7 +863,6 @@ int CEVA_NDE_PerkinElmerFPD::ThreadRun (MM::MMTime startTime)
    {
       return ret;
    }
-   while(!_isReady) ;
    ret = InsertImage();
 
    if (ret != DEVICE_OK)
@@ -1169,7 +1221,42 @@ int CEVA_NDE_PerkinElmerFPD::OnFrameTiming(MM::PropertyBase* pProp, MM::ActionTy
    }
    return DEVICE_OK;
 }
+/*
+* Handles "FrameTime" property.
+* Changes allowed Binning values to test whether the UI updates properly
+*/
+int CEVA_NDE_PerkinElmerFPD::OnSelectModel(MM::PropertyBase* pProp, MM::ActionType eAct)
+{ 
+   //EVA_NDE_PerkinElmerHub* pHub = static_cast<EVA_NDE_PerkinElmerHub*>(GetParentHub());
+   //if (!pHub)
+   //   return HUB_UNKNOWN_ERR;
+   int nRet=1;
+   if (eAct == MM::AfterSet) {
+	   long tmp;
+      pProp->Get(tmp);
+	  if(tmp!=selectedModel_)
+	  {
+	   selectedModel_ = tmp;
+	   g_fpdLock.Lock();
+	   int sensorCount;
+	   nRet = init(hAcqDesc,modelsCount_,selectedModel_);
+	   g_fpdLock.Unlock();
+	   if(nRet != HIS_ALL_OK)
+			return DEVICE_ERR;
 
+	   g_fpdLock.Lock();
+	   nRet = openDevice(hAcqDesc);
+	   g_fpdLock.Unlock();
+
+	   if(nRet != HIS_ALL_OK)
+			return DEVICE_ERR;
+	  }
+   } else if (eAct == MM::BeforeGet) {
+	  long temp = selectedModel_;
+	  pProp->Set(temp);
+   }
+   return DEVICE_OK;
+}
 int CEVA_NDE_PerkinElmerFPD::OnTriggerDevice(MM::PropertyBase* pProp, MM::ActionType eAct)
 {
    //EVA_NDE_PerkinElmerHub* pHub = static_cast<EVA_NDE_PerkinElmerHub*>(GetParentHub());
@@ -1630,7 +1717,7 @@ MM::Device* EVA_NDE_PerkinElmerHub::CreatePeripheralDevice(const char* adapterNa
          return CreateDevice(adapterName);
 
    }
-   return 0; // adapter name not found
+   return DEVICE_OK; // adapter name not found
 }
 
 

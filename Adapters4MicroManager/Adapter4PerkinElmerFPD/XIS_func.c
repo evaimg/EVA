@@ -20,10 +20,10 @@ WORD actframe;
 #define ACQ_SNAP			8
 #define	ACQ_Brightoc		16
 
-int _isReady=0;
+int _isReady=1;
 
 int closeDevice();
-int init(HACQDESC &hAcqDesc);
+int init(HACQDESC &hAcqDesc,int &sensorCount,int &selectedSnesorNum);
 int openDevice(HACQDESC &hAcqDesc);
 int acquireImage(HACQDESC &hAcqDesc);
 //----------------------------------------------------------------------------------------------------------------------//
@@ -141,7 +141,7 @@ void CALLBACK OnEndAcqCallback(HACQDESC hAcqDesc)
 	_isReady = 1;
 }
 
-long DetectorInit(HACQDESC* phAcqDesc, long bGigETest, int IBIN1, int iGain)
+long DetectorInit(HACQDESC* phAcqDesc, long bGigETest, int IBIN1, int iGain,int &sensorCount,int &selectedSensorNum)
 {
 	int iRet;							// Return value
 	int iCnt;							// 
@@ -149,6 +149,8 @@ long DetectorInit(HACQDESC* phAcqDesc, long bGigETest, int IBIN1, int iGain)
 	HACQDESC hAcqDesc=NULL;
 	unsigned short usTiming=0;
 	unsigned short usNetworkLoadPercent=80;
+	int nChannelNr;
+	UINT nChannelType;
 
 	int iSelected;						// Index of selected GigE detector
 	long ulNumSensors = 0;				// nr of GigE detector in network
@@ -160,6 +162,7 @@ long DetectorInit(HACQDESC* phAcqDesc, long bGigETest, int IBIN1, int iGain)
 	long lOpenMode = HIS_GbIF_IP;
 	long lPacketDelay = 256;
 
+	int i=0;
 	char* pTest = NULL;
 	unsigned int dwRows=0, dwColumns=0;
 
@@ -167,7 +170,7 @@ long DetectorInit(HACQDESC* phAcqDesc, long bGigETest, int IBIN1, int iGain)
 	// * to initialize them in polling mode, set bEnableIRQ = FALSE;
 	// * otherwise, to enable interrupt support, set bEnableIRQ = TRUE;
 	BOOL bEnableIRQ = TRUE;
-	
+	ACQDESCPOS Pos = 0;
 	if (bGigETest)
 	{	
 		uiNumSensors = 0; 
@@ -213,8 +216,8 @@ long DetectorInit(HACQDESC* phAcqDesc, long bGigETest, int IBIN1, int iGain)
 				sprintf(strBuffer,"%d - %s\n",iCnt,(pGbIF_DEVICE_PARAM[iCnt]).cDeviceName);
 				WriteConsole(hOutput, strBuffer, strlen(strBuffer), &dwCharsWritten, NULL);
 			}
-			
-			scanf("%d",&iSelected);
+			iSelected = 0;
+			//scanf("%d",&iSelected);
 			sprintf(strBuffer,"%d - selected\n",iSelected);
 			WriteConsole(hOutput, strBuffer, strlen(strBuffer), &dwCharsWritten, NULL);
 
@@ -311,8 +314,6 @@ long DetectorInit(HACQDESC* phAcqDesc, long bGigETest, int IBIN1, int iGain)
 						WriteConsole(hOutput, strBuffer, strlen(strBuffer), &dwCharsWritten, NULL);
 					}
 					//
-
-					*phAcqDesc = hAcqDesc;
 				}
 			}
 		}
@@ -342,8 +343,45 @@ long DetectorInit(HACQDESC* phAcqDesc, long bGigETest, int IBIN1, int iGain)
 		{
 			sprintf(strBuffer,"%s\t\t\t\tPASS!\n","Acquisition_EnumSensors");
 		}
+
+
 		WriteConsole(hOutput, strBuffer, strlen(strBuffer), &dwCharsWritten, NULL);
+		
+
 	}
+
+	sensorCount = uiNumSensors;
+	if(selectedSensorNum>sensorCount-1)
+		selectedSensorNum = sensorCount-1;
+	// now we iterate through all this sensors
+	// To start the loop Pos must be initialized by zero.
+	do
+	{
+		if ((iRet = Acquisition_GetNextSensor(&Pos, &hAcqDesc))!=HIS_ALL_OK)
+		{
+			char szMsg[300];
+			sprintf(szMsg, "Error nr.: %d", iRet);
+			MessageBox(NULL, szMsg, "debug message!", MB_OK | MB_ICONSTOP);
+			return HIS_ERROR_UNDEFINED;
+		}
+	
+		//ask for communication device type and its number
+		if ((iRet=Acquisition_GetCommChannel(hAcqDesc, &nChannelType, &nChannelNr))!=HIS_ALL_OK)
+		{
+			//error handling
+			char szMsg[300];
+			sprintf(szMsg, "Error nr.: %d", iRet);
+			MessageBox(NULL, szMsg, "debug message!", MB_OK | MB_ICONSTOP);
+			return HIS_ERROR_UNDEFINED;
+		}
+		sprintf(strBuffer, "channel type: %d, ChannelNr: %d\n", nChannelType, nChannelNr);
+		WriteConsole(hOutput, strBuffer, strlen(strBuffer), &dwCharsWritten, NULL);
+
+		if(i == selectedSensorNum) //select specific sensor
+			*phAcqDesc = hAcqDesc;
+		i++;
+	}
+	while (Pos!=0);
 
 	return HIS_ALL_OK;
 }
@@ -351,7 +389,7 @@ long DetectorInit(HACQDESC* phAcqDesc, long bGigETest, int IBIN1, int iGain)
 
 UINT dwDataType, dwRows, dwColumns, dwFrames, dwSortFlags;
 DWORD dwAcqType, dwSystemID, dwSyncMode, dwHwAccess;
-int init(HACQDESC &hAcqDesc)
+int init(HACQDESC &hAcqDesc,int &sensorCount,int &selectedSnesorNum)
 {
 
 	int nRet = HIS_ALL_OK;
@@ -366,9 +404,6 @@ int init(HACQDESC &hAcqDesc)
 	int nChannelNr;
 	UINT nChannelType;
 
-
-	int iSelected=0;
-
 	//// variables for bad pixel correction
 	//unsigned short* pwPixelMapData =NULL;
 	//int* pCorrList = NULL;
@@ -379,32 +414,24 @@ int init(HACQDESC &hAcqDesc)
 	if (hOutput == INVALID_HANDLE_VALUE)
 	{
 		//error handling
-		return 0;
+		return HIS_ERROR_UNDEFINED;
 	}
 
 	hInput = GetStdHandle(STD_INPUT_HANDLE);
 	if (hInput == INVALID_HANDLE_VALUE)
 	{
 		//error handling
-		return 0;
+		return HIS_ERROR_UNDEFINED;
 	}
 	//--------------------------------------------------------------------------------------------------//	
 	// First we tell the system to enumerate all available sensors										//
 	// * to initialize them in polling mode, set bEnableIRQ = FALSE;									//
 	// * otherwise, to enable interrupt support, set bEnableIRQ = TRUE;									//
 	//--------------------------------------------------------------------------------------------------//
-	
-	
-	// Initialization Mode:
-	sprintf(strBuffer,"Please choose init mode:\n0 - Automatic (Framegrabbers / point-to-point connected GigE Detectors)\n1 - Init of GigE Detectors: network and point-to-point connected\n");
-	WriteConsole(hOutput, strBuffer, strlen(strBuffer), &dwCharsWritten, NULL);
-	//scanf("%d",&iSelected);
-	iSelected =0; // select mode 0
-	sprintf(strBuffer,"%d - selected\n",iSelected);
-	WriteConsole(hOutput, strBuffer, strlen(strBuffer), &dwCharsWritten, NULL);
 
 	// This function is implemented above to give examples of the different ways to initialize your detector(s)
-	nRet = DetectorInit(&hAcqDesc, iSelected, 0, 1);
+
+	nRet = DetectorInit(&hAcqDesc, 0, 0, 1,sensorCount,selectedSnesorNum);
 
 	if (nRet!=HIS_ALL_OK)
 	{
@@ -414,85 +441,7 @@ int init(HACQDESC &hAcqDesc)
 		{closeDevice(); return HIS_ERROR_UNDEFINED;};
 	}
 
-	// now we iterate through all this sensors, set further parameters (sensor size,
-	// sorting scheme, system id, interrupt settings and so on) and extract information from every sensor.
-	// To start the loop Pos must be initialized by zero.
-	do
-	{
-		if ((nRet = Acquisition_GetNextSensor(&Pos, &hAcqDesc))!=HIS_ALL_OK)
-		{
-			char szMsg[300];
-			sprintf(szMsg, "Error nr.: %d", nRet);
-			//MessageBox(NULL, szMsg, "debug message!", MB_OK | MB_ICONSTOP);
-			{closeDevice(); return HIS_ERROR_UNDEFINED;};
-		}
 	
-		//ask for communication device type and its number
-		if ((nRet=Acquisition_GetCommChannel(hAcqDesc, &nChannelType, &nChannelNr))!=HIS_ALL_OK)
-		{
-			//error handling
-			char szMsg[300];
-			sprintf(szMsg, "Error nr.: %d", nRet);
-			//MessageBox(NULL, szMsg, "debug message!", MB_OK | MB_ICONSTOP);
-			return 0;
-		}
-
-		sprintf(strBuffer, "channel type: %d, ChannelNr: %d\n", nChannelType, nChannelNr);
-		WriteConsole(hOutput, strBuffer, strlen(strBuffer), &dwCharsWritten, NULL);
-
-		switch (nChannelType)
-		{
-		case HIS_BOARD_TYPE_ELTEC_XRD_FGE_Opto:
-			sprintf(strBuffer,"%s%d\n","HIS_BOARD_TYPE_ELTEC_XRD_FGE_Opto:",nChannelType);
-			break;
-		case HIS_BOARD_TYPE_ELTEC_XRD_FGX:
-			sprintf(strBuffer,"%s%d\n","HIS_BOARD_TYPE_ELTEC_XRD_FGX:",nChannelType);
-			break;
-		case HIS_BOARD_TYPE_ELTEC:
-			sprintf(strBuffer,"%s%d\n","HIS_BOARD_TYPE_ELTEC:",nChannelType);
-			break;
-		case HIS_BOARD_TYPE_ELTEC_GbIF:
-			sprintf(strBuffer,"%s%d\n","HIS_BOARD_TYPE_ELTEC_GbIF:",nChannelType);
-			break;
-		default:
-			sprintf(strBuffer,"%s%d\n","Unknown ChanelType:",nChannelType);
-			break;
-		}
-		WriteConsole(hOutput, strBuffer, strlen(strBuffer), &dwCharsWritten, NULL);
-
-		//ask for data organization of all sensors
-		if ((nRet=Acquisition_GetConfiguration(hAcqDesc, &dwFrames, &dwRows,
-			&dwColumns, &dwDataType, &dwSortFlags, &bEnableIRQ
-			
-			, &dwAcqType, 
-			&dwSystemID, &dwSyncMode, &dwHwAccess))!=HIS_ALL_OK)
-		{
-			//error handling
-			char szMsg[300];
-			sprintf(szMsg, "Error nr.: %d", nRet);
-			//MessageBox(NULL, szMsg, "debug message!", MB_OK | MB_ICONSTOP);
-			return 0;
-		}
-	
-		sprintf(strBuffer, "frames: %d\n", dwFrames);
-		WriteConsole(hOutput, strBuffer, strlen(strBuffer), &dwCharsWritten, NULL);
-		sprintf(strBuffer, "rows: %d\ncolumns: %d\n", dwRows, dwColumns);
-		WriteConsole(hOutput, strBuffer, strlen(strBuffer), &dwCharsWritten, NULL);
-
-		// now set callbacks and messages for every sensor
-		if ((nRet=Acquisition_SetCallbacksAndMessages(hAcqDesc, NULL, 0,
-			0, OnEndFrameCallback, OnEndAcqCallback))!=HIS_ALL_OK)
-		{
-			//error handling
-			char szMsg[300];
-			sprintf(szMsg, "Error nr.: %d", nRet);
-			//MessageBox(NULL, szMsg, "debug message!", MB_OK | MB_ICONSTOP);
-			{closeDevice(); return HIS_ERROR_UNDEFINED;};
-		}
-
-	}
-	while (Pos!=0);
-
 	return nRet;
 }
 
@@ -517,6 +466,10 @@ int openDevice(HACQDESC &hAcqDesc)
 	// We continue with one detector to show the other XISL features
 	// short demo how to use the features of the 1621 if one is connected
 		
+// now we iterate through all this sensors, set further parameters (sensor size,
+	// sorting scheme, system id, interrupt settings and so on) and extract information from every sensor.
+	// To start the loop Pos must be initialized by zero.
+	
 	//ask for communication device type and its number
 	if ((nRet=Acquisition_GetCommChannel(hAcqDesc, &nChannelType, &nChannelNr))!=HIS_ALL_OK)
 	{
@@ -524,8 +477,62 @@ int openDevice(HACQDESC &hAcqDesc)
 		char szMsg[300];
 		sprintf(szMsg, "Error nr.: %d", nRet);
 		//MessageBox(NULL, szMsg, "debug message!", MB_OK | MB_ICONSTOP);
-		return 0;
-	}				
+		return HIS_ERROR_UNDEFINED;
+	}
+
+	sprintf(strBuffer, "channel type: %d, ChannelNr: %d\n", nChannelType, nChannelNr);
+	WriteConsole(hOutput, strBuffer, strlen(strBuffer), &dwCharsWritten, NULL);
+
+	switch (nChannelType)
+	{
+	case HIS_BOARD_TYPE_ELTEC_XRD_FGE_Opto:
+		sprintf(strBuffer,"%s%d\n","HIS_BOARD_TYPE_ELTEC_XRD_FGE_Opto:",nChannelType);
+		break;
+	case HIS_BOARD_TYPE_ELTEC_XRD_FGX:
+		sprintf(strBuffer,"%s%d\n","HIS_BOARD_TYPE_ELTEC_XRD_FGX:",nChannelType);
+		break;
+	case HIS_BOARD_TYPE_ELTEC:
+		sprintf(strBuffer,"%s%d\n","HIS_BOARD_TYPE_ELTEC:",nChannelType);
+		break;
+	case HIS_BOARD_TYPE_ELTEC_GbIF:
+		sprintf(strBuffer,"%s%d\n","HIS_BOARD_TYPE_ELTEC_GbIF:",nChannelType);
+		break;
+	default:
+		sprintf(strBuffer,"%s%d\n","Unknown ChanelType:",nChannelType);
+		break;
+	}
+	WriteConsole(hOutput, strBuffer, strlen(strBuffer), &dwCharsWritten, NULL);
+
+	//ask for data organization of all sensors
+	if ((nRet=Acquisition_GetConfiguration(hAcqDesc, &dwFrames, &dwRows,
+		&dwColumns, &dwDataType, &dwSortFlags, &bEnableIRQ
+			
+		, &dwAcqType, 
+		&dwSystemID, &dwSyncMode, &dwHwAccess))!=HIS_ALL_OK)
+	{
+		//error handling
+		char szMsg[300];
+		sprintf(szMsg, "Error nr.: %d", nRet);
+		//MessageBox(NULL, szMsg, "debug message!", MB_OK | MB_ICONSTOP);
+		return HIS_ERROR_UNDEFINED;
+	}
+	
+	sprintf(strBuffer, "frames: %d\n", dwFrames);
+	WriteConsole(hOutput, strBuffer, strlen(strBuffer), &dwCharsWritten, NULL);
+	sprintf(strBuffer, "rows: %d\ncolumns: %d\n", dwRows, dwColumns);
+	WriteConsole(hOutput, strBuffer, strlen(strBuffer), &dwCharsWritten, NULL);
+
+
+	// now set callbacks and messages for every sensor
+	if ((nRet=Acquisition_SetCallbacksAndMessages(hAcqDesc, NULL, 0,
+		0, OnEndFrameCallback, OnEndAcqCallback))!=HIS_ALL_OK)
+	{
+		//error handling
+		char szMsg[300];
+		sprintf(szMsg, "Error nr.: %d", nRet);
+		//MessageBox(NULL, szMsg, "debug message!", MB_OK | MB_ICONSTOP);
+		{closeDevice(); return HIS_ERROR_UNDEFINED;};
+	}		
 	
 	// check if optical framgrabber is used
 	if (nChannelType==HIS_BOARD_TYPE_ELTEC_XRD_FGX
@@ -745,7 +752,8 @@ int acquireImage(HACQDESC &hAcqDesc,unsigned short* pAcqBuffer, UINT nFrames,flo
 	if (!pAcqBuffer)
 	{
 		//error handling
-		{closeDevice(); return HIS_ERROR_UNDEFINED;};
+		//{closeDevice(); 
+		return HIS_ERROR_UNDEFINED;//};
 	}
 
 	//--------------------------------------------------------------------------------------------------//
@@ -806,6 +814,7 @@ int acquireImage(HACQDESC &hAcqDesc,unsigned short* pAcqBuffer, UINT nFrames,flo
 	//		HIS_SEQ_COLLATE, NULL, NULL, NULL))!=HIS_ALL_OK)
 			HIS_SEQ_ONE_BUFFER, NULL, NULL, NULL))!=HIS_ALL_OK)
 		{
+			_isReady = 1;
 			//error handling
 			char szMsg[300];
 			sprintf(szMsg, "Error nr.: %d", nRet);
