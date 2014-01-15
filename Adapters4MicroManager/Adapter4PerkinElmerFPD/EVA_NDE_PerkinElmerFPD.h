@@ -40,6 +40,7 @@
 #include <map>
 #include <algorithm>
 #include "Acq.h"
+
 //////////////////////////////////////////////////////////////////////////////
 // Error codes
 //
@@ -48,6 +49,13 @@
 #define ERR_SEQUENCE_INACTIVE    105
 #define HUB_UNKNOWN_ERR        107
 #define HUB_NOT_AVAILABLE        107
+
+
+#define ACQ_CONT			1
+#define ACQ_OFFSET			2
+#define ACQ_GAIN			4
+#define ACQ_SNAP			8
+#define	ACQ_Brightoc		16
 
 const char* NoHubError = "Parent Hub not defined.";
 
@@ -183,13 +191,55 @@ public:
 	//int OnSwitch(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnBinning(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnExposure(MM::PropertyBase* pProp, MM::ActionType eAct);
-   int OnAcquisitionMode(MM::PropertyBase* pProp, MM::ActionType eAct);
+   int OnSyncMode(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnTriggerDevice(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnIsSequenceable(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int OnFrameTiming(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int OnTriggerMode(MM::PropertyBase* pProp, MM::ActionType eAct);
 	int OnSelectModel(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int OnPixelCorrection(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int OnCalibrationMode(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int OnSnapMode(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int OnStartCalibration(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int OnProgress(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int OnAcqFrameCount(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int OnOffsetCalFrameCount(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int OnGainCalFrameCount(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int OnMultiGainCalFrameCount(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int OnMultiGainCalSegmentCount(MM::PropertyBase* pProp, MM::ActionType eAct);
 private:
+
+	HANDLE hOutput, hInput;
+	DWORD dwCharsWritten;
+	BOOL dwIRQFlags;
+	WORD *pAcqBuffer, *pPixelBuffer, *pOffsetBuffer,*pBrightocBuffer,*pGainSeqBuffer,*pGainSeqMedBuffer;
+	DWORD *pGainBuffer;
+	//HANDLE hevEndAcq=NULL; //signaled at end of acquisition by corresponding callback
+	char strBuffer[1000]; //buffer for outputs
+
+	UINT dwDataType, dwRows, dwColumns, dwFrames, dwSortFlags;
+	DWORD dwAcqType, dwSystemID, dwSyncMode, dwHwAccess;
+	int* pCorrList;
+	
+	int _isReady;
+
+	int closeDevice();
+	int init(HACQDESC &hAcqDesc,int &sensorCount,int &selectedSnesorNum);
+	int openDevice(HACQDESC &hAcqDesc);
+	int acquireImage(HACQDESC &hAcqDesc,unsigned short* pAcqBuffer);
+	long DetectorInit(HACQDESC* phAcqDesc, long bGigETest, int IBIN1, int iGain,int &sensorCount,int &selectedSensorNum);
+	int refreshSettings(HACQDESC &hAcqDesc);
+	int startOffsetCalibration(HACQDESC &hAcqDesc);
+	int startGainCalibration(HACQDESC &hAcqDesc);
+	int startMultiGainCalibration(HACQDESC &hAcqDesc);
+	int startPixelCorrection(HACQDESC &hAcqDesc);
+
+	int reloadCalibrationData();
+
+	static void CALLBACK OnEndFrameCallback(HACQDESC hAcqDesc);
+	static void CALLBACK OnEndAcqCallback(HACQDESC hAcqDesc);
+	static CEVA_NDE_PerkinElmerFPD *activeFPDins;
+
    int SetAllowedBinning();
    void TestResourceLocking(const bool);
    void GenerateEmptyImage(ImgBuffer& img);
@@ -205,7 +255,7 @@ private:
    bool initialized_;
    long timeout_;
    double exposureMs_;
-   long acquisitionMode_;
+   long syncMode_;
    long frameTiming_;
    int bitDepth_;
    unsigned roiX_;
@@ -225,6 +275,16 @@ private:
 	int selectedModel_;
 	int modelsCount_;
    bool stopOnOverflow_;
+   long acqFrameCount_;
+   long offsetFrameCount_;
+   long gainFrameCount_;
+   long multiGainFrameCount_;
+   long multiGainSegmentCount_;
+   std::string calibrationMode_;
+   std::string snapMode_;
+   long progress_;
+   bool pixelCorrection_;
+   std::string settingsID_;
 
    HACQDESC hAcqDesc;
    MMThreadLock* pEVA_NDE_PerkinElmerResourceLock_;
