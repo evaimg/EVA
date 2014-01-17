@@ -214,6 +214,8 @@ private:
 	BOOL dwIRQFlags;
 	WORD *pAcqBuffer, *pPixelBuffer, *pOffsetBuffer,*pBrightocBuffer,*pGainSeqBuffer,*pGainSeqMedBuffer;
 	DWORD *pGainBuffer;
+	DWORD *pGainBufferInUse, *pCorrListInUse;
+	WORD  *pOffsetBufferInUse;
 	//HANDLE hevEndAcq=NULL; //signaled at end of acquisition by corresponding callback
 	char strBuffer[1000]; //buffer for outputs
 

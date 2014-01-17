@@ -99,7 +99,7 @@ DWORD WINAPI CreateMessageBox(LPVOID lpParam) {
 	MessageBox(NULL, (char*)lpParam, "Notice", MB_OK);
 	return 0;
 }
-#define MessageBoxNonBlocking(msg)  CreateThread(NULL, 0, &CreateMessageBox, msg, 0, NULL)
+#define MessageBoxNonBlocking(msg)  if(initialized_) CreateThread(NULL, 0, &CreateMessageBox, msg, 0, NULL)
 // windows DLL entry code
 #ifdef WIN32
 BOOL APIENTRY DllMain( HANDLE /*hModule*/, 
@@ -240,7 +240,10 @@ CEVA_NDE_PerkinElmerFPD::CEVA_NDE_PerkinElmerFPD() :
     offsetFrameCount_(20),
     gainFrameCount_(20),
     multiGainFrameCount_(20),
-    multiGainSegmentCount_(2)
+    multiGainSegmentCount_(2),
+	pGainBufferInUse(NULL),
+	pCorrListInUse(NULL),
+	pOffsetBufferInUse(NULL)
 {
    // call the base class method to set-up default error codes/messages
    InitializeDefaultErrorMessages();
@@ -509,9 +512,6 @@ int CEVA_NDE_PerkinElmerFPD::Initialize()
    reloadCalibrationData();
    g_fpdLock.Unlock();
 
-  image_width = dwColumns;
-  image_height = dwRows;
-  ResizeImageBuffer();
   initialized_ = true;
    return DEVICE_OK;
 }
@@ -541,12 +541,8 @@ bool CEVA_NDE_PerkinElmerFPD::WaitForExposureDone()throw()
 
   MM::MMTime startTime = GetCurrentMMTime();
    bool bRet=false;
-   bool rsbRet=0;
-
    try
    {
-      int status;
-      unsigned int not_needed;
       // make the time out 2 seconds plus twice the exposure
       // Added readout time, this caused troubles on very low readout speeds and large buffers, this code timeouted before the image was read out
       MM::MMTime timeout((long)(20  + 2*GetExposure() * 0.001), (long)(2*GetExposure()));
@@ -1199,14 +1195,13 @@ int CEVA_NDE_PerkinElmerFPD::OnSyncMode(MM::PropertyBase* pProp, MM::ActionType 
 		  syncMode_ = 4;
 	  else
 		  syncMode_ = 1;
-
+	   refreshSettings(hAcqDesc);
+	   reloadCalibrationData();
       if (initialized_) {
          int ret = OnPropertiesChanged();
          if (ret != DEVICE_OK)
             return ret;
       }
-	   refreshSettings(hAcqDesc);
-	   reloadCalibrationData();
    } else if (eAct == MM::BeforeGet) {
 	  std::string tmp;
 	  switch(syncMode_)
@@ -1336,14 +1331,14 @@ int CEVA_NDE_PerkinElmerFPD::OnFrameTiming(MM::PropertyBase* pProp, MM::ActionTy
 		  SetExposure(0.0);
 		  frameTiming_ = 0;
 	  }
-
+	  refreshSettings(hAcqDesc);
+	  reloadCalibrationData();
       if (initialized_) {
          int ret = OnPropertiesChanged();
          if (ret != DEVICE_OK)
             return ret;
       }
-	  refreshSettings(hAcqDesc);
-	  reloadCalibrationData();
+
    } else if (eAct == MM::BeforeGet) {
 	  std::string tmp;
 	  switch(frameTiming_)
@@ -1465,12 +1460,40 @@ int CEVA_NDE_PerkinElmerFPD::OnSnapMode(MM::PropertyBase* pProp, MM::ActionType 
    else if (eAct == MM::AfterSet)
    {
       pProp->Get(snapMode_);
+	 //raw
+	if(snapMode_.compare(g_SnapMode_0)==0)
+	{
+		pGainBufferInUse = NULL;
+		pOffsetBufferInUse = NULL;
+	}	
+	//offset
+	else if(snapMode_.compare(g_SnapMode_1)==0)
+	{
+		pGainBufferInUse = NULL;
+		pOffsetBufferInUse = pOffsetBuffer;
+	}
+	//gain/offset
+	else if(snapMode_.compare(g_SnapMode_2)==0)
+	{
+		pGainBufferInUse = pGainBuffer;
+		pOffsetBufferInUse = pOffsetBuffer;
+	}
+	//multi-gain mode
+	else if(snapMode_.compare(g_SnapMode_3)==0)
+	{
+		pGainBufferInUse = pGainBuffer;
+		pOffsetBufferInUse = pOffsetBuffer;
+	}
+	else
+	{
+		pGainBufferInUse = pGainBuffer;
+		pOffsetBufferInUse = pOffsetBuffer;
+	}
 	  if (initialized_) {
          int ret = OnPropertiesChanged();
          if (ret != DEVICE_OK)
             return ret;
       }
-	  reloadCalibrationData();
    }
    return DEVICE_OK;
 }
@@ -1492,6 +1515,8 @@ int CEVA_NDE_PerkinElmerFPD::OnStartCalibration(MM::PropertyBase* pProp, MM::Act
 	  {	
 		  calibrationMode_.assign(tmp.c_str());
 	  }
+	  else
+		  return DEVICE_OK;
 	// const char* g_CalibrationMode_None = "None";
 	//const char* g_CalibrationMode_Offset = "Offset";
 	//const char* g_CalibrationMode_Gain = "Gain/Offset";
@@ -1567,17 +1592,31 @@ int CEVA_NDE_PerkinElmerFPD::OnPixelCorrection(MM::PropertyBase* pProp, MM::Acti
 	  if(tmp.compare("On")==0)
 	  {	
 		 pixelCorrection_ = true;
+		 if(pCorrList)
+			pCorrListInUse =(DWORD *) pCorrList;
+		 else
+		 {
+			pixelCorrection_ = false;
+			pCorrListInUse = NULL;
+			if (initialized_)
+			{
+				MessageBoxNonBlocking("Pixel Correction data is not available!");
+			}
+		 }
 	  }
 	  else
 	  {
 		 pixelCorrection_ = false;
+		 pCorrListInUse = NULL;
 	  }
+
+
 	  if (initialized_) {
          int ret = OnPropertiesChanged();
          if (ret != DEVICE_OK)
             return ret;
       }
-	  reloadCalibrationData();
+
 
    }
    return DEVICE_OK;
@@ -1737,6 +1776,8 @@ int CEVA_NDE_PerkinElmerFPD::ResizeImageBuffer()
 		case 5:
 			binSizeX_ = 1; binSizeY_ =4;
 			break;
+		default:
+			binSizeX_ = 1; binSizeY_ =1;
 	}
 	img_.Resize(image_width/binSizeX_, image_height/binSizeY_,byteDepth_);
    return DEVICE_OK;
@@ -2513,7 +2554,6 @@ int CEVA_NDE_PerkinElmerFPD::acquireImage(HACQDESC &hAcqDesc,unsigned short* pAc
 	int nRet = HIS_ERROR_UNDEFINED;
 	// -> board type is HIS_BOARD_TYPE_ELTEC or HIS_BOARD_TYPE_ELTEC_GbIF
 	DWORD dwDemoParam;
-
 	refreshSettings(hAcqDesc);
 
 	dwFrames = acqFrameCount_;
@@ -2569,18 +2609,12 @@ int CEVA_NDE_PerkinElmerFPD::acquireImage(HACQDESC &hAcqDesc,unsigned short* pAc
 	if(snapMode_.compare(g_SnapMode_3)==0)
 	{
 		nRet=Acquisition_Acquire_Image_Ex(hAcqDesc,dwFrames,0, 
-			HIS_SEQ_AVERAGE,pOffsetBuffer,multiGainSegmentCount_,pGainSeqBuffer,pGainSeqMedBuffer,NULL,(DWORD*)pCorrList);
+			HIS_SEQ_AVERAGE,pOffsetBufferInUse,multiGainSegmentCount_,pGainSeqBuffer,pGainSeqMedBuffer,NULL,(DWORD*)pCorrList);
 	}
 	else
 	{
-		nRet=Acquisition_Acquire_Image(hAcqDesc,dwFrames,0, 
-	//		HIS_SEQ_DEST_ONE_FRAME, NULL, NULL, NULL))!=HIS_ALL_OK)
-	//		HIS_SEQ_ONE_BUFFER, NULL, NULL, NULL))!=HIS_ALL_OK)
-	//		HIS_SEQ_TWO_BUFFERS, NULL, NULL, NULL))!=HIS_ALL_OK)
-	//			HIS_SEQ_CONTINUOUS, NULL, NULL, NULL))!=HIS_ALL_OK)
-	//		HIS_SEQ_AVERAGE, NULL, NULL, NULL))!=HIS_ALL_OK)
-	//		HIS_SEQ_COLLATE, NULL, NULL, NULL))!=HIS_ALL_OK)
-		HIS_SEQ_AVERAGE, pOffsetBuffer, pGainBuffer, (DWORD*)pCorrList);
+		nRet=Acquisition_Acquire_Image(hAcqDesc,dwFrames,0,
+			HIS_SEQ_AVERAGE, pOffsetBufferInUse, pGainBufferInUse, (DWORD*)pCorrListInUse);
 	}
 
 	// now we acquire dwFrames (in this example dwFrames is 10) images
@@ -2614,169 +2648,129 @@ int CEVA_NDE_PerkinElmerFPD::reloadCalibrationData()
 	bool multiGainCal_ = false;
 	bool pixelCal_ = false;
 
-	if(pOffsetBuffer)
-		free(pOffsetBuffer);
-	pOffsetBuffer = NULL;
-	if(pGainBuffer)
-		free(pGainBuffer);
-	pGainBuffer = NULL;
-	if (pPixelBuffer) 
-		free(pPixelBuffer);
-	pPixelBuffer = NULL;
-
-	if(snapMode_.compare(g_SnapMode_0)==0)
-		return nRet;
+	//if(snapMode_.compare(g_SnapMode_0)==0)
+	//	return nRet;
 
 	char szFileName[300];
 	FILE *pFile = NULL;
 
-	if(snapMode_.compare(g_SnapMode_1)==0 || snapMode_.compare(g_SnapMode_2)==0 || snapMode_.compare(g_SnapMode_3)==0)
+	//load offset map
+	string prefix("Offset_");
+	strcpy(szFileName, (prefix+settingsID_+".his").c_str());
+	printf("Load Offset Image under filename:\n%s\n", szFileName);
+	pFile = fopen(szFileName, "rb");
+	if (pFile)
 	{
-		//load offset map
-
-		string prefix("Offset_");
-		strcpy(szFileName, (prefix+settingsID_+".his").c_str());
-		printf("Load Offset Image under filename:\n%s\n", szFileName);
-		pFile = fopen(szFileName, "rb");
-		if (pFile)
-		{
-			WinHeaderType FileHeader;
-			int nDummy = 0;
-		
-			pOffsetBuffer =(WORD *) malloc(dwRows*dwColumns*sizeof(WORD));
-			memset(&FileHeader, 0, sizeof(WinHeaderType));
-			fread(&FileHeader, sizeof(WinHeaderType), 1, pFile);
-			fread(&nDummy, sizeof(nDummy), 8, pFile);
-			fread(pOffsetBuffer, sizeof(WORD)*dwRows*dwColumns, 1, pFile);
-			//FileHeader.FileType=0x7000;
-			//FileHeader.HeaderSize = sizeof(WinHeaderType);
-			//FileHeader.ImageHeaderSize = 32;
-			//FileHeader.FileSize = FileHeader.HeaderSize+FileHeader.ImageHeaderSize+dwRows*dwColumns*sizeof(WORD);
-			//FileHeader.ULX = FileHeader.ULY = 1;
-			//FileHeader.BRX = (WORD)dwColumns;
-			//FileHeader.BRY = (WORD)dwRows;
-			//FileHeader.NrOfFrames = 1;
-			//FileHeader.TypeOfNumbers = 4;//DATASHORT;
-			//FileHeader.IntegrationTime = 0;
-
-			fclose(pFile);
-			offsetCal_ = true;
-		}
-		else 
-		{
-			MessageBoxNonBlocking("Error loading Offset Calibration,you may need to perform Offset Calibration!");
-			LogMessage("Error loading Offset file!\n");
-			//return OFFSET_CALIBRATION_FAILED;
-			SetProperty("SnapMode",g_SnapMode_0);
-		}
+		if(pOffsetBuffer)
+			free(pOffsetBuffer);
+		pOffsetBuffer = NULL;
+		WinHeaderType FileHeader;
+		WinImageHeaderType ImageHeader;
+			
+		fread(&FileHeader, sizeof(WinHeaderType), 1, pFile);
+		//fseek(pFile,68,0);
+		//fread(&ImageHeader, sizeof(WinImageHeaderType), 1, pFile);
+		fseek(pFile,100,0);
+		assert(FileHeader.BRX-FileHeader.ULX+1 == dwRows);
+		assert(FileHeader.BRY-FileHeader.ULY+1 == dwColumns);
+		pOffsetBuffer =(WORD *) malloc(dwRows*dwColumns*sizeof(WORD));
+		fread(pOffsetBuffer, sizeof(WORD)*dwRows*dwColumns, 1, pFile);
+		fclose(pFile);
+		offsetCal_ = true;
 	}
-	if(snapMode_.compare(g_SnapMode_2)==0)
+	else 
 	{
-		//load gain map
-		string prefix2("Gain_");
-		strcpy(szFileName, (prefix2+settingsID_+".his").c_str());
-		printf("Load Gain Image under filename:\n%s\n", szFileName);
-		pFile = fopen(szFileName, "rb");
-		if (pFile)
-		{
-			WinHeaderType FileHeader;
-			int nDummy = 0;
-		
-			pGainBuffer =(DWORD *)  malloc(dwRows*dwColumns*sizeof(DWORD));
-			memset(&FileHeader, 0, sizeof(WinHeaderType));
-			fread(&FileHeader, sizeof(WinHeaderType), 1, pFile);
-			fread(&nDummy, sizeof(nDummy), 8, pFile);
-			fread(pGainBuffer, sizeof(DWORD)*dwRows*dwColumns, 1, pFile);
-			//FileHeader.FileType=0x7000;
-			//FileHeader.HeaderSize = sizeof(WinHeaderType);
-			//FileHeader.ImageHeaderSize = 32;
-			//FileHeader.FileSize = FileHeader.HeaderSize+FileHeader.ImageHeaderSize+dwRows*dwColumns*sizeof(WORD);
-			//FileHeader.ULX = FileHeader.ULY = 1;
-			//FileHeader.BRX = (WORD)dwColumns;
-			//FileHeader.BRY = (WORD)dwRows;
-			//FileHeader.NrOfFrames = 1;
-			//FileHeader.TypeOfNumbers = 4;//DATASHORT;
-			//FileHeader.IntegrationTime = 0;
-			fclose(pFile);
-			gainCal_ = true;
-		} 
-		else
-		{
-			MessageBoxNonBlocking("Error loading Gain Calibration file,you may need to perform Gain Calibration!");
-			LogMessage("Error loading Gain calibration file!\n");
-			//return GAIN_CALIBRATION_FAILED;
-			if(offsetCal_)
-				SetProperty("SnapMode",g_SnapMode_1);
-			else
-				SetProperty("SnapMode",g_SnapMode_0);
-		}
+		MessageBoxNonBlocking("Error loading Offset Calibration,you may need to perform Offset Calibration!");
+		LogMessage("Error loading Offset file!\n");
+		//return OFFSET_CALIBRATION_FAILED;
 	}
-	if (pCorrList) 
-		free(pCorrList);
-	pCorrList = NULL;
-	if(pixelCorrection_)
+
+
+
+	//load gain map
+	string prefix2("Gain_");
+	strcpy(szFileName, (prefix2+settingsID_+".his").c_str());
+	printf("Load Gain Image under filename:\n%s\n", szFileName);
+	pFile = fopen(szFileName, "rb");
+	if (pFile)
+	{
+		if(pGainBuffer)
+			free(pGainBuffer);
+		pGainBuffer = NULL;
+		WinHeaderType FileHeader;
+		WinImageHeaderType ImageHeader;
+
+		fread(&FileHeader, sizeof(WinHeaderType), 1, pFile);
+		//fseek(pFile,68,0);
+		//fread(&ImageHeader, sizeof(WinImageHeaderType), 1, pFile);
+		fseek(pFile,100,0);
+		assert(FileHeader.BRX-FileHeader.ULX+1 == dwRows);
+		assert(FileHeader.BRY-FileHeader.ULY+1 == dwColumns);
+		pGainBuffer =(DWORD *)  malloc(dwRows*dwColumns*sizeof(DWORD));
+		fread(pGainBuffer, sizeof(DWORD)*dwRows*dwColumns, 1, pFile);
+		fclose(pFile);
+		gainCal_ = true;
+	} 
+	else
 	{
 
+		MessageBoxNonBlocking("Error loading Gain Calibration file,you may need to perform Gain Calibration!");
+		LogMessage("Error loading Gain calibration file!\n");
+		//return GAIN_CALIBRATION_FAILED;
+		
+	}
+	//load gain map
+	//--------------------------------------------------------------------------------------------------------------//
+	// Pixel correction																								//
+	//--------------------------------------------------------------------------------------------------------------//
+	// create a defect pixel image or load the defect pixel image which is already exiting (e.g. from the PKI detector CD) 
+	strcpy(szFileName, "pixel_correction.his");
+	printf("Load pixel correction Image under filename:\n%s\n", szFileName);
+	pFile = fopen(szFileName, "rb");
+	if (pFile)
+	{
+		if (pPixelBuffer) 
+			free(pPixelBuffer);
+		pPixelBuffer = NULL;
+		if (pCorrList) 
+			free(pCorrList);
+		pCorrList = NULL;
 		int iListSize=0;
-
-		//load gain map
-		//--------------------------------------------------------------------------------------------------------------//
-		// Pixel correction																								//
-		//--------------------------------------------------------------------------------------------------------------//
-		// create a defect pixel image or load the defect pixel image which is already exiting (e.g. from the PKI detector CD) 
-		strcpy(szFileName, "pixel_correction.his");
-		printf("Load pixel correction Image under filename:\n%s\n", szFileName);
-		pFile = fopen(szFileName, "rb");
-		if (pFile)
-		{
-			WinHeaderType FileHeader;
-			int nDummy = 0;
-			memset(&FileHeader, 0, sizeof(WinHeaderType));
-			pPixelBuffer= (WORD *) malloc( dwRows*dwColumns*(sizeof (WORD)));
-			fread(&FileHeader, sizeof(WinHeaderType), 1, pFile);
-			fread(&nDummy, sizeof(nDummy), 8, pFile);
-			fread(pPixelBuffer, sizeof(WORD)*dwRows*dwColumns, 1, pFile);
-			//FileHeader.FileType=0x7000;
-			//FileHeader.HeaderSize = sizeof(WinHeaderType);
-			//FileHeader.ImageHeaderSize = 32;
-			//FileHeader.FileSize = FileHeader.HeaderSize+FileHeader.ImageHeaderSize+dwRows*dwColumns*sizeof(WORD);
-			//FileHeader.ULX = FileHeader.ULY = 1;
-			//FileHeader.BRX = (WORD)dwColumns;
-			//FileHeader.BRY = (WORD)dwRows;
-			//FileHeader.NrOfFrames = 1;
-			//FileHeader.TypeOfNumbers = 4;//DATASHORT;
-			//FileHeader.IntegrationTime = 0;
-			fclose(pFile);
-			//memset(pwPixelMapData,0,dwRows*dwColumns*sizeof (unsigned short)); 
-			//pwPixelMapData [100 + 102* dwColumns] = 0xFFFF; // mark pixel in image as defect
-			//pwPixelMapData [125 + 113* dwColumns] = 0xFFFF; // mark pixel in image as defect
-			if(pCorrList)
-				free(pCorrList);
-			pCorrList = NULL;
-			iListSize=0;
-			// 1) retrieve the required size for the list "&iListSize"
-			Acquisition_CreatePixelMap(pPixelBuffer, dwColumns, dwRows, pCorrList, &iListSize);
-			// 2) Allocate the memory for the list
-			pCorrList = (int *) malloc(iListSize);
-			// 3) Import the data into the list
-			Acquisition_CreatePixelMap(pPixelBuffer, dwColumns, dwRows, pCorrList, &iListSize);
-			// 4a) Correct the already acquired data
-			pixelCal_ = true;
-		} 
-		else
-		{
-			MessageBoxNonBlocking("Error loading Pixel Correction file,you may need to perform Pixel Correction!");
-			LogMessage("Error loading pixel correction file!\n");
-			//return GAIN_CALIBRATION_FAILED;
-			SetProperty("PixelCorrection","Off");
-		}
+		WinHeaderType FileHeader;
+		WinImageHeaderType ImageHeader;
+		pPixelBuffer= (WORD *) malloc( dwRows*dwColumns*(sizeof (WORD)));
+		fread(&FileHeader, sizeof(WinHeaderType), 1, pFile);
+		//fseek(pFile,68,0);
+		//fread(&ImageHeader, sizeof(WinImageHeaderType), 1, pFile);
+		fseek(pFile,100,0);
+		fread(pPixelBuffer, sizeof(WORD)*dwRows*dwColumns, 1, pFile);
+		fclose(pFile);
+		if(pCorrList)
+			free(pCorrList);
+		pCorrList = NULL;
+		iListSize=0;
+		// 1) retrieve the required size for the list "&iListSize"
+		Acquisition_CreatePixelMap(pPixelBuffer, dwColumns, dwRows, pCorrList, &iListSize);
+		// 2) Allocate the memory for the list
+		pCorrList = (int *) malloc(iListSize);
+		// 3) Import the data into the list
+		Acquisition_CreatePixelMap(pPixelBuffer, dwColumns, dwRows, pCorrList, &iListSize);
+		// 4a) Correct the already acquired data
+		pixelCal_ = true;
+	} 
+	else
+	{
+		MessageBoxNonBlocking("Error loading Pixel Correction file,you may need to perform Pixel Correction!");
+		LogMessage("Error loading pixel correction file!\n");
+		//return GAIN_CALIBRATION_FAILED;
 	}
-	//refresh properties
-	if (initialized_) {
-        int ret = OnPropertiesChanged();
-        if (ret != DEVICE_OK)
-            return ret;
-    }
+
+	// refresh buffer in use
+	SetProperty("SnapMode",snapMode_.c_str());
+	if(pixelCorrection_)
+		SetProperty("PixelCorrection","On");
+	else
+		SetProperty("PixelCorrection","Off");
 	return HIS_ALL_OK;
 }
 int CEVA_NDE_PerkinElmerFPD::startOffsetCalibration(HACQDESC &hAcqDesc)
@@ -2822,7 +2816,7 @@ int CEVA_NDE_PerkinElmerFPD::startOffsetCalibration(HACQDESC &hAcqDesc)
 	if (pFile)
 	{
 		WinHeaderType FileHeader;
-		int nDummy = 0;
+		byte nDummy = 0;
 		memset(&FileHeader, 0, sizeof(WinHeaderType));
 		FileHeader.FileType=0x7000;
 		FileHeader.HeaderSize = sizeof(WinHeaderType);
@@ -2835,7 +2829,7 @@ int CEVA_NDE_PerkinElmerFPD::startOffsetCalibration(HACQDESC &hAcqDesc)
 		FileHeader.TypeOfNumbers = 4;//DATASHORT;
 		FileHeader.IntegrationTime = 0;
 		fwrite(&FileHeader, sizeof(WinHeaderType), 1, pFile);
-		fwrite(&nDummy, sizeof(nDummy), 8, pFile);
+		fwrite(&nDummy, sizeof(byte), 100-sizeof(WinHeaderType), pFile);
 		fwrite(pOffsetBuffer, sizeof(WORD)*dwRows*dwColumns, 1, pFile);
 		fclose(pFile);
 	}
@@ -2900,7 +2894,7 @@ int CEVA_NDE_PerkinElmerFPD::startGainCalibration(HACQDESC &hAcqDesc)
 	if (pFile)
 	{
 		WinHeaderType FileHeader;
-		int nDummy = 0;
+		byte nDummy = 0;
 		memset(&FileHeader, 0, sizeof(WinHeaderType));
 		FileHeader.FileType=0x7000;
 		FileHeader.HeaderSize = sizeof(WinHeaderType);
@@ -2913,7 +2907,7 @@ int CEVA_NDE_PerkinElmerFPD::startGainCalibration(HACQDESC &hAcqDesc)
 		FileHeader.TypeOfNumbers = 4;//DATASHORT;
 		FileHeader.IntegrationTime = 0;
 		fwrite(&FileHeader, sizeof(WinHeaderType), 1, pFile);
-		fwrite(&nDummy, sizeof(nDummy), 8, pFile);
+		fwrite(&nDummy, sizeof(byte), 100-sizeof(WinHeaderType), pFile);
 		fwrite(pGainBuffer, sizeof(DWORD)*dwRows*dwColumns, 1, pFile);
 		fclose(pFile);
 	} 
