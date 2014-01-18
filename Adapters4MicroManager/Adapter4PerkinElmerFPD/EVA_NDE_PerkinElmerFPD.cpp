@@ -1288,7 +1288,7 @@ int CEVA_NDE_PerkinElmerFPD::OnFrameTiming(MM::PropertyBase* pProp, MM::ActionTy
       pProp->Get(tmp);
 	  if(tmp.compare(g_FrameTime_TIMING_0)==0)
 	  {
-		  SetExposure(0.0);
+		  SetExposure(100.0);
 		  frameTiming_ = 0;
 	  }
 	  else if(tmp.compare(g_FrameTime_TIMING_1)==0)
@@ -1895,7 +1895,7 @@ void CALLBACK CEVA_NDE_PerkinElmerFPD::OnEndAcqCallback(HACQDESC hAcqDesc)
 	DWORD dwAcqType, dwSystemID, dwAcqData, dwSyncMode, dwHwAccess;
 	BOOL dwIRQFlags;
 
-	
+	activeFPDins->_isReady = 1;
 #ifdef __X64
 	void *vpAcqData=NULL;
 	Acquisition_GetAcqData(hAcqDesc, &vpAcqData);
@@ -1904,18 +1904,19 @@ void CALLBACK CEVA_NDE_PerkinElmerFPD::OnEndAcqCallback(HACQDESC hAcqDesc)
 	Acquisition_GetAcqData(hAcqDesc, &dwAcqData);
 #endif
 
-
-	Acquisition_GetConfiguration(hAcqDesc, &dwFrames, &dwRows,
-		&dwColumns, &dwDataType, &dwSortFlags, &dwIRQFlags, &dwAcqType, 
-		&dwSystemID, &dwSyncMode, &dwHwAccess);
-	Acquisition_GetActFrame(hAcqDesc, &dwActFrame, &dwSecFrame);
-
-	
-	printf("dwActTyp %d\n",dwAcqType);
+	//Acquisition_GetConfiguration(hAcqDesc, &dwFrames, &dwRows,
+	//	&dwColumns, &dwDataType, &dwSortFlags, &dwIRQFlags, &dwAcqType, 
+	//	&dwSystemID, &dwSyncMode, &dwHwAccess);
+	//Acquisition_GetActFrame(hAcqDesc, &dwActFrame, &dwSecFrame);
+	//if (activeFPDins->initialized_) {
+	//	int ret= activeFPDins->SetProperty(g_Keyword_Progress,CDeviceUtils::ConvertToString((long)dwFrames));
+ //       ret = activeFPDins->OnPropertiesChanged();
+	//	sprintf(activeFPDins->strBuffer, "frame: %d\n\n",dwActFrame);
+	// }
 
  	printf("End of Acquisition\n");
 	//SetEvent(hevEndAcq);
-	activeFPDins->_isReady = 1;
+
 }
 
 long CEVA_NDE_PerkinElmerFPD::DetectorInit(HACQDESC* phAcqDesc, long bGigETest, int IBIN1, int iGain,int &sensorCount,int &selectedSensorNum)
