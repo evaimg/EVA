@@ -1,0 +1,458 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+	<meta charset="utf-8">
+	<title>EVA</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	<meta name="description" content="">
+	<meta name="author" content="Will Ouyang">
+
+	<!-- HTML5 shim, for IE6-8 support of HTML elements -->
+	<!--[if lt IE 9]>
+		<script src="http://oeway.github.io/EVA/theme/js/html5.js"></script>
+	<![endif]-->
+
+	<!-- Styles -->
+	<link href="http://oeway.github.io/EVA/theme/css/bootstrap.min.css" rel="stylesheet">
+	<link href="http://oeway.github.io/EVA/theme/css/local.css" rel="stylesheet">
+	<link href="http://oeway.github.io/EVA/theme/css/pygments.css" rel="stylesheet">
+    <!-- Feeds -->
+    <link href="http://oeway.github.io/EVA/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="EVA Atom Feed" />
+ 
+        
+        <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
+        <!--[if lt IE 9]>
+         <script src="js/html5shiv.js"></script>
+         <![endif]-->
+        
+        <!-- Fav and touch icons -->
+        <link rel="apple-touch-icon-precomposed" sizes="144x144" href="http://oeway.github.io/EVA/theme/img/apple-touch-icon-144-precomposed.png">
+            <link rel="apple-touch-icon-precomposed" sizes="114x114" href="http://oeway.github.io/EVA/theme/img/apple-touch-icon-114-precomposed.png">
+                <link rel="apple-touch-icon-precomposed" sizes="72x72" href="http://oeway.github.io/EVA/theme/img/apple-touch-icon-72-precomposed.png">
+                    <link rel="apple-touch-icon-precomposed" href="http://oeway.github.io/EVA/theme/img/apple-touch-icon-57-precomposed.png">
+                        <link rel="shortcut icon" href="http://oeway.github.io/EVA/theme/img/favicon.png">
+                            
+        
+</head>
+<body>
+    <!-- NAVBAR
+     ================================================== -->
+    <div class="navbar-wrapper">
+        <!-- Wrap the .navbar in .container to center it within the absolutely positioned parent. -->
+        <div class="container">
+            
+            <div class="navbar navbar-inverse">
+                <div class="navbar-inner">
+                    <!-- Responsive Navbar Part 1: Button for triggering responsive navbar (not covered in tutorial). Include responsive CSS to utilize. -->
+                    <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                        <span class="icon-bar"></span>
+                    </button>
+                    <a class="brand" href=http://oeway.github.io/EVA/>EVA</a>
+                    <!-- Responsive Navbar Part 2: Place all navbar contents you want collapsed withing .navbar-collapse.collapse. -->
+                    <div class="nav-collapse collapse">
+                        <ul class="nav">
+                                    <li><a href="http://oeway.github.io/EVA/">Home</a></li>
+                                    <li><a href="http://oeway.github.io/EVA/blog.html">Blog</a></li>
+                                    <li><a href="https://github.com/oeway/EVA/wiki">Wiki</a></li>
+                                    <li><a href="http://oeway.github.io/EVA/pages/downloads.html">Downloads</a></li>
+                                    <li><a href="http://oeway.github.io/EVA/pages/about.html">About</a></li>
+                        </ul>
+                    </div><!--/.nav-collapse -->
+                </div><!-- /.navbar-inner -->
+            </div><!-- /.navbar -->
+            
+        </div> <!-- /.container -->
+    </div><!-- /.navbar-wrapper -->
+
+
+    <div class="banner_small" style="height:100px">
+    </div>
+    
+    
+    <div class="container">
+	   <div class="content">
+	<div class='page'>
+		<div class="page-header"><h1>Markdown Cheatsheet</h1></div>
+		<div><p><a href="https://github.com/adam-p/markdown-here/wiki/Markdown-Cheatsheet">Original page</a></p>
+<h5>Table of Contents</h5>
+<p><a href="#headers">Headers</a><br />
+<a href="#emphasis">Emphasis</a><br />
+<a href="#lists">Lists</a><br />
+<a href="#links">Links</a><br />
+<a href="#images">Images</a><br />
+<a href="#code">Code and Syntax Highlighting</a><br />
+<a href="#tables">Tables</a><br />
+<a href="#blockquotes">Blockquotes</a><br />
+<a href="#html">Inline HTML</a><br />
+<a href="#hr">Horizontal Rule</a><br />
+<a href="#lines">Line Breaks</a><br />
+<a href="#videos">Youtube videos</a>  </p>
+<p><a name="headers"/></p>
+<h2>Headers</h2>
+<div class="highlight"><pre><span class="cp"># H1</span>
+<span class="cp">## H2</span>
+<span class="cp">### H3</span>
+<span class="cp">#### H4</span>
+<span class="cp">##### H5</span>
+<span class="cp">###### H6</span>
+
+<span class="n">Alternatively</span><span class="p">,</span> <span class="k">for</span> <span class="n">H1</span> <span class="n">and</span> <span class="n">H2</span><span class="p">,</span> <span class="n">an</span> <span class="n">underline</span><span class="o">-</span><span class="n">ish</span> <span class="n">style</span><span class="o">:</span>
+
+<span class="n">Alt</span><span class="o">-</span><span class="n">H1</span>
+<span class="o">======</span>
+
+<span class="n">Alt</span><span class="o">-</span><span class="n">H2</span>
+<span class="o">------</span>
+</pre></div>
+
+
+<h1>H1</h1>
+<h2>H2</h2>
+<h3>H3</h3>
+<h4>H4</h4>
+<h5>H5</h5>
+<h6>H6</h6>
+<p>Alternatively, for H1 and H2, an underline-ish style:</p>
+<h1>Alt-H1</h1>
+<h2>Alt-H2</h2>
+<p><a name="emphasis"/></p>
+<h2>Emphasis</h2>
+<div class="highlight"><pre><span class="n">Emphasis</span><span class="p">,</span> <span class="n">aka</span> <span class="n">italics</span><span class="p">,</span> <span class="n">with</span> <span class="o">*</span><span class="n">asterisks</span><span class="o">*</span> <span class="n">or</span> <span class="n">_underscores_</span><span class="p">.</span>
+
+<span class="n">Strong</span> <span class="n">emphasis</span><span class="p">,</span> <span class="n">aka</span> <span class="n">bold</span><span class="p">,</span> <span class="n">with</span> <span class="o">**</span><span class="n">asterisks</span><span class="o">**</span> <span class="n">or</span> <span class="n">__underscores__</span><span class="p">.</span>
+
+<span class="n">Combined</span> <span class="n">emphasis</span> <span class="n">with</span> <span class="o">**</span><span class="n">asterisks</span> <span class="n">and</span> <span class="n">_underscores_</span><span class="o">**</span><span class="p">.</span>
+
+<span class="n">Strikethrough</span> <span class="n">uses</span> <span class="n">two</span> <span class="n">tildes</span><span class="p">.</span> <span class="o">~~</span><span class="n">Scratch</span> <span class="n">this</span><span class="p">.</span><span class="o">~~</span>
+</pre></div>
+
+
+<p>Emphasis, aka italics, with <em>asterisks</em> or <em>underscores</em>.</p>
+<p>Strong emphasis, aka bold, with <strong>asterisks</strong> or <strong>underscores</strong>.</p>
+<p>Combined emphasis with <strong>asterisks and <em>underscores</em></strong>.</p>
+<p>Strikethrough uses two tildes. ~~Scratch this.~~</p>
+<p><a name="lists"/></p>
+<h2>Lists</h2>
+<p>(In this example, leading and trailing spaces are shown with with dots: ⋅)</p>
+<div class="highlight"><pre><span class="mf">1.</span> <span class="n">First</span> <span class="n">ordered</span> <span class="n">list</span> <span class="n">item</span>
+<span class="mf">2.</span> <span class="n">Another</span> <span class="n">item</span>
+<span class="err">⋅⋅</span><span class="o">*</span> <span class="n">Unordered</span> <span class="n">sub</span><span class="o">-</span><span class="n">list</span><span class="p">.</span> 
+<span class="mf">1.</span> <span class="n">Actual</span> <span class="n">numbers</span> <span class="n">don</span><span class="err">&#39;</span><span class="n">t</span> <span class="n">matter</span><span class="p">,</span> <span class="n">just</span> <span class="n">that</span> <span class="n">it</span><span class="err">&#39;</span><span class="n">s</span> <span class="n">a</span> <span class="n">number</span>
+<span class="err">⋅⋅</span><span class="mf">1.</span> <span class="n">Ordered</span> <span class="n">sub</span><span class="o">-</span><span class="n">list</span>
+<span class="mf">4.</span> <span class="n">And</span> <span class="n">another</span> <span class="n">item</span><span class="p">.</span>
+
+<span class="err">⋅⋅⋅</span><span class="n">You</span> <span class="n">can</span> <span class="n">have</span> <span class="n">properly</span> <span class="n">indented</span> <span class="n">paragraphs</span> <span class="n">within</span> <span class="n">list</span> <span class="n">items</span><span class="p">.</span> <span class="n">Notice</span> <span class="n">the</span> <span class="n">blank</span> <span class="n">line</span> <span class="n">above</span><span class="p">,</span> <span class="n">and</span> <span class="n">the</span> <span class="n">leading</span> <span class="n">spaces</span> <span class="p">(</span><span class="n">at</span> <span class="n">least</span> <span class="n">one</span><span class="p">,</span> <span class="n">but</span> <span class="n">we</span><span class="err">&#39;</span><span class="n">ll</span> <span class="n">use</span> <span class="n">three</span> <span class="n">here</span> <span class="n">to</span> <span class="n">also</span> <span class="n">align</span> <span class="n">the</span> <span class="n">raw</span> <span class="n">Markdown</span><span class="p">).</span>
+
+<span class="err">⋅⋅⋅</span><span class="n">To</span> <span class="n">have</span> <span class="n">a</span> <span class="n">line</span> <span class="k">break</span> <span class="n">without</span> <span class="n">a</span> <span class="n">paragraph</span><span class="p">,</span> <span class="n">you</span> <span class="n">will</span> <span class="n">need</span> <span class="n">to</span> <span class="n">use</span> <span class="n">two</span> <span class="n">trailing</span> <span class="n">spaces</span><span class="p">.</span><span class="err">⋅⋅</span>
+<span class="err">⋅⋅⋅</span><span class="n">Note</span> <span class="n">that</span> <span class="n">this</span> <span class="n">line</span> <span class="n">is</span> <span class="n">separate</span><span class="p">,</span> <span class="n">but</span> <span class="n">within</span> <span class="n">the</span> <span class="n">same</span> <span class="n">paragraph</span><span class="p">.</span><span class="err">⋅⋅</span>
+<span class="err">⋅⋅⋅</span><span class="p">(</span><span class="n">This</span> <span class="n">is</span> <span class="n">contrary</span> <span class="n">to</span> <span class="n">the</span> <span class="n">typical</span> <span class="n">GFM</span> <span class="n">line</span> <span class="k">break</span> <span class="n">behaviour</span><span class="p">,</span> <span class="n">where</span> <span class="n">trailing</span> <span class="n">spaces</span> <span class="n">are</span> <span class="n">not</span> <span class="n">required</span><span class="p">.)</span>
+
+<span class="o">*</span> <span class="n">Unordered</span> <span class="n">list</span> <span class="n">can</span> <span class="n">use</span> <span class="n">asterisks</span>
+<span class="o">-</span> <span class="n">Or</span> <span class="n">minuses</span>
+<span class="o">+</span> <span class="n">Or</span> <span class="n">pluses</span>
+</pre></div>
+
+
+<ol>
+<li>First ordered list item</li>
+<li>Another item</li>
+<li>Unordered sub-list. </li>
+<li>Actual numbers don't matter, just that it's a number</li>
+<li>Ordered sub-list</li>
+<li>And another item.</li>
+</ol>
+<p>You can have properly indented paragraphs within list items. Notice the blank line above, and the leading spaces (at least one, but we'll use three here to also align the raw Markdown).</p>
+<p>To have a line break without a paragraph, you will need to use two trailing spaces.<br />
+   Note that this line is separate, but within the same paragraph.<br />
+   (This is contrary to the typical GFM line break behaviour, where trailing spaces are not required.)</p>
+<ul>
+<li>Unordered list can use asterisks</li>
+<li>Or minuses</li>
+<li>Or pluses</li>
+</ul>
+<p><a name="links"/></p>
+<h2>Links</h2>
+<p>There are two ways to create links.</p>
+<div class="highlight"><pre><span class="p">[</span><span class="n">I</span><span class="err">&#39;</span><span class="n">m</span> <span class="n">an</span> <span class="kr">inline</span><span class="o">-</span><span class="n">style</span> <span class="n">link</span><span class="p">](</span><span class="n">https</span><span class="o">:</span><span class="c1">//www.google.com)</span>
+
+<span class="p">[</span><span class="n">I</span><span class="err">&#39;</span><span class="n">m</span> <span class="n">an</span> <span class="kr">inline</span><span class="o">-</span><span class="n">style</span> <span class="n">link</span> <span class="n">with</span> <span class="n">title</span><span class="p">](</span><span class="n">https</span><span class="o">:</span><span class="c1">//www.google.com &quot;Google&#39;s Homepage&quot;)</span>
+
+<span class="p">[</span><span class="n">I</span><span class="err">&#39;</span><span class="n">m</span> <span class="n">a</span> <span class="n">reference</span><span class="o">-</span><span class="n">style</span> <span class="n">link</span><span class="p">][</span><span class="n">Arbitrary</span> <span class="k">case</span><span class="o">-</span><span class="n">insensitive</span> <span class="n">reference</span> <span class="n">text</span><span class="p">]</span>
+
+<span class="p">[</span><span class="n">I</span><span class="err">&#39;</span><span class="n">m</span> <span class="n">a</span> <span class="n">relative</span> <span class="n">reference</span> <span class="n">to</span> <span class="n">a</span> <span class="n">repository</span> <span class="n">file</span><span class="p">](..</span><span class="o">/</span><span class="n">blob</span><span class="o">/</span><span class="n">master</span><span class="o">/</span><span class="n">LICENSE</span><span class="p">)</span>
+
+<span class="p">[</span><span class="n">You</span> <span class="n">can</span> <span class="n">use</span> <span class="n">numbers</span> <span class="k">for</span> <span class="n">reference</span><span class="o">-</span><span class="n">style</span> <span class="n">link</span> <span class="n">definitions</span><span class="p">][</span><span class="mi">1</span><span class="p">]</span>
+
+<span class="n">Or</span> <span class="n">leave</span> <span class="n">it</span> <span class="n">empty</span> <span class="n">and</span> <span class="n">use</span> <span class="n">the</span> <span class="p">[</span><span class="n">link</span> <span class="n">text</span> <span class="n">itself</span><span class="p">]</span>
+
+<span class="n">Some</span> <span class="n">text</span> <span class="n">to</span> <span class="n">show</span> <span class="n">that</span> <span class="n">the</span> <span class="n">reference</span> <span class="n">links</span> <span class="n">can</span> <span class="n">follow</span> <span class="n">later</span><span class="p">.</span>
+
+<span class="p">[</span><span class="n">arbitrary</span> <span class="k">case</span><span class="o">-</span><span class="n">insensitive</span> <span class="n">reference</span> <span class="n">text</span><span class="p">]</span>: <span class="n">https</span><span class="o">:</span><span class="c1">//www.mozilla.org</span>
+<span class="p">[</span><span class="mi">1</span><span class="p">]</span><span class="o">:</span> <span class="n">http</span><span class="o">:</span><span class="c1">//slashdot.org</span>
+<span class="p">[</span><span class="n">link</span> <span class="n">text</span> <span class="n">itself</span><span class="p">]</span><span class="o">:</span> <span class="n">http</span><span class="o">:</span><span class="c1">//www.reddit.com</span>
+</pre></div>
+
+
+<p><a href="https://www.google.com">I'm an inline-style link</a></p>
+<p><a href="https://www.google.com" title="Google's Homepage">I'm an inline-style link with title</a></p>
+<p><a href="https://www.mozilla.org">I'm a reference-style link</a></p>
+<p><a href="../blob/master/LICENSE">I'm a relative reference to a repository file</a></p>
+<p><a href="http://slashdot.org">You can use numbers for reference-style link definitions</a></p>
+<p>Or leave it empty and use the <a href="http://www.reddit.com">link text itself</a></p>
+<p>Some text to show that the reference links can follow later.</p>
+<p><a name="images"/></p>
+<h2>Images</h2>
+<div class="highlight"><pre><span class="n">Here</span><span class="err">&#39;</span><span class="n">s</span> <span class="n">our</span> <span class="n">logo</span> <span class="p">(</span><span class="n">hover</span> <span class="n">to</span> <span class="n">see</span> <span class="n">the</span> <span class="n">title</span> <span class="n">text</span><span class="p">)</span><span class="o">:</span>
+
+<span class="n">Inline</span><span class="o">-</span><span class="n">style</span><span class="o">:</span> 
+<span class="o">!</span><span class="p">[</span><span class="n">alt</span> <span class="n">text</span><span class="p">](</span><span class="n">https</span><span class="o">:</span><span class="c1">//github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png &quot;Logo Title Text 1&quot;)</span>
+
+<span class="n">Reference</span><span class="o">-</span><span class="n">style</span><span class="o">:</span> 
+<span class="o">!</span><span class="p">[</span><span class="n">alt</span> <span class="n">text</span><span class="p">][</span><span class="n">logo</span><span class="p">]</span>
+
+<span class="p">[</span><span class="n">logo</span><span class="p">]</span><span class="o">:</span> <span class="n">https</span><span class="o">:</span><span class="c1">//github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png &quot;Logo Title Text 2&quot;</span>
+</pre></div>
+
+
+<p>Here's our logo (hover to see the title text):</p>
+<p>Inline-style: 
+<img alt="alt text" src="https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png" title="Logo Title Text 1" /></p>
+<p>Reference-style: 
+<img alt="alt text" src="https://github.com/adam-p/markdown-here/raw/master/src/common/images/icon48.png" title="Logo Title Text 2" /></p>
+<p><a name="code"/></p>
+<h2>Code and Syntax Highlighting</h2>
+<p>Code blocks are part of the Markdown spec, but syntax highlighting isn't. However, many renderers -- like Github's and <em>Markdown Here</em> -- support syntax highlighting. <em>Markdown Here</em> supports highlighting for dozens of languages (and not-really-languages, like diffs and HTTP headers); to see the complete list, and how to write the language names, see the <a href="http://softwaremaniacs.org/media/soft/highlight/test.html">highlight.js demo page</a>.</p>
+<div class="highlight"><pre><span class="n">Inline</span> <span class="err">`</span><span class="n">code</span><span class="err">`</span> <span class="n">has</span> <span class="err">`</span><span class="n">back</span><span class="o">-</span><span class="n">ticks</span> <span class="n">around</span><span class="err">`</span> <span class="n">it</span><span class="p">.</span>
+</pre></div>
+
+
+<p>Inline <code>code</code> has <code>back-ticks around</code> it.</p>
+<p>Blocks of code are either fenced by lines with three back-ticks <code>```</code>, or are indented with four spaces. I recommend only using the fenced code blocks -- they're easier and only they support syntax highlighting.</p>
+<div class="highlight"><pre> <span class="sb">```javascript</span>
+<span class="sb"> var s = &quot;JavaScript syntax highlighting&quot;;</span>
+<span class="sb"> alert(s);</span>
+<span class="sb"> ```</span>
+
+ <span class="sb">```python</span>
+<span class="sb"> s = &quot;Python syntax highlighting&quot;</span>
+<span class="sb"> print s</span>
+<span class="sb"> ```</span>
+
+ <span class="sb">```</span>
+<span class="sb"> No language indicated, so no syntax highlighting. </span>
+<span class="sb"> But let&#39;s throw in a &lt;b&gt;tag&lt;/b&gt;.</span>
+<span class="sb"> ```</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span class="kd">var</span> <span class="nx">s</span> <span class="o">=</span> <span class="s2">&quot;JavaScript syntax highlighting&quot;</span><span class="p">;</span>
+<span class="nx">alert</span><span class="p">(</span><span class="nx">s</span><span class="p">);</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span class="n">s</span> <span class="o">=</span> <span class="s">&quot;Python syntax highlighting&quot;</span>
+<span class="k">print</span> <span class="n">s</span>
+</pre></div>
+
+
+<div class="highlight"><pre><span class="nx">No</span> <span class="nb">language</span> <span class="nx">indicated</span><span class="p">,</span> <span class="nx">so</span> <span class="nx">no</span> <span class="nx">syntax</span> <span class="n">highlighting</span> <span class="k">in</span> <span class="nx">Markdown</span> <span class="nx">Here</span> <span class="p">(</span><span class="nx">varies</span> <span class="k">on</span> <span class="nx">Github</span><span class="p">)</span><span class="nx">.</span> 
+<span class="nx">But</span> <span class="k">let</span><span class="s1">&#39;s throw in a &lt;b&gt;tag&lt;/b&gt;.</span>
+</pre></div>
+
+
+<p>(Github Wiki pages don't seem to support syntax highlighting, so the above won't be colourful (the strings are not red, for example). Try it out in a <em>Markdown Here</em> email or a Github Markdown README or Github Issue -- you can preview a new Issue without submitting it.)</p>
+<p>Again, to see what languages are available for highlighting, and how to write those language names, see the <a href="http://softwaremaniacs.org/media/soft/highlight/test.html">highlight.js demo page</a>.</p>
+<p><a name="tables"/></p>
+<h2>Tables</h2>
+<p>Tables aren't part of the core Markdown spec, but they are part of GFM and <em>Markdown Here</em> supports them. They are an easy way of adding tables to your email -- a task that would otherwise require copy-pasting from another application.</p>
+<div class="highlight"><pre><span class="nv">Colons</span> <span class="s-Atom">can</span> <span class="s-Atom">be</span> <span class="s-Atom">used</span> <span class="s-Atom">to</span> <span class="s-Atom">align</span> <span class="s-Atom">columns</span><span class="p">.</span>
+
+<span class="p">|</span> <span class="nv">Tables</span>        <span class="p">|</span> <span class="nv">Are</span>           <span class="p">|</span> <span class="nv">Cool</span>  <span class="p">|</span>
+<span class="p">|</span> <span class="s-Atom">-------------</span> <span class="p">|:-</span><span class="s-Atom">------------:</span><span class="p">|</span> <span class="s-Atom">-----:</span><span class="p">|</span>
+<span class="p">|</span> <span class="s-Atom">col</span> <span class="m">3</span> <span class="o">is</span>      <span class="p">|</span> <span class="s-Atom">right</span><span class="o">-</span><span class="s-Atom">aligned</span> <span class="p">|</span> <span class="err">$</span><span class="m">1600</span> <span class="p">|</span>
+<span class="p">|</span> <span class="s-Atom">col</span> <span class="m">2</span> <span class="o">is</span>      <span class="p">|</span> <span class="s-Atom">centered</span>      <span class="p">|</span>   <span class="err">$</span><span class="m">12</span> <span class="p">|</span>
+<span class="p">|</span> <span class="s-Atom">zebra</span> <span class="s-Atom">stripes</span> <span class="p">|</span> <span class="s-Atom">are</span> <span class="s-Atom">neat</span>      <span class="p">|</span>    <span class="err">$</span><span class="m">1</span> <span class="p">|</span>
+
+<span class="nv">The</span> <span class="s-Atom">outer</span> <span class="nf">pipes</span> <span class="p">(|)</span> <span class="s-Atom">are</span> <span class="s-Atom">optional</span><span class="p">,</span> <span class="s-Atom">and</span> <span class="s-Atom">you</span> <span class="s-Atom">don</span><span class="err">&#39;</span><span class="s-Atom">t</span> <span class="s-Atom">need</span> <span class="s-Atom">to</span> <span class="s-Atom">make</span> <span class="s-Atom">the</span> <span class="s-Atom">raw</span> <span class="nv">Markdown</span> <span class="s-Atom">line</span> <span class="s-Atom">up</span> <span class="s-Atom">prettily</span><span class="p">.</span> <span class="nv">You</span> <span class="s-Atom">can</span> <span class="s-Atom">also</span> <span class="s-Atom">use</span> <span class="s-Atom">inline</span> <span class="nv">Markdown</span><span class="p">.</span>
+
+<span class="nv">Markdown</span> <span class="p">|</span> <span class="nv">Less</span> <span class="p">|</span> <span class="nv">Pretty</span>
+<span class="s-Atom">---</span> <span class="p">|</span> <span class="s-Atom">---</span> <span class="p">|</span> <span class="s-Atom">---</span>
+<span class="o">*</span><span class="nv">Still</span><span class="o">*</span> <span class="p">|</span> <span class="err">`</span><span class="s-Atom">renders</span><span class="err">`</span> <span class="p">|</span> <span class="s-Atom">**nicely**</span>
+<span class="m">1</span> <span class="p">|</span> <span class="m">2</span> <span class="p">|</span> <span class="m">3</span>
+</pre></div>
+
+
+<p>Colons can be used to align columns.</p>
+<table>
+<thead>
+<tr>
+<th>Tables</th>
+<th align="center">Are</th>
+<th align="right">Cool</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td>col 3 is</td>
+<td align="center">right-aligned</td>
+<td align="right">$1600</td>
+</tr>
+<tr>
+<td>col 2 is</td>
+<td align="center">centered</td>
+<td align="right">$12</td>
+</tr>
+<tr>
+<td>zebra stripes</td>
+<td align="center">are neat</td>
+<td align="right">$1</td>
+</tr>
+</tbody>
+</table>
+<p>The outer pipes (|) are optional, and you don't need to make the raw Markdown line up prettily. You can also use inline Markdown.</p>
+<table>
+<thead>
+<tr>
+<th>Markdown</th>
+<th>Less</th>
+<th>Pretty</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><em>Still</em></td>
+<td><code>renders</code></td>
+<td><strong>nicely</strong></td>
+</tr>
+<tr>
+<td>1</td>
+<td>2</td>
+<td>3</td>
+</tr>
+</tbody>
+</table>
+<p><a name="blockquotes"/></p>
+<h2>Blockquotes</h2>
+<div class="highlight"><pre><span class="o">&gt;</span> <span class="n">Blockquotes</span> <span class="n">are</span> <span class="n">very</span> <span class="n">handy</span> <span class="n">in</span> <span class="n">email</span> <span class="n">to</span> <span class="n">emulate</span> <span class="n">reply</span> <span class="n">text</span><span class="p">.</span>
+<span class="o">&gt;</span> <span class="n">This</span> <span class="n">line</span> <span class="n">is</span> <span class="n">part</span> <span class="n">of</span> <span class="n">the</span> <span class="n">same</span> <span class="n">quote</span><span class="p">.</span>
+
+<span class="n">Quote</span> <span class="k">break</span><span class="p">.</span>
+
+<span class="o">&gt;</span> <span class="n">This</span> <span class="n">is</span> <span class="n">a</span> <span class="n">very</span> <span class="kt">long</span> <span class="n">line</span> <span class="n">that</span> <span class="n">will</span> <span class="n">still</span> <span class="n">be</span> <span class="n">quoted</span> <span class="n">properly</span> <span class="n">when</span> <span class="n">it</span> <span class="n">wraps</span><span class="p">.</span> <span class="n">Oh</span> <span class="n">boy</span> <span class="n">let</span><span class="err">&#39;</span><span class="n">s</span> <span class="n">keep</span> <span class="n">writing</span> <span class="n">to</span> <span class="n">make</span> <span class="n">sure</span> <span class="n">this</span> <span class="n">is</span> <span class="kt">long</span> <span class="n">enough</span> <span class="n">to</span> <span class="n">actually</span> <span class="n">wrap</span> <span class="k">for</span> <span class="n">everyone</span><span class="p">.</span> <span class="n">Oh</span><span class="p">,</span> <span class="n">you</span> <span class="n">can</span> <span class="o">*</span><span class="n">put</span><span class="o">*</span> <span class="o">**</span><span class="n">Markdown</span><span class="o">**</span> <span class="n">into</span> <span class="n">a</span> <span class="n">blockquote</span><span class="p">.</span> 
+</pre></div>
+
+
+<blockquote>
+<p>Blockquotes are very handy in email to emulate reply text.
+This line is part of the same quote.</p>
+</blockquote>
+<p>Quote break.</p>
+<blockquote>
+<p>This is a very long line that will still be quoted properly when it wraps. Oh boy let's keep writing to make sure this is long enough to actually wrap for everyone. Oh, you can <em>put</em> <strong>Markdown</strong> into a blockquote. </p>
+</blockquote>
+<p><a name="html"/></p>
+<h2>Inline HTML</h2>
+<p>You can also use raw HTML in your Markdown, and it'll mostly work pretty well. </p>
+<div class="highlight"><pre><span class="nt">&lt;dl&gt;</span>
+  <span class="nt">&lt;dt&gt;</span>Definition list<span class="nt">&lt;/dt&gt;</span>
+  <span class="nt">&lt;dd&gt;</span>Is something people use sometimes.<span class="nt">&lt;/dd&gt;</span>
+
+  <span class="nt">&lt;dt&gt;</span>Markdown in HTML<span class="nt">&lt;/dt&gt;</span>
+  <span class="nt">&lt;dd&gt;</span>Does *not* work **very** well. Use HTML <span class="nt">&lt;em&gt;</span>tags<span class="nt">&lt;/em&gt;</span>.<span class="nt">&lt;/dd&gt;</span>
+<span class="nt">&lt;/dl&gt;</span>
+</pre></div>
+
+
+<dl>
+  <dt>Definition list</dt>
+  <dd>Is something people use sometimes.</dd>
+
+  <dt>Markdown in HTML</dt>
+  <dd>Does *not* work **very** well. Use HTML <em>tags</em>.</dd>
+</dl>
+
+<p><a name="hr"/></p>
+<h2>Horizontal Rule</h2>
+<div class="highlight"><pre><span class="n">Three</span> <span class="n">or</span> <span class="n">more</span><span class="p">...</span>
+
+<span class="o">---</span>
+
+<span class="n">Hyphens</span>
+
+<span class="o">***</span>
+
+<span class="n">Asterisks</span>
+
+<span class="n">___</span>
+
+<span class="n">Underscores</span>
+</pre></div>
+
+
+<p>Three or more...</p>
+<hr />
+<p>Hyphens</p>
+<hr />
+<p>Asterisks</p>
+<hr />
+<p>Underscores</p>
+<p><a name="lines"/></p>
+<h2>Line Breaks</h2>
+<p>My basic recommendation for learning how line breaks work is to experiment and discover -- hit &lt;Enter&gt; once (i.e., insert one newline), then hit it twice (i.e., insert two newlines), see what happens. You'll soon learn to get what you want. "Markdown Toggle" is your friend. </p>
+<p>Here are some things to try out:</p>
+<div class="highlight"><pre><span class="n">Here</span><span class="err">&#39;</span><span class="n">s</span> <span class="n">a</span> <span class="n">line</span> <span class="k">for</span> <span class="n">us</span> <span class="n">to</span> <span class="n">start</span> <span class="n">with</span><span class="p">.</span>
+
+<span class="n">This</span> <span class="n">line</span> <span class="n">is</span> <span class="n">separated</span> <span class="n">from</span> <span class="n">the</span> <span class="n">one</span> <span class="n">above</span> <span class="n">by</span> <span class="n">two</span> <span class="n">newlines</span><span class="p">,</span> <span class="n">so</span> <span class="n">it</span> <span class="n">will</span> <span class="n">be</span> <span class="n">a</span> <span class="o">*</span><span class="n">separate</span> <span class="n">paragraph</span><span class="o">*</span><span class="p">.</span>
+
+<span class="n">This</span> <span class="n">line</span> <span class="n">is</span> <span class="n">also</span> <span class="n">a</span> <span class="n">separate</span> <span class="n">paragraph</span><span class="p">,</span> <span class="n">but</span><span class="p">...</span>
+<span class="n">This</span> <span class="n">line</span> <span class="n">is</span> <span class="n">only</span> <span class="n">separated</span> <span class="n">by</span> <span class="n">a</span> <span class="n">single</span> <span class="n">newline</span><span class="p">,</span> <span class="n">so</span> <span class="n">it</span><span class="err">&#39;</span><span class="n">s</span> <span class="n">a</span> <span class="n">separate</span> <span class="n">line</span> <span class="n">in</span> <span class="n">the</span> <span class="o">*</span><span class="n">same</span> <span class="n">paragraph</span><span class="o">*</span><span class="p">.</span>
+</pre></div>
+
+
+<p>Here's a line for us to start with.</p>
+<p>This line is separated from the one above by two newlines, so it will be a <em>separate paragraph</em>.</p>
+<p>This line is also begins a separate paragraph, but...<br />
+This line is only separated by a single newline, so it's a separate line in the <em>same paragraph</em>.</p>
+<p>(Technical note: <em>Markdown Here</em> uses GFM line breaks, so there's no need to use MD's two-space line breaks.)</p>
+<p><a name="videos"/></p>
+<h2>Youtube videos</h2>
+<p>They can't be added directly but you can add an image with a link to the video like this:</p>
+<div class="highlight"><pre><span class="nt">&lt;a</span> <span class="na">href=</span><span class="s">&quot;http://www.youtube.com/watch?feature=player_embedded&amp;v=YOUTUBE_VIDEO_ID_HERE</span>
+<span class="s">&quot;</span> <span class="na">target=</span><span class="s">&quot;_blank&quot;</span><span class="nt">&gt;&lt;img</span> <span class="na">src=</span><span class="s">&quot;http://img.youtube.com/vi/YOUTUBE_VIDEO_ID_HERE/0.jpg&quot;</span> 
+<span class="na">alt=</span><span class="s">&quot;IMAGE ALT TEXT HERE&quot;</span> <span class="na">width=</span><span class="s">&quot;240&quot;</span> <span class="na">height=</span><span class="s">&quot;180&quot;</span> <span class="na">border=</span><span class="s">&quot;10&quot;</span> <span class="nt">/&gt;&lt;/a&gt;</span>
+</pre></div>
+
+
+<p>Or, in pure Markdown, but losing the image sizing and border:</p>
+<div class="highlight"><pre><span class="p">[</span><span class="o">!</span><span class="p">[</span><span class="n">IMAGE</span> <span class="n">ALT</span> <span class="n">TEXT</span> <span class="n">HERE</span><span class="p">](</span><span class="n">http</span><span class="o">:</span><span class="c1">//img.youtube.com/vi/YOUTUBE_VIDEO_ID_HERE/0.jpg)](http://www.youtube.com/watch?v=YOUTUBE_VIDEO_ID_HERE)</span>
+</pre></div></div>
+	</div>
+        <hr class="featurette-divider">
+		<footer>
+		  <p>Powered by <a href="http://icy.bioimageanalysis.org">Icy</a>/<a href="http://rsbweb.nih.gov/ij/‎">ImageJ</a>/<a href="http://www.micro-manager.org/‎">Micro-Manager</a>/<a href="http://smoothieware.org/">Smoothie</a>/<a href="https://github.com/grbl/grbl">GRBL</a>.</p>
+          <p> Copyright EVA &copy; 2013. Unless otherwise noted, all content on this website is released under the Creative Commons Attribution Licence 3.0, source code of EVA project is distributed under GPLv3, available on <a href="https://github.com/oeway/EVA" >Github</a>. Pages on this site can be edited with <a href="http://oeway.github.io/EVA/editor" target="_blank">EpicEditor</a> and then push to gh-pages branch.</p>
+		</footer>
+	  </div>
+	</div>
+    
+    
+    <!-- Le javascript
+     ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="http://oeway.github.io/EVA/theme/js/jquery.js"></script>
+    <script src="http://oeway.github.io/EVA/theme/js/bootstrap.min.js"></script>
+    <script>
+        !function ($) {
+            $(function(){
+              // carousel demo
+              $('#myCarousel').carousel({
+                                        interval:5000
+                                        })
+              })
+        }(window.jQuery)
+    </script>
+    <script src="http://oeway.github.io/EVA/theme/js/holder/holder.js"></script>
+</body>
+</html>
