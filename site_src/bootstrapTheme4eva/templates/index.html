@@ -13,7 +13,7 @@
             {% if item['image'] %}
             <img src={{ SITEURL }}/{{ item['image'] }} alt="">
             {% endif %}
-                <div class="container">
+                <div class="container" >
                     <div class="carousel-caption">
                         {% if item['headline'] %}
                         <h1> {{ item['headline'] }} </h1>
@@ -35,37 +35,37 @@
 
 {% endblock %}
 {% block content %}
-{% for page in pages %}
-{% if page.slug == 'promote' %}
-<div class='page'>
-{{ page.content }}
-</div>
-{% endif %}
-{% endfor %}
-<script src="{{ SITEURL }}/theme/js/jquery.js"></script>
-<div id="videogfw">
-    <script type="text/javascript">
-        function chooseVideo(src)
-        {
-            var video = '<iframe id="embededvideo" width=100% height=498 src=' + src + ' frameborder=0 allowfullscreen></iframe>';
-            $("#embededvideo").remove();
-            $("#videogfw").append(video);
-        }
-        var youtube_src = "//www.youtube.com/embed/pN5v-2BKSbE"
-        var youku_src = "http://player.youku.com/embed/XNjUxNzE0NzMy"
-        try
-        {
-            jQuery.getJSON('http://freegeoip.net/json/', function(location) {
-                if (location.country_name == "China")
-                    chooseVideo(youku_src);
-                else
-                    chooseVideo(youtube_src);
-            });
-        }
-        catch(err)
-        {
-            chooseVideo(youku_src);
-        }
-    </script>
-</div>
+    {% for page in pages %}
+        {% if page.slug == 'promote' %}
+            <div class='page'>
+            {{ page.content }}
+            </div>
+        {% endif %}
+    {% endfor %}
+    <script src="{{ SITEURL }}/theme/js/jquery.js"></script>
+    <div id="videogfw">
+        <script type="text/javascript">
+            function chooseVideo(src)
+            {
+                var video = '<iframe id="embededvideo" width=100% height=498 src=' + src + ' frameborder=0 allowfullscreen></iframe>';
+                $("#embededvideo").remove();
+                $("#videogfw").append(video);
+            }
+            var youtube_src = "//www.youtube.com/embed/pN5v-2BKSbE"
+            var youku_src = "http://player.youku.com/embed/XNjUxNzE0NzMy"
+            try
+            {
+                jQuery.getJSON('http://freegeoip.net/json/', function(location) {
+                    if (location.country_name == "China")
+                        chooseVideo(youku_src);
+                    else
+                        chooseVideo(youtube_src);
+                });
+            }
+            catch(err)
+            {
+                chooseVideo(youku_src);
+            }
+        </script>
+    </div>
 {% endblock %}

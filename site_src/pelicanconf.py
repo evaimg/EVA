@@ -43,7 +43,7 @@ CAROUSELITEMS = (
             {
             'image':'images/slide-01.png',  
             'headline':'Imaging and Evaluation',
-            'subtitle':'An Open Souce Platform and Community',
+            'subtitle':'An Open-souce Platform',
             'buttonLink':'pages/about.html',
             'buttonCaption':'Learn More',
             },
@@ -52,8 +52,7 @@ CAROUSELITEMS = (
 
 STATIC_PATHS = ['images']
 
-EXTRA_TEMPLATES_PATHS = ['extra_templates']
-DIRECT_TEMPLATES = ('index', 'tags', 'categories', 'archives','blog')
+DIRECT_TEMPLATES = ('index', 'tags', 'categories', 'archives','blog','editor')
 PLUGINS_SAVE_AS = 'blog.html'
 
 USE_FOLDER_AS_CATEGORY = True
