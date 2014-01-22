@@ -1,11 +1,12 @@
 {% extends "base.html" %}
 {% block content_title %}{% endblock %}
 {% block content %}
-<h1>
-Markdown Editor
-</h1>
-<a href="http://oscargodson.github.io/EpicEditor/" target="_blank">Powered by  EpicEditor project <a/>
-<div style="height: 1024px">
+    <h1>
+    Markdown Editor
+    </h1>
+    <p>
+        <a href="{{SITEURL}}/pages/markdown-cheatsheet" target="_blank"> Markdown syntax quick reference<a/>
+    </p>
     <div id="epiceditor" ></div>
     <script src="theme/epiceditor/js/epiceditor.min.js"></script>
     <script type="text/javascript">
@@ -24,7 +25,7 @@ Markdown Editor
             },
             theme: {
                 base: '/themes/base/epiceditor.css',
-                preview: '/themes/preview/preview-dark.css',
+                preview: '/themes/preview/github.css',
                 editor: '/themes/editor/epic-dark.css'
             },
             button: {
@@ -52,5 +53,7 @@ Markdown Editor
         var editor = new EpicEditor(opts);
         editor.load();
     </script>
-</div>
+    <p>
+        <a href="http://oscargodson.github.io/EpicEditor/" target="_blank">Powered by  EpicEditor project <a/>
+    </p>
 {% endblock content %}

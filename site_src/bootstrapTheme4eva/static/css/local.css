@@ -257,8 +257,10 @@ div.highlight pre {
 
 .page h1 { font-size: 28px;}
 .page h2 { font-size: 22px;}
-.article h1 { font-size: 24px;}
+.page h3 { font-size: 18px;}
+.article h1 { font-size: 26px;}
 .article h2 { font-size: 22px;}
+.article h3 { font-size: 18px;}
 .banner_small * {margin-bottom: 60px}
 
 .summary * { display: inline; }
