@@ -17,7 +17,7 @@ TRANSLATION_FEED_ATOM = None
 
 THEME = 'bootstrapTheme4eva'
 
-DISQUS_SITENAME = 'eva-nde'
+DISQUS_SITENAME = 'evaimg'
 TWITTER_USERNAME = 'oeway'
 
 NDE_CATEGORIES = (
@@ -49,8 +49,13 @@ CAROUSELITEMS = (
             },
             
 )
-
-STATIC_PATHS = ['images']
+# static paths will be copied without parsing their contents
+FILE_TO_COPY = [
+                'extra/robots.txt',
+                ]
+EXTRA_PATH_METADATA = {
+    'extra/robots.txt': {'path': 'robots.txt'},
+}
 
 DIRECT_TEMPLATES = ('index', 'tags', 'categories', 'archives','blog','editor')
 PLUGINS_SAVE_AS = 'blog.html'
