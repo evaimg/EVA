@@ -18,7 +18,9 @@ TRANSLATION_FEED_ATOM = None
 THEME = 'bootstrapTheme4eva'
 
 DISQUS_SITENAME = 'evaimg'
-TWITTER_USERNAME = 'oeway'
+#TWITTER_USERNAME = 'oeway'
+#GITHUB_URL = 'https://github.com/evaimg/EVA'
+GOOGLE_ANALYTICS='UA-47365192-1'
 
 NDE_CATEGORIES = (
             
@@ -52,9 +54,11 @@ CAROUSELITEMS = (
 # static paths will be copied without parsing their contents
 FILE_TO_COPY = [
                 'extra/robots.txt',
+                'CNAME'
                 ]
 EXTRA_PATH_METADATA = {
     'extra/robots.txt': {'path': 'robots.txt'},
+    'extra/CNAME': {'path': 'CNAME'},
 }
 
 DIRECT_TEMPLATES = ('index', 'tags', 'categories', 'archives','blog','editor')
