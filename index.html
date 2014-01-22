@@ -1,185 +1,45 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
 <head>
-	<meta charset="utf-8">
-	<title>EVA</title>
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	<meta name="description" content="">
-	<meta name="author" content="Will Ouyang">
-
-	<!-- HTML5 shim, for IE6-8 support of HTML elements -->
-	<!--[if lt IE 9]>
-		<script src="http://oeway.github.io/EVA/theme/js/html5.js"></script>
-	<![endif]-->
-
-	<!-- Styles -->
-	<link href="http://oeway.github.io/EVA/theme/css/bootstrap.min.css" rel="stylesheet">
-	<link href="http://oeway.github.io/EVA/theme/css/local.css" rel="stylesheet">
-	<link href="http://oeway.github.io/EVA/theme/css/pygments.css" rel="stylesheet">
-    <!-- Feeds -->
-    <link href="http://oeway.github.io/EVA/feeds/all.atom.xml" type="application/atom+xml" rel="alternate" title="EVA Atom Feed" />
- 
-        
-        <!-- HTML5 shim, for IE6-8 support of HTML5 elements -->
-        <!--[if lt IE 9]>
-         <script src="js/html5shiv.js"></script>
-         <![endif]-->
-        
-        <!-- Fav and touch icons -->
-        <link rel="apple-touch-icon-precomposed" sizes="144x144" href="http://oeway.github.io/EVA/theme/img/apple-touch-icon-144-precomposed.png">
-            <link rel="apple-touch-icon-precomposed" sizes="114x114" href="http://oeway.github.io/EVA/theme/img/apple-touch-icon-114-precomposed.png">
-                <link rel="apple-touch-icon-precomposed" sizes="72x72" href="http://oeway.github.io/EVA/theme/img/apple-touch-icon-72-precomposed.png">
-                    <link rel="apple-touch-icon-precomposed" href="http://oeway.github.io/EVA/theme/img/apple-touch-icon-57-precomposed.png">
-                        <link rel="shortcut icon" href="http://oeway.github.io/EVA/theme/img/favicon.png">
-                            
-        
+  <meta charset="utf-8">
+  <title>EVA project</title>
+  <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.4/themes/smoothness/jquery-ui.css">
+  <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+  <script src="http://code.jquery.com/ui/1.10.4/jquery-ui.js"></script>
+  <link rel="stylesheet" href="/resources/demos/style.css">
+  <style type="text/css">
+	.ui-widget-overlay{
+		background:#aaaaaa;
+	}
+  </style>
+  <script>
+  $(function() {
+    $( "#dialog-message" ).dialog({
+      modal: true,
+      minWidth:500,
+      buttons: {
+        Ok: function() {
+          $( this ).dialog( "close" );
+        }
+      },
+      close: function( event, ui ) {
+	window.location.replace("http://www.evaimg.org");
+      }
+    });
+  });
+  </script>
 </head>
 <body>
-    <!-- NAVBAR
-     ================================================== -->
-    <div class="navbar-wrapper">
-        <!-- Wrap the .navbar in .container to center it within the absolutely positioned parent. -->
-        <div class="container">
-            
-            <div class="navbar navbar-inverse">
-                <div class="navbar-inner">
-                    <!-- Responsive Navbar Part 1: Button for triggering responsive navbar (not covered in tutorial). Include responsive CSS to utilize. -->
-                    <button type="button" class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                        <span class="icon-bar"></span>
-                    </button>
-                    <a class="brand" href=http://oeway.github.io/EVA/>EVA</a>
-                    <!-- Responsive Navbar Part 2: Place all navbar contents you want collapsed withing .navbar-collapse.collapse. -->
-                    <div class="nav-collapse collapse">
-                        <ul class="nav">
-                                    <li><a href="http://oeway.github.io/EVA/">Home</a></li>
-                                    <li><a href="http://oeway.github.io/EVA/blog.html">Blog</a></li>
-                                    <li><a href="https://github.com/oeway/EVA/wiki">Wiki</a></li>
-                                    <li><a href="http://oeway.github.io/EVA/pages/downloads.html">Downloads</a></li>
-                                    <li><a href="http://oeway.github.io/EVA/pages/about.html">About</a></li>
-                        </ul>
-                    </div><!--/.nav-collapse -->
-                </div><!-- /.navbar-inner -->
-            </div><!-- /.navbar -->
-            
-        </div> <!-- /.container -->
-    </div><!-- /.navbar-wrapper -->
-
-
-
-<!-- Carousel
- ================================================== -->
-<div id="myCarousel" class="carousel slide">
-    <div class="carousel-inner">
-        
-        <div class="item  active  ">
-            <img src=http://oeway.github.io/EVA/images/slide-01.png alt="">
-                <div class="container" >
-                    <div class="carousel-caption">
-                        <h1> Imaging and Evaluation </h1>
-                        <p class="lead">An Open-souce Platform</p>
-                        <a class="btn btn-large btn-primary" href=http://oeway.github.io/EVA/pages/about.html>Learn More</a>
-                    </div>
-                </div>
-                </div>
-    </div>
-    <a class="left carousel-control" href="#myCarousel" data-slide="prev">&lsaquo;</a>
-    <a class="right carousel-control" href="#myCarousel" data-slide="next">&rsaquo;</a>
-</div><!-- /.carousel -->
-
+<div id="dialog-message" title="Notice">
+  <p>
+    <span class="ui-icon ui-icon-circle-check" style="float:left; margin:0 7px 50px 0;"></span>
     
-    
-    <div class="container">
-	   <div class="content">
-            <div class='page'>
-            <h1>A compact platform for imaging and evaluation</h1>
-<p>Open software and hardware architecture for general purpose inspection system</p>
-<h2>Basic philosophy of EVA project</h2>
-<ul>
-<li>Extensible</li>
-<li>Open</li>
-<li>Compact</li>
-<li>Intuitive</li>
-</ul>
-<h2>Features</h2>
-<ul>
-<li>Data acquisition and device control through driver adapter framework</li>
-<li>Extensible plugins for signal processing and evaluation</li>
-<li>Full featured image processing tools</li>
-<li>Intuitive GUI and Well-organized workspace</li>
-<li>Online plugin repository</li>
-<li>Graphical programming</li>
-<li>Powerful Arm driven hardware, 32bit and up to 120 MHz</li>
-<li>Multi-axis mechanical arm control</li>
-<li>Active and Passive sychronorisation modes suitable for different acquisition speed</li>
-<li>Modulized hardware</li>
-</ul>
-<h2>Demo hardwares (devices)</h2>
-<ul>
-<li>Ultrasonic Imaging System (completed)</li>
-<li>Eddy Current Inspection System (Under construction)</li>
-<li>Digital Radioraphy (Under constrution)</li>
-</ul>
-<h2>Supported File Format</h2>
-<p>Files from the following NDT instruments have been supported:</p>
-<ul>
-<li>TIFF (default)</li>
-<li>DICOM/DICONDE file import and recieve from ethernet, for example CR scanners from GE</li>
-<li><a href="http://www.pva-analyticalsystems.com/en/products/sam-line/pva/sam-line/sam-300">PVA TePla SAM300 Scanning Acoustic Microscopes</a></li>
-<li>Non-Contact Air Coupled Ultrasonic Testing(NAU21 from Japan Probe)</li>
-</ul>
-            </div>
-    <script src="http://oeway.github.io/EVA/theme/js/jquery.js"></script>
-    <div id="videogfw">
-        <script type="text/javascript">
-            function chooseVideo(src)
-            {
-                var video = '<iframe id="embededvideo" width=100% height=498 src=' + src + ' frameborder=0 allowfullscreen></iframe>';
-                $("#embededvideo").remove();
-                $("#videogfw").append(video);
-            }
-            var youtube_src = "//www.youtube.com/embed/pN5v-2BKSbE"
-            var youku_src = "http://player.youku.com/embed/XNjUxNzE0NzMy"
-            try
-            {
-                jQuery.getJSON('http://freegeoip.net/json/', function(location) {
-                    if (location.country_name == "China")
-                        chooseVideo(youku_src);
-                    else
-                        chooseVideo(youtube_src);
-                });
-            }
-            catch(err)
-            {
-                chooseVideo(youku_src);
-            }
-        </script>
-    </div>
-        <hr class="featurette-divider">
-		<footer>
-		  <p>Powered by <a href="http://icy.bioimageanalysis.org">Icy</a>/<a href="http://rsbweb.nih.gov/ij/‎">ImageJ</a>/<a href="http://www.micro-manager.org/‎">Micro-Manager</a>/<a href="http://smoothieware.org/">Smoothie</a>/<a href="https://github.com/grbl/grbl">GRBL</a>.</p>
-          <p> Copyright EVA &copy; 2013. Unless otherwise noted, all content on this website is released under the Creative Commons Attribution Licence 3.0, source code of EVA project is distributed under GPLv3, available on <a href="https://github.com/oeway/EVA" >Github</a>. Pages on this site can be edited with <a href="http://oeway.github.io/EVA/editor" target="_blank">EpicEditor</a> and then push to gh-pages branch.</p>
-		</footer>
-	  </div>
-	</div>
-    
-    
-    <!-- Le javascript
-     ================================================== -->
-    <!-- Placed at the end of the document so the pages load faster -->
-    <script src="http://oeway.github.io/EVA/theme/js/jquery.js"></script>
-    <script src="http://oeway.github.io/EVA/theme/js/bootstrap.min.js"></script>
-    <script>
-        !function ($) {
-            $(function(){
-              // carousel demo
-              $('#myCarousel').carousel({
-                                        interval:5000
-                                        })
-              })
-        }(window.jQuery)
-    </script>
-    <script src="http://oeway.github.io/EVA/theme/js/holder/holder.js"></script>
+  </p>
+  <p>
+    EVA project website have been moved to new address:<b><a href="http://www.EvaImg.org">http://www.EvaImg.org</a></b>.
+  </p>
+</div>
+ 
+ 
 </body>
 </html>
