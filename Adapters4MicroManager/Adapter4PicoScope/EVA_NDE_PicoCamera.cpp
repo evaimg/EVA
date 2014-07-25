@@ -32,7 +32,6 @@
 #include "../../MMCore/Error.h"
 #include <sstream>
 #include <algorithm>
-#include "WriteCompactTiffRGB.h"
 #include <iostream>
 #include "pico\PS3000Acon.c"
 #define MAX_SAMPLE_LENGTH 3000000
@@ -682,7 +681,7 @@ int CEVA_NDE_PicoCamera::SetAllowedBinning()
 
    vector<string> binValues;
    binValues.push_back("1");
-   binValues.push_back("2");
+   //binValues.push_back("2");
 
    LogMessage("Setting Allowed Binning settings", true);
    return SetAllowedValues(MM::g_Keyword_Binning, binValues);
@@ -957,15 +956,15 @@ int CEVA_NDE_PicoCamera::OnBinning(MM::PropertyBase* pProp, MM::ActionType eAct)
          // apply this value to the 'hardware'.
          long binFactor;
          pProp->Get(binFactor);
-			if(binFactor > 0 && binFactor < 10)
-			{
-				img_.Resize(image_width/binFactor, image_height/binFactor);
-				binSize_ = binFactor;
-            std::ostringstream os;
-            os << binSize_;
-            OnPropertyChanged("Binning", os.str().c_str());
-				ret=DEVICE_OK;
-			}
+		if(binFactor > 0 && binFactor < 10)
+		{
+			img_.Resize(image_width/binFactor, image_height/binFactor);
+			binSize_ = binFactor;
+			std::ostringstream os;
+			os << binSize_;
+			OnPropertyChanged("Binning", os.str().c_str());
+			ret=DEVICE_OK;
+		}
       }break;
    case MM::BeforeGet:
       {
