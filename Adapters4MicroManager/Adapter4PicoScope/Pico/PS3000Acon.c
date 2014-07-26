@@ -178,7 +178,7 @@ void SetDefaults(UNIT * unit)
 ****************************************************************************/
 PICO_STATUS SetDigitals(UNIT *unit, short state)
 {
-	PICO_STATUS status;
+	PICO_STATUS status=0;
 
 	short logicLevel;
 	float logicVoltage = 1.5;
@@ -205,7 +205,7 @@ PICO_STATUS SetDigitals(UNIT *unit, short state)
 ****************************************************************************/
 PICO_STATUS DisableAnalogue(UNIT *unit)
 {
-	PICO_STATUS status;
+	PICO_STATUS status=0;
 	short ch;
 
 	// Turn off digital ports
@@ -299,7 +299,7 @@ PICO_STATUS ChangePowerSource(short handle, PICO_STATUS status)
 PICO_STATUS ClearDataBuffers(UNIT * unit)
 {
 	int i;
-	PICO_STATUS status;
+	PICO_STATUS status=1;
 
 	for (i = 0; i < unit->channelCount; i++) 
 	{
@@ -1065,8 +1065,8 @@ void picoInitRapidBlock(UNIT * unit,long sampleOffset_,unsigned long timeout)
 	memset(&pulseWidth, 0, sizeof(struct tPwq));
 
 
-	unit->channelSettings[0].enabled  = 1;
-	unit->channelSettings[1].enabled  = 0;
+	//unit->channelSettings[0].enabled  = 1;
+	//unit->channelSettings[1].enabled  = 1;
 
 	_timeout = timeout;
 	//printf("Collect block triggered...\n");
@@ -1085,10 +1085,10 @@ void picoInitRapidBlock(UNIT * unit,long sampleOffset_,unsigned long timeout)
 
 	SetTrigger(unit, &sourceDetails, 1, &conditions, 1, &directions, &pulseWidth,sampleOffset_, 0, 0, 0, 0);
 
-	buffers[0] = (short*)malloc(BUFFER_SIZE * sizeof(short));
-	buffers[1] = (short*)malloc(BUFFER_SIZE * sizeof(short));
-	status = ps3000aSetDataBuffers(unit->handle, (PS3000A_CHANNEL)i, buffers[0], buffers[1], BUFFER_SIZE, 0, PS3000A_RATIO_MODE_NONE);
-	printf(status?"BlockDataHandler:ps3000aSetDataBuffers(channel %d) ------ 0x%08lx \n":"", i, status);
+	//buffers[0] = (short*)malloc(BUFFER_SIZE * sizeof(short));
+	//buffers[1] = (short*)malloc(BUFFER_SIZE * sizeof(short));
+	//status = ps3000aSetDataBuffers(unit->handle, (PS3000A_CHANNEL)i, buffers[0], buffers[1], BUFFER_SIZE, 0, PS3000A_RATIO_MODE_NONE);
+	//printf(status?"BlockDataHandler:ps3000aSetDataBuffers(channel %d) ------ 0x%08lx \n":"", i, status);
 
 	/*  find the maximum number of samples, the time interval (in timeUnits),
 	*		 the most suitable time units, and the maximum oversample at the current timebase*/
@@ -1120,7 +1120,7 @@ PICO_STATUS picoStartRapidBlock(UNIT * unit,unsigned short nCaptures,unsigned lo
 	short retry;
 	unsigned short nCapturesWanted = nCaptures;
 	unsigned short nSampleWanted = nSamples;
-
+	int c=0;
 	//Segment the memory
 	status = ps3000aMemorySegments(unit->handle, nCaptures, nMaxSamples);
 	if(status != PICO_OK)
@@ -1154,16 +1154,18 @@ PICO_STATUS picoStartRapidBlock(UNIT * unit,unsigned short nCaptures,unsigned lo
 	}
 	while(retry);
 
+
 	for (channel = 0; channel < unit->channelCount; channel++) 
 	{
 		if(unit->channelSettings[channel].enabled)
 		{
 			for (capture = 0; capture < nCaptures; capture++) 
 			{
-				status = ps3000aSetDataBuffer(unit->handle, (PS3000A_CHANNEL)channel, pBuf + nSampleWanted*capture, nSamples, capture, PS3000A_RATIO_MODE_NONE);
+				status = ps3000aSetDataBuffer(unit->handle, (PS3000A_CHANNEL)channel, pBuf + nSampleWanted*capture+c*(nSampleWanted*nCaptures), nSamples, capture, PS3000A_RATIO_MODE_NONE);
 				if(status != PICO_OK)
 					return status;
 			}
+			c++;
 		}
 	}
 	return status;
@@ -1266,20 +1268,19 @@ PICO_STATUS picoStopRapidBlock(UNIT * unit)
 PICO_STATUS picoRunRapidBlock(UNIT * unit,unsigned short nCaptures,unsigned long nSamples,unsigned long *CompletedNSample,unsigned long *nCompletedCaptures,short * pBuf)
 {
 	long timeIndisposed;
-	short  channel;
-	unsigned long capture;
-	short ***rapidBuffers;
+	short  channel=0;
+	unsigned long capture=0;
 	short *overflow;
-	PICO_STATUS status;
+	PICO_STATUS status=1;
 	unsigned long count=0;
 	short i;
 	unsigned long j;
-	long lIndex;
-	short retry;
+	long lIndex=0;
+	short retry=2;
 	unsigned short nCapturesWanted = nCaptures;
 	unsigned short nSampleWanted = nSamples;
-	long nMaxSamples;
-
+	long nMaxSamples=512;
+	int c=0;
 	//Segment the memory
 	status = ps3000aMemorySegments(unit->handle, nCaptures, &nMaxSamples);
 
@@ -1342,17 +1343,31 @@ PICO_STATUS picoRunRapidBlock(UNIT * unit,unsigned short nCaptures,unsigned long
 	if(status != PICO_OK)
 		return PICO_TRIGGER_ERROR;
 
-		for (channel = 0; channel < unit->channelCount; channel++) 
+	//	for (channel = 0; channel < unit->channelCount; channel++) 
+	//{
+	//	if(unit->channelSettings[channel].enabled)
+	//	{
+	//		for (capture = 0; capture < nCaptures; capture++) 
+	//		{
+	//			status = ps3000aSetDataBuffer(unit->handle, (PS3000A_CHANNEL)channel, pBuf + nSampleWanted*capture, nSamples, capture, PS3000A_RATIO_MODE_NONE);
+	//		}
+	//	}
+	//}
+
+	c=0;
+	for (channel = 0; channel < unit->channelCount; channel++) 
 	{
 		if(unit->channelSettings[channel].enabled)
 		{
 			for (capture = 0; capture < nCaptures; capture++) 
 			{
-				status = ps3000aSetDataBuffer(unit->handle, (PS3000A_CHANNEL)channel, pBuf + nSampleWanted*capture, nSamples, capture, PS3000A_RATIO_MODE_NONE);
+				status = ps3000aSetDataBuffer(unit->handle, (PS3000A_CHANNEL)channel, pBuf + nSampleWanted*capture+c*(nSampleWanted*nCaptures), nSamples, capture, PS3000A_RATIO_MODE_NONE);
+				if(status != PICO_OK)
+					return status;
 			}
+			c++;
 		}
 	}
-
 
 
 	//Allocate memory
@@ -1386,19 +1401,32 @@ PICO_STATUS picoRunRapidBlock(UNIT * unit,unsigned short nCaptures,unsigned long
 	nSamples = *CompletedNSample;
 	if (status == PICO_OK)
 	{
-
-		for (capture=0; capture<nCaptures; capture++)
-		{ 		
-			for (j=0; j<nSamples; j++)
+		c=0;
+		for (channel = 0; channel < unit->channelCount; channel++) 
+		{
+			if(unit->channelSettings[channel].enabled)
 			{
-				lIndex = nSampleWanted*capture + j;
-				*(pBuf + lIndex) = *(pBuf + lIndex)+32768;
+				for (capture=0; capture<nCaptures; capture++)
+				{ 		
+					for (j=0; j<nSamples; j++)
+					{
+						lIndex = nSampleWanted*capture + j+c*(nSampleWanted*nCaptures);
+						*(pBuf + lIndex) = *(pBuf + lIndex)+32768;
+					}
+
+				}
+				c++;
 			}
-
 		}
-
 	}
-
+	else
+	{
+		//Stop
+		ps3000aStop(unit->handle);
+		//Free memory
+		free(overflow);
+		return status;
+	}
 	//Stop
 	status = ps3000aStop(unit->handle);
 	//Free memory
@@ -1444,7 +1472,7 @@ void picoInitBlock(UNIT * unit,long sampleOffset_)
 
 
 	unit->channelSettings[0].enabled  = 1;
-	unit->channelSettings[1].enabled  = 0;
+	unit->channelSettings[1].enabled  = 1;
 
 	//printf("Collect block triggered...\n");
 	//printf("Collects when value rises past %d", scaleVoltages?
@@ -2512,13 +2540,12 @@ PICO_STATUS OpenDevice(UNIT *unit)
 	ps3000aMaximumValue(unit->handle, &value);
 	unit->maxValue = value;
 
-	for ( i = 0; i < PS3000A_MAX_CHANNELS; i++) 
+	for ( i = 0; i < unit->channelCount; i++) 
 	{
-		unit->channelSettings[i].enabled = FALSE;
+		unit->channelSettings[i].enabled = TRUE;
 		unit->channelSettings[i].DCcoupled = TRUE;
 		unit->channelSettings[i].range = PS3000A_5V;
 	}
-		unit->channelSettings[0].enabled = TRUE;// open the first channel only
 
 	memset(&directions, 0, sizeof(struct tTriggerDirections));
 	memset(&pulseWidth, 0, sizeof(struct tPwq));

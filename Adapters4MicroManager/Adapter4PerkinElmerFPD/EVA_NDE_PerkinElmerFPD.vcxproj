@@ -104,7 +104,7 @@
 		copy "$(TargetPath)" ..\..\bin_$(Platform)
 		copy "$(TargetPath)" ..\..\DeviceKit\DeviceTest\$(Platform)\$(Configuration)
 		copy "$(TargetPath)" "C:\Program Files\Micro-Manager-1.4"
-		copy "$(TargetPath)" "D:\Projects\EVA-NDE\icy"
+		
 	</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -135,7 +135,7 @@
 		copy "$(TargetPath)" ..\..\bin_$(Platform)
 		copy "$(TargetPath)" ..\..\DeviceKit\DeviceTest\$(Platform)\$(Configuration)
 		copy "$(TargetPath)" "C:\Program Files\Micro-Manager-1.4"
-		copy "$(TargetPath)" "D:\Projects\EVA-NDE\icy"
+		
 	</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -162,7 +162,7 @@
 		copy "$(TargetPath)" ..\..\bin_$(Platform)
 		copy "$(TargetPath)" ..\..\DeviceKit\DeviceTest\$(Platform)\$(Configuration)
 		copy "$(TargetPath)" "C:\Program Files\Micro-Manager-1.4"
-		copy "$(TargetPath)" "D:\Projects\EVA-NDE\icy"
+		
 	</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
@@ -192,7 +192,7 @@
 		copy "$(TargetPath)" ..\..\bin_$(Platform)
 		copy "$(TargetPath)" ..\..\DeviceKit\DeviceTest\$(Platform)\$(Configuration)
 		copy "$(TargetPath)" "C:\Program Files\Micro-Manager-1.4"
-		copy "$(TargetPath)" "D:\Projects\EVA-NDE\icy"
+		
 	</Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>

@@ -1,47 +1,37 @@
 package plugins.oeway;
 
 import icy.gui.frame.progress.AnnounceFrame;
-import icy.gui.frame.progress.ToolTipFrame;
 import icy.image.IcyBufferedImage;
 import icy.sequence.Sequence;
 import icy.sequence.SequenceAdapter;
-import icy.sequence.SequenceListener;
-import icy.system.thread.ThreadUtil;
 import icy.type.DataType;
 import icy.util.EventUtil;
 
 import org.micromanager.utils.StateItem;
+import mmcorej.CMMCore;
 
 import plugins.kernel.roi.roi2d.ROI2DPoint;
 import plugins.kernel.roi.roi2d.ROI2DPolygon;
-import plugins.tprovoost.Microscopy.MicroManagerForIcy.LiveSequence;
-import plugins.tprovoost.Microscopy.MicroManagerForIcy.MicroscopeImage;
-import plugins.tprovoost.Microscopy.MicroManagerForIcy.MicroscopePluginAcquisition;
-import plugins.tprovoost.Microscopy.MicroManagerForIcy.Tools.ImageGetter;
-import plugins.tprovoost.Microscopy.MicroManagerForIcy.Tools.MathTools;
-import plugins.tprovoost.Microscopy.MicroManagerForIcy.Tools.StageMover;
-import plugins.tprovoost.Microscopy.MicroManagerForIcy.MicromanagerPlugin;
-import plugins.tprovoost.Microscopy.MicroManagerForIcy.MicroscopeCore;
-import plugins.tprovoost.Microscopy.MicroManagerForIcy.MicroscopeSequence;
+
+import plugins.tprovoost.Microscopy.MicroManagerForIcy.MicroscopePlugin;
+
+import plugins.tprovoost.Microscopy.MicroManager.tools.ImageGetter;
+
+import plugins.tprovoost.Microscopy.MicroManager.MicroManager;
+
 import icy.file.Saver;
 import icy.gui.dialog.MessageDialog;
 import icy.main.Icy;
-import icy.plugin.PluginDescriptor;
-import icy.plugin.PluginLauncher;
-import icy.plugin.PluginLoader;
 import icy.roi.ROI2D;
 import icy.roi.ROIEvent;
 import icy.roi.ROIListener;
 
 
 import java.awt.Color;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.event.KeyEvent;
 import java.awt.event.KeyListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.geom.Point2D;
 import java.io.BufferedReader;
 import java.io.DataInputStream;
@@ -56,18 +46,14 @@ import java.io.PrintWriter;
 import java.nio.channels.FileChannel;
 import java.util.ArrayList;
 import java.util.Calendar;
-import java.util.HashMap;
-
 import javax.swing.JButton;
-
-import loci.formats.ome.OMEXMLMetadataImpl;
+import javax.swing.JOptionPane;
 
 import plugins.adufour.ezplug.*;
 import icy.gui.viewer.Viewer;
-import ij.plugin.ControlPanel;
 
 
-public class EvaScanner extends MicroscopePluginAcquisition {
+public class EvaScanner extends MicroscopePlugin {
 
 	// ------
 	// CORE
@@ -79,7 +65,7 @@ public class EvaScanner extends MicroscopePluginAcquisition {
 	 * higher than the necessary time for capture, will not be considered.
 	 * */
 	/** Reference to the video */
-	private LiveSequence video = null;
+	private Sequence video = null;
 	/** Number of slices */
 	private int _slices = 1;
 	/** Interval between slices. */
@@ -96,18 +82,25 @@ public class EvaScanner extends MicroscopePluginAcquisition {
 	private String picoCameraLabel ="";
 	private String picoCameraParentLabel ="";	
 	
-	@Override
-	public void start() {
+	private CMMCore mCore = MicroManager.getCore();
+    @Override
+    public void start(){
 		init();
 		gui=new EVA_GUI();
-		gui.compute();
+
+        // generate the user interface
+        gui.createUI();
+        
+        // show the interface to the user
+        gui.showUI();
+
 		//_thread.start();
 	}
 
 	public boolean init()
 	{
 		
-	   xyStageLabel = mCore.getXYStageDevice();
+	xyStageLabel = mCore.getXYStageDevice();
 	   
 	   try {
 		   xyStageParentLabel = mCore.getParentLabel(xyStageLabel);
@@ -131,18 +124,22 @@ public class EvaScanner extends MicroscopePluginAcquisition {
 	   try {
 		   picoCameraParentLabel = mCore.getParentLabel(picoCameraLabel);
 		} catch (Exception e1) {
-			new AnnounceFrame("Please select 'picoCam' as the default camera device!",5);
+			MessageDialog.showDialog("Please select 'picoCam' as the default camera device!",
+						MessageDialog.ERROR_MESSAGE);
 			return false;
 		} 
 	   
 		try {
 			if(!mCore.hasProperty(picoCameraLabel,"RowCount"))
 			  {
-				new AnnounceFrame("Please select 'picoCam' as the default camera device!",5);
+					MessageDialog.showDialog("Please select 'picoCam' as the default camera device!",
+						MessageDialog.ERROR_MESSAGE);
 				  return false;
 			  }
 		} catch (Exception e1) {
-			  new AnnounceFrame("Camera Error!",5);
+				MessageDialog.showDialog("Camera Error!",
+					MessageDialog.ERROR_MESSAGE);
+
 			  return false;
 		}	
 		return true;
@@ -154,7 +151,7 @@ public class EvaScanner extends MicroscopePluginAcquisition {
 	 * @see createVideo()
 	 */
 	private boolean createVideo(int sliceNum, double stepSize) {
-		video = new LiveSequence();
+		video = new Sequence();
 		try
 		{
 			_intervalxy = stepSize;
@@ -178,10 +175,10 @@ public class EvaScanner extends MicroscopePluginAcquisition {
 					super.sequenceClosed(sequence);
 					_thread.stopThread();
 					// mainGui.continuousAcquisitionReleased(MicroscopeLive3DPlugin.this);
-					mainGui.removePlugin(EvaScanner.this);
+					//mainGui.removePlugin(EvaScanner.this);
 				}
 			});
-			addSequence(video);
+			Icy.getMainInterface().addSequence(video);
 			
 	        new AnnounceFrame("New Sequence created:"+currentSeqName,5);
 	        return true;
@@ -193,21 +190,28 @@ public class EvaScanner extends MicroscopePluginAcquisition {
 		}
 	}
 
-	@Override
-	public void notifyConfigAboutToChange(StateItem item) throws Exception {
-		_thread.pauseThread(true);
-	}
 
 	@Override
-	public void notifyConfigChanged(StateItem item) throws Exception {
+    public void onCorePropertyChanged(String deviceName, String propName, String propValue){
 		_thread.pauseThread(false);
 	}
-
-	@Override
-	public void MainGUIClosed() {
-		_thread.stopThread();
-	}
-
+	
+	
+    @Override
+    public void shutdown()
+    {
+        super.shutdown();
+        try
+        {
+        	if(_thread != null)
+        		_thread.stopThread();
+        	if(gui != null)
+        		gui.getUI().close();
+        }
+        catch (Exception e) {
+			//System.err.println(e.toString());
+		}
+    }
 	
 	
 	
@@ -266,12 +270,12 @@ public class EvaScanner extends MicroscopePluginAcquisition {
 			{
 
 				try {
-					video.notifyListeners();
+					//video.notifyListeners();
 				} catch (Exception e) {
 					//e.printStackTrace();
 				}
 			}
-			notifyAcquisitionOver();
+			//notifyAcquisitionOver();
 			if(video!=null)
 			{
 				for (IcyBufferedImage img : video.getAllImage())
@@ -327,6 +331,7 @@ public class EvaScanner extends MicroscopePluginAcquisition {
 		 * @return Returns an ArrayList of all stacks as IcyBufferedImages.
 		 */
 		void captureStacks(Sequence s) {
+			showProgressBar(true);
 			String oldRowCount="1";
 			try {
 				oldRowCount = mCore.getProperty(picoCameraLabel, "RowCount");
@@ -350,8 +355,8 @@ public class EvaScanner extends MicroscopePluginAcquisition {
 			try
 			{
 				
-				MicroscopeImage img;
-				notifyAcquisitionStarted(true);
+				IcyBufferedImage img;
+				//notifyAcquisitionStarted(true);
 				setAlreadyCapturing(true);
 				int z = 0;
 				while (!_stop)
@@ -375,7 +380,7 @@ public class EvaScanner extends MicroscopePluginAcquisition {
 			            try
 			            {
 			            	video.beginUpdate();	
-			            	img = ImageGetter.snapImage(mCore);
+			            	img = ImageGetter.snapIcyImage();
 			            	if(img == null)
 			            	{
 			            		_snapFailed = true;
@@ -387,6 +392,7 @@ public class EvaScanner extends MicroscopePluginAcquisition {
 								_capturedCount +=1;
 								z +=1;
 								double progress = 1D * z / _slices * 100D;
+								
 								notifyProgress((int) progress);
 			            	}
 			            }
@@ -419,7 +425,7 @@ public class EvaScanner extends MicroscopePluginAcquisition {
 		            }
 				}
 				setAlreadyCapturing(false);
-				notifyAcquisitionOver();
+				removeProgressBar();
 			}
 			catch (Exception e3) {
 				e3.printStackTrace();
@@ -441,15 +447,10 @@ public class EvaScanner extends MicroscopePluginAcquisition {
 		}
 	
 	}
-
-	@Override
-	public String getRenderedName() {
-		return "EVA Scanner";
-	}
 	
 	
 	/**
-	 * Plugin for 
+	 * 
 	 * 
 	 * @author Wei Ouyang
 	 * 
@@ -520,7 +521,6 @@ public class EvaScanner extends MicroscopePluginAcquisition {
 			super.addEzComponent(groupScanMap);	
 			
 			//getUI().setParametersIOVisible(false);
-			
 
 			
 		}	
@@ -618,7 +618,8 @@ public class EvaScanner extends MicroscopePluginAcquisition {
 			if(targetFolder.getValue() == null){
 
 				stopFlag = true;
-				new AnnounceFrame("Please select a target folder to store data!",5);
+				MessageDialog.showDialog("Please select a target folder to store data!",
+  						MessageDialog.ERROR_MESSAGE);
 				return;
 			}
 			
@@ -633,7 +634,9 @@ public class EvaScanner extends MicroscopePluginAcquisition {
 			{
 
 				stopFlag = true;
-				new AnnounceFrame("Please select a target folder to store data!",5);
+				
+				MessageDialog.showDialog("Please select a target folder to store data!",
+  						MessageDialog.ERROR_MESSAGE);
 				return;
 			}			
 			
@@ -1012,7 +1015,8 @@ public class EvaScanner extends MicroscopePluginAcquisition {
 		    					   mCore.setProperty(xyStageParentLabel, "Command","$H");
 		    					new AnnounceFrame("Homing completed!",5);
 		    				} catch (Exception e1) {
-		    					 new AnnounceFrame("Homing error,try to restart controller!",10);
+		    					MessageDialog.showDialog("Homing error,try to restart controller!",
+		    	  						MessageDialog.ERROR_MESSAGE);
 		    				}
 	    		  		}
 	    		}
@@ -1033,7 +1037,8 @@ public class EvaScanner extends MicroscopePluginAcquisition {
 			try {
 					if(stepSize.getValue()<=0.0)
 					{
-						  new AnnounceFrame("Step size error!",20);
+						MessageDialog.showDialog("Step size error!",
+			                    MessageDialog.ERROR_MESSAGE);
 						  return;
 					}
 					

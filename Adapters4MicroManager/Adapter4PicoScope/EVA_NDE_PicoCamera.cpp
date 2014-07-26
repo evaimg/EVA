@@ -326,13 +326,6 @@ int CEVA_NDE_PicoCamera::Initialize()
    if (nRet != DEVICE_OK)
       return nRet;
 
-
-   // setup the buffer
-   // ----------------
-   nRet = ResizeImageBuffer();
-   if (nRet != DEVICE_OK)
-      return nRet;
-
 #ifdef TESTRESOURCELOCKING
    TestResourceLocking(true);
    LogMessage("TestResourceLocking OK",true);
@@ -342,8 +335,7 @@ int CEVA_NDE_PicoCamera::Initialize()
 	if(PICO_OK != status)
 	return DEVICE_NOT_CONNECTED;
 	picoInitBlock(&unit,sampleOffset_);
-   // initialize image buffer
-   GenerateEmptyImage(img_);
+
    pAct = new CPropertyAction (this, &CEVA_NDE_PicoCamera::OnInputRange);
    CreateProperty("InputRange", "0", MM::Integer, false, pAct);
    //add input range
@@ -356,11 +348,27 @@ int CEVA_NDE_PicoCamera::Initialize()
 	{
 	   char propNameBuf[30]= "Channel A";
 	   propNameBuf[8] +=ch;
+
+	   char propValBufON[30]= "A--ON";
+	   propValBufON[0] +=ch;
+
+	   char propValBufOFF[30]= "A--OFF";
+	   propValBufOFF[0] +=ch;
+
 	   pAct = new CPropertyAction (this, &CEVA_NDE_PicoCamera::OnChannelEnable);
-	   CreateProperty(propNameBuf, "ON", MM::String, false);
-	   AddAllowedValue(propNameBuf, "ON");
-	   AddAllowedValue(propNameBuf, "OFF");
+	   CreateProperty(propNameBuf, propValBufON, MM::String, false, pAct);
+
+	   AddAllowedValue(propNameBuf, propValBufON);
+	   AddAllowedValue(propNameBuf, propValBufOFF);
 	}
+
+		   // setup the buffer
+   // ----------------
+   nRet = ResizeImageBuffer();
+   if (nRet != DEVICE_OK)
+      return nRet;
+   // initialize image buffer
+   GenerateEmptyImage(img_);
 
   initialized_ = true;
    return DEVICE_OK;
@@ -394,11 +402,11 @@ int CEVA_NDE_PicoCamera::SnapImage()
    int ret = DEVICE_ERR;
 	static int callCounter = 0;
 	++callCounter;
-	int count=0;
+
  //  MM::MMTime readoutTime(PICO_RUM_TIME_OUT_US+10*img_.Height());
  //  //picoInitBlock(&unit);
  // // CollectBlockImmediate(&unit); 
-   char buf[MM::MaxStrLength];
+
    //rapid block mode
    try
    {
@@ -407,13 +415,12 @@ int CEVA_NDE_PicoCamera::SnapImage()
    catch( CMMError& e){
 	   return DEVICE_ERR;
    }
-   MMThreadGuard g(imgPixelsLock_);
-   short* pBuf = (short*) const_cast<unsigned char*>(img_.GetPixels());
-
    unsigned long nCompletedSamples;
    unsigned long nCompletedCaptures;
     try
    {
+	    MMThreadGuard g(imgPixelsLock_);
+		short* pBuf = (short*) const_cast<unsigned char*>(img_.GetPixels());
 		ret = picoRunRapidBlock(&unit,img_.Height(),img_.Width() ,&nCompletedSamples,&nCompletedCaptures,pBuf);
    }
    catch( CMMError& e){
@@ -444,7 +451,23 @@ const unsigned char* CEVA_NDE_PicoCamera::GetImageBuffer()
    unsigned char *pB = (unsigned char*)(img_.GetPixels());
    return pB;
 }
-
+/**
+* Returns pixel data for cameras with multiple channels.
+* See description for GetImageBuffer() for details.
+* Use this overloaded version for cameras with multiple channels
+* When calling this function for a single channel camera, this function
+* should return the content of the imagebuffer as returned by the function
+* GetImageBuffer().  This behavior is implemented in the DeviceBase.
+* When GetImageBuffer() is called for a multi-channel camera, the 
+* camera adapter should return the ImageBuffer for the first channel
+* @param channelNr Number of the channel for which the image data are requested.
+*/
+ const unsigned char* CEVA_NDE_PicoCamera::GetImageBuffer(unsigned channelNr)
+ {
+	MMThreadGuard g(imgPixelsLock_);	
+   unsigned char *pB = (unsigned char*)(img_.GetPixels()+GetImageBufferSize()*channelNr);
+   return pB;
+ }
 /**
 * Returns image buffer X-size in pixels.
 * Required by the MM::Camera API.
@@ -469,7 +492,22 @@ unsigned CEVA_NDE_PicoCamera::GetImageHeight() const
 */
 unsigned CEVA_NDE_PicoCamera::GetImageBytesPerPixel() const
 {
-   return img_.Depth();
+	int byteDepth = 0;
+	char buf[MM::MaxStrLength];
+	int  ret = GetProperty(MM::g_Keyword_PixelType, buf);
+    if (ret != DEVICE_OK)
+      return ret;
+
+	std::string pixelType(buf);
+   if (pixelType.compare(g_PixelType_8bit) == 0)
+   {
+      byteDepth = 1;
+   }
+   else if (pixelType.compare(g_PixelType_16bit) == 0)
+   {
+      byteDepth = 2;
+   }
+   return byteDepth;//img_.Depth();
 } 
 
 /**
@@ -480,7 +518,7 @@ unsigned CEVA_NDE_PicoCamera::GetImageBytesPerPixel() const
 */
 unsigned CEVA_NDE_PicoCamera::GetBitDepth() const
 {
-   return 8;
+   return GetImageBytesPerPixel()*8;
 }
 
 /**
@@ -513,14 +551,15 @@ int CEVA_NDE_PicoCamera::SetROI(unsigned x, unsigned y, unsigned xSize, unsigned
    if (xSize == 0 && ySize == 0)
    {
       // effectively clear ROI
-      ResizeImageBuffer();
+      //ResizeImageBuffer();
       roiX_ = 0;
       roiY_ = 0;
    }
    else
    {
       // apply ROI
-      img_.Resize(xSize, ySize);
+      //img_.Resize(xSize, ySize);
+	  //imgTmp_.Resize(xSize, ySize);
       roiX_ = x;
       roiY_ = y;
    }
@@ -556,28 +595,19 @@ int CEVA_NDE_PicoCamera::ClearROI()
       
    return DEVICE_OK;
 }
-
-   unsigned CEVA_NDE_PicoCamera::GetNumberOfComponents()  
-   {
-      return 1;
-   }
-
-   int CEVA_NDE_PicoCamera::GetComponentName(unsigned channel, char* name)
-   {
-      if (channel > 0)
-         return DEVICE_NONEXISTENT_CHANNEL;
-
-      CDeviceUtils::CopyLimitedString(name, "Grayscale");
-      return DEVICE_OK;
-   }
-
    /**
     * Multi-Channel cameras use this function to indicate how many channels they 
     * provide.  Single channel cameras do not need to override this
     */
-   unsigned CEVA_NDE_PicoCamera::GetNumberOfChannels()  
+   unsigned CEVA_NDE_PicoCamera::GetNumberOfChannels() const 
    {
-      return 1;//(unsigned)unit.channelCount;
+	   unsigned count=0;
+	   	for (int ch = 0; ch < unit.channelCount ; ch++)
+		{
+			if(unit.channelSettings[ch].enabled)
+				count++;
+		}
+      return count;//(unsigned)unit.channelCount;
    }
 
    /**
@@ -586,8 +616,19 @@ int CEVA_NDE_PicoCamera::ClearROI()
     */
     int CEVA_NDE_PicoCamera::GetChannelName(unsigned  channel, char* name)
    {
+	   unsigned count=0;
 	   char tmp[30] = "Channel A";
-	   tmp[8] +=channel;
+	   	 for (int ch = 0; ch < unit.channelCount ; ch++)
+		{
+			if(unit.channelSettings[ch].enabled)
+			{
+				if(channel == count){
+					tmp[8] +=ch;
+					break;
+				}
+				count++;
+			}
+		}
       CDeviceUtils::CopyLimitedString(name, tmp);
       return DEVICE_OK;
    }
@@ -774,8 +815,11 @@ int CEVA_NDE_PicoCamera::InsertImage()
 
    // This method inserts a new image into the circular buffer (residing in MMCore)
    //int ret = GetCoreCallback()->InsertMultiChannel(this, pI, 1, w, h, b, &md ); // Inserting the md causes crash in debug builds
-
+   //int c = GetNumberOfChannels();
    int ret = GetCoreCallback()->InsertImage(this, pI, w, h, b, md.Serialize().c_str());
+ //    int ret=0;
+	//for(int i=0;i<c;i++)
+	//	ret = GetCoreCallback()->InsertMultiChannel(this, GetImageBuffer(i),i, w, h, b, &md);
 
    if (!stopOnOverflow_ && ret == DEVICE_BUFFER_OVERFLOW)
    {
@@ -783,8 +827,12 @@ int CEVA_NDE_PicoCamera::InsertImage()
       GetCoreCallback()->ClearImageBuffer(this);
       // don't process this same image again...
       return GetCoreCallback()->InsertImage(this, pI, w, h, b, md.Serialize().c_str(), false);
+	  //for(int i=0;i<c;i++)
+		 //ret = GetCoreCallback()->InsertMultiChannel(this, GetImageBuffer(i),i, w, h, b, &md);
+	  //return ret;
    } else
       return ret;
+
 }
 
 /*
@@ -958,8 +1006,10 @@ int CEVA_NDE_PicoCamera::OnBinning(MM::PropertyBase* pProp, MM::ActionType eAct)
          pProp->Get(binFactor);
 		if(binFactor > 0 && binFactor < 10)
 		{
-			img_.Resize(image_width/binFactor, image_height/binFactor);
+			//img_.Resize(image_width/binFactor, image_height/binFactor);
 			binSize_ = binFactor;
+			ResizeImageBuffer();
+
 			std::ostringstream os;
 			os << binSize_;
 			OnPropertyChanged("Binning", os.str().c_str());
@@ -993,7 +1043,8 @@ int CEVA_NDE_PicoCamera::OnRowCount(MM::PropertyBase* pProp, MM::ActionType eAct
 		if( value != image_height)
 		{
 			image_height = value;
-			img_.Resize(image_width/binSize_, image_height/binSize_);
+			//img_.Resize(image_width/binSize_, image_height/binSize_);
+			ResizeImageBuffer();
 		}
    }
 	return DEVICE_OK; 
@@ -1043,7 +1094,8 @@ int CEVA_NDE_PicoCamera::OnSampleLength(MM::PropertyBase* pProp, MM::ActionType 
 		if( value != image_width)
 		{
 			image_width = value;
-			img_.Resize(image_width/binSize_, image_height/binSize_);
+			//img_.Resize(image_width/binSize_, image_height/binSize_);
+			ResizeImageBuffer();
 		}
    }
    else if (eAct == MM::BeforeGet)
@@ -1159,7 +1211,6 @@ int CEVA_NDE_PicoCamera::OnIsSequenceable(MM::PropertyBase* pProp, MM::ActionTyp
          isSequenceable_ = true;
       }
    }
-
    return DEVICE_OK;
 }
 
@@ -1169,16 +1220,33 @@ int CEVA_NDE_PicoCamera::OnChannelEnable(MM::PropertyBase* pProp, MM::ActionType
    std::string val = "ON";
    if (eAct == MM::BeforeGet)
    {
-      val = "ON";
+      val = "";
 
       pProp->Set(val.c_str());
    }
    else if (eAct == MM::AfterSet)
    {
       pProp->Get(val);
-      if (val == "ON") 
+	  int ch = 'A'-val.c_str()[0];
+	  if(val.c_str()[4]=='N')
       {
+		  unit.channelSettings[ch].enabled = 1;
       }
+	  else
+	  {
+		  unit.channelSettings[ch].enabled = 0;
+	  }
+
+	    int nRet = ResizeImageBuffer();
+		   try
+	   {
+		  picoInitRapidBlock(&unit,sampleOffset_,timeout_);
+	   }
+	   catch( CMMError& e){
+		   return DEVICE_ERR;
+	   }
+	   if (nRet != DEVICE_OK)
+		  return nRet;
    }
    return DEVICE_OK;
 }
@@ -1213,8 +1281,8 @@ int CEVA_NDE_PicoCamera::ResizeImageBuffer()
       byteDepth = 2;
    }
 
-
-   img_.Resize(image_width/binSize_, image_height/binSize_, byteDepth);
+   //MMThreadGuard g(imgPixelsLock_);
+   img_.Resize(image_width/binSize_, image_height/binSize_, byteDepth * GetNumberOfChannels());
    return DEVICE_OK;
 }
 

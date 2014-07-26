@@ -108,6 +108,7 @@ public:
    // ------------
    int SnapImage();
    const unsigned char* GetImageBuffer();
+   const unsigned char* GetImageBuffer(unsigned channelNr);
    unsigned GetImageWidth() const;
    unsigned GetImageHeight() const;
    unsigned GetImageBytesPerPixel() const;
@@ -186,9 +187,8 @@ public:
    int OnChannelEnable(MM::PropertyBase* pProp, MM::ActionType eAct);
 
    int GetChannelName(unsigned /* channel */, char* name);
-   unsigned GetNumberOfComponents();
-   unsigned GetNumberOfChannels() ;
-   int GetComponentName(unsigned channel, char* name);
+   unsigned GetNumberOfChannels() const;
+
 private:
    int SetAllowedBinning();
    void TestResourceLocking(const bool);
