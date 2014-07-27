@@ -15,11 +15,7 @@ import icy.gui.util.GuiUtil;
 import icy.image.IcyBufferedImage;
 import icy.roi.BooleanMask2D;
 import icy.roi.ROI;
-import plugins.kernel.roi.roi2d.ROI2DEllipse;
 import plugins.kernel.roi.roi2d.ROI2DLine;
-import plugins.kernel.roi.roi2d.ROI2DPolyLine;
-import plugins.kernel.roi.roi2d.ROI2DPolygon;
-import plugins.kernel.roi.roi2d.ROI2DRectangle;
 import plugins.kernel.roi.roi2d.ROI2DShape;
 import icy.sequence.DimensionId;
 import icy.sequence.Sequence;
@@ -30,19 +26,15 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Insets;
+import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
-import java.awt.event.MouseEvent;
-import java.awt.event.MouseListener;
 import java.awt.geom.Point2D;
-import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
 import java.util.HashSet;
+import java.util.List;
 import java.util.Set;
-import java.util.Timer;
-import java.util.TimerTask;
-
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
 import javax.swing.JLabel;
@@ -51,12 +43,15 @@ import javax.swing.SwingConstants;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
+import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.JFreeChart;
-import org.jfree.chart.axis.ValueAxis;
+import org.jfree.chart.labels.StandardXYSeriesLabelGenerator;
 import org.jfree.chart.plot.Marker;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
+import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 import org.jfree.ui.RectangleAnchor;
@@ -67,9 +62,10 @@ import javax.swing.event.ChangeListener;
 public class IntensityProfile  {
 
     final IcySlider slider;
-	JButton exportToExcelButton = new JButton("Export to excel");
+	//JButton exportToExcelButton = new JButton("Export to excel");
 	JCheckBox graphOverZ = new JCheckBox("Graph Z");
 	JButton rowOColBtn = new JButton("row");
+	JButton consoleOutputBtn = new JButton("Export to console");
 	JLabel indexLbl = new JLabel("0");
 	JLabel maxIndexLbl = new JLabel("0");
 	public PanningChartPanel chartPanel ;
@@ -91,8 +87,10 @@ public class IntensityProfile  {
 	int lineIndex = 0 ;
 	
 	IcyCanvas mainCanvas;
-	public int posX = 0;
-	public int posY = 0;
+	public double posX = 0.0;
+	public double posY = 0.0;
+	
+	double pixelSize = 1.0;
 		
 	public IntensityProfile(IcyCanvas mainCav,Sequence seq){
 		
@@ -125,20 +123,66 @@ public class IntensityProfile  {
             @Override
             public void actionPerformed(ActionEvent e)
             {
+                String xlabel;
+                String title;
             	if(rowOColBtn.getText()=="row")
             	{
             		rowOColBtn.setText("column");
             		rowMode = false;	
+  
+            		xlabel = "Column (Y)";
+            		title = "Intensity Profile of Each Column";
+  
             	}
             	else
             	{
             		rowOColBtn.setText("row");
             		rowMode = true;
+
+            		xlabel = "Row (X)";
+            		title = "Intensity Profile of Each Row";
+  
             	}
+            	chart.setTitle(title);
+            	chart.getXYPlot().getDomainAxis().setLabel(xlabel);
             	updateChart();
             }
         });
         rowOColBtn.setToolTipText("slide in row or column");
+  
+        consoleOutputBtn.setFocusPainted(false);
+        consoleOutputBtn.setPreferredSize(new Dimension(180, 22));
+        consoleOutputBtn.setMaximumSize(new Dimension(240, 22));
+        consoleOutputBtn.setMinimumSize(new Dimension(120, 22));
+        consoleOutputBtn.setMargin(new Insets(2, 8, 2, 8));
+        consoleOutputBtn.addActionListener(new ActionListener()
+        {
+            @Override
+            public void actionPerformed(ActionEvent e)
+            {
+        		int currentT = mainCanvas.getPositionT();
+        		int currentZ = mainCanvas.getPositionZ();
+        		
+        		System.out.println("-----------------------------------------");
+        		System.out.println("---------- Time:"+ currentT +", Z:"+currentZ+" ---------");
+        		for( int c= 0 ; c < sequence.getSizeC() ; c++ )
+        		{
+        			XYSeries seriesXY = xyDataset.getSeries(0);	
+        			List<XYDataItem> it = seriesXY.getItems();
+        			System.out.println("----------channel:"+ c +"---------");
+        			System.out.println("X , Y");
+        			for( int i = 0 ; i <it.size()  ; i++ )
+        			{							
+        				System.out.println(it.get(i).getXValue() + " , "+ it.get(i).getYValue());
+        				
+        			}
+        			System.out.println("-----------------------------------------");
+        		}
+            }
+        });
+        consoleOutputBtn.setToolTipText("Print current line data to the console of Icy.");
+        
+
         
         indexLbl.setHorizontalAlignment(JLabel.RIGHT );
         maxIndexLbl.setHorizontalAlignment(JLabel.RIGHT );
@@ -178,21 +222,68 @@ public class IntensityProfile  {
             }
         });
         ComponentUtil.setFixedHeight(slider, 22);
-		 
+        String xlabel;
+        String title;
+    	if(rowMode)
+    	{
+    		xlabel = "Row (X)";
+    		title = "Intensity Profile of Each Row";
+    	}
+    	else
+    	{
+    		xlabel = "Column (Y)";
+    		title = "Intensity Profile of Each Column";
+    	}
         
 		// Chart
 		chart = ChartFactory.createXYLineChart(
-				"", "", "intensity", xyDataset,
+				title,xlabel, "Intensity Value", xyDataset,
 				PlotOrientation.VERTICAL, false, true, true);
-		chartPanel = new PanningChartPanel(chart, 500, 200, 500, 200, 500, 500, false, false, true, false, true, true);		
+		chartPanel = new PanningChartPanel(chart, 1024, 500, 500, 200, 10000, 10000, false, false, true, false, true, true);		
 		
+		chartPanel.addChartMouseListener(new ChartMouseListener() {
+			@Override
+			public void chartMouseClicked(ChartMouseEvent arg0) {
+            	if(rowMode)
+            	{
+            		posX = chart.getXYPlot().getDomainCrosshairValue();
+            		mainCanvas.mouseImagePositionChanged(DimensionId.X);
+            	}
+            	else
+            	{
+            		posY = chart.getXYPlot().getDomainCrosshairValue();
+            		mainCanvas.mouseImagePositionChanged(DimensionId.Y);
+            	}
+			}
+
+			@Override
+			public void chartMouseMoved(ChartMouseEvent chartMouseEvent) {
+
+			    //Point MousePoint = chartMouseEvent.getTrigger().getPoint();
+		        //Point2D pos = chartPanel.translateScreenToJava2D(MousePoint);
+
+			}
+		});
+		    
 		//disable autorange
         chart.getXYPlot().getRangeAxis(0).setAutoRange(false);
         chart.getXYPlot().getDomainAxis(0).setAutoRange(false);	
         
+        chart.getXYPlot().setDomainCrosshairVisible(true);
+        chart.getXYPlot().setDomainCrosshairLockedOnData(true);
+        chart.getXYPlot().setRangeCrosshairVisible(true);
+        chart.getXYPlot().setRangeCrosshairLockedOnData(true);
+        
+        chart.getXYPlot().setDomainCrosshairPaint(Color.red);
+        chart.getXYPlot().setRangeCrosshairPaint(Color.red);
+		
+        XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) chart.getXYPlot().getRenderer();
+        renderer.setLegendItemToolTipGenerator(
+            new StandardXYSeriesLabelGenerator("Legend {0}"));
+        
 		mainCanvas = mainCav;
 		//add to canvas
-		mainCanvas.add( GuiUtil.createPageBoxPanel(optionComboBox,chartPanel,GuiUtil.createLineBoxPanel(rowOColBtn,slider,maxIndexLbl) )) ;
+		mainCanvas.add( GuiUtil.createPageBoxPanel(GuiUtil.createLineBoxPanel(consoleOutputBtn,optionComboBox),chartPanel,GuiUtil.createLineBoxPanel(rowOColBtn,slider,maxIndexLbl) )) ;
 
 		// NOW DO SOME OPTIONAL CUSTOMISATION OF THE CHART...
         chart.setBackgroundPaint(Color.white);
@@ -203,19 +294,24 @@ public class IntensityProfile  {
         // get a reference to the plot for further customisation...
         final XYPlot plot = chart.getXYPlot();
         
-        plot.setBackgroundPaint(Color.lightGray);
+        plot.setBackgroundPaint(Color.white );
+        
     //    plot.setAxisOffset(new Spacer(Spacer.ABSOLUTE, 5.0, 5.0, 5.0, 5.0));
 
         
         // set the stroke for each series...
         plot.getRenderer().setSeriesStroke(
             0, 
-            new BasicStroke(
-                1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 
-                1.0f, new float[] {1.0f, 1.0f}, 0.0f
-            )
+//            new BasicStroke(
+//                1.0f, BasicStroke.CAP_ROUND, BasicStroke.JOIN_ROUND, 
+//                10.0f, new float[] {10.0f, 1.0f}, 0.0f
+//            )
+            new BasicStroke(1.0f)
         );
 
+        plot.getRenderer().setSeriesShape(0, null);
+        plot.getRenderer().setSeriesPaint(0, Color.blue);
+        
         updateXYNav();
     	updateChart();
 	}
@@ -234,6 +330,7 @@ public class IntensityProfile  {
 	{
 		chart.setAntiAlias( true );
 		chart.setTextAntiAlias( true );
+		
 		
 	//	updateChartThreaded();
 		if ( updateRunnable == null )
@@ -298,6 +395,7 @@ public class IntensityProfile  {
 			Point2D p1 = new Point2D.Double(0,lineIndex );
 			Point2D p2 = new Point2D.Double(sequence.getWidth(),lineIndex);
 			associatedROI = new ROI2DLine(p1,p2);
+			pixelSize = sequence.getPixelSizeX();
 		}else
 		{
 			if (lineIndex >sequence.getWidth()-1)
@@ -309,6 +407,7 @@ public class IntensityProfile  {
 			Point2D p1 = new Point2D.Double(lineIndex, 0);
 			Point2D p2 = new Point2D.Double(lineIndex, sequence.getHeight());
 			associatedROI = new ROI2DLine(p1,p2);
+			pixelSize = sequence.getPixelSizeY();
 		}
 		
 		sequence.addROI(associatedROI);
@@ -474,16 +573,6 @@ public class IntensityProfile  {
 			result /= (double)offset;
 		}
 		
-		
-//		Array1DUtil.getValue( image.getDataXY( component ) , component, image.isSignedDataType() );
-		
-		
-		
-//		 data[component][i] = Array1DUtil.getValue( 
-//       		  image.getDataXY( component ) , 
-//       		  image.getOffset( (int)x, (int)y ) , 
-//       		  image.isSignedDataType() ) ;
-		
 		return result;
 	}
 
@@ -581,19 +670,17 @@ public class IntensityProfile  {
 		Profile profile = getValueForPointList( pointList , sequence.getImage( currentT , currentZ ) );
 
 		drawVerticalROIBreakBar( profile );
-		
+
 		for( int c= 0 ; c < sequence.getSizeC() ; c++ )
 		{
-			XYSeries seriesXY = new XYSeries("Intensity c" +c + " t"+currentT + " z" +currentZ );		
+			XYSeries seriesXY = new XYSeries("Intensity c" +c + " t"+currentT + " z" +currentZ );	
 			for( int i = 0 ; i < profile.values[c].length ; i++ )
 			{							
-				//System.out.println();
-				seriesXY.add(i, profile.values[c][i]);
+				//System.out.println(i*pixelSize + " , "+ profile.values[c][i]);
+				seriesXY.add(i*pixelSize, profile.values[c][i]);
 			}
 			xyDataset.addSeries(seriesXY);
 		}
-
-
 		
 	}
 
