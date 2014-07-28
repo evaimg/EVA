@@ -30,6 +30,7 @@ import plugins.adufour.blocks.lang.Block;
 import plugins.adufour.blocks.util.VarList;
 import plugins.adufour.ezplug.EzGroup;
 import plugins.adufour.ezplug.EzPlug;
+import plugins.adufour.ezplug.EzStoppable;
 import plugins.adufour.ezplug.EzVar;
 import plugins.adufour.ezplug.EzVarBoolean;
 import plugins.adufour.ezplug.EzVarEnum;
@@ -37,29 +38,26 @@ import plugins.adufour.ezplug.EzVarListener;
 import plugins.adufour.ezplug.EzVarSequence;
 import plugins.adufour.ezplug.EzVarText;
 import plugins.adufour.vars.lang.Var;
-import plugins.adufour.vars.lang.VarSequence;
 import plugins.adufour.vars.util.VarListener;
 
 
-public class FeatureExtractionEngine extends EzPlug implements Block
+public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppable
 {
 
-	protected final String INPUT_SEQUENCE = "InputSequence";
-	protected final String EXTRACT_AXIS = "ExtractAxis";
-	protected final String FEATURE_GROUPS = "FeatureGroups";
-	protected final String FEATURE_GROUPS_NAMES = "FeatureGroupsNames";
-	protected final String FEATURE_COUNT = "FeatureCount";
-	protected final String FEATURE_DATA_TYPE = "FeatureDataType";
-	protected final String MAXIMUM_ERROR_COUNT = "MaximumErrorCount";
-	protected final String IS_RESTRICT_TO_ROI = "IsRestrictToROI";
-	protected final String OUTPUT_SEQUENCE = "OutputSequence";
+	protected final String INPUT_SEQUENCE_VAR = "Input(EzVarSequence)";
+	protected final String EXTRACT_AXIS = "ExtractAxis(EzVarEnum<ExtractDirection>)";
+	protected final String FEATURE_GROUPS = "FeatureGroups(String[])";
+	protected final String FEATURE_COUNT = "FeatureCount(int)";
+	protected final String FEATURE_DATA_TYPE = "FeatureDataType(Double)";
+	protected final String MAXIMUM_ERROR_COUNT = "MaximumErrorCount(int)";
+	protected final String IS_RESTRICT_TO_ROI = "IsRestrictToROI(EzVarBoolean)";
+	protected final String OUTPUT_SEQUENCE_VAR = "Output(EzVarSequence)";
 	
     public enum ExtractDirection
     {
         X,Y,Z,T//,C
     }
     
-    private EzGroup mainGroup = new EzGroup("");
     
     private final EzVarSequence                  input          = new EzVarSequence("Input Sequence");
     
@@ -67,7 +65,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block
     
     private final EzVarBoolean                   restrictToROI  = new EzVarBoolean("Restrict to ROI", false);
     
-    private final VarSequence                    output         = new VarSequence("Output Sequence",null);
+    private final EzVarSequence                    output         = new EzVarSequence("Output Sequence");
     
     private EzGroup featureFuncOptions = new EzGroup("Options");
     
@@ -83,6 +81,11 @@ public class FeatureExtractionEngine extends EzPlug implements Block
     final EzVarText featureFuncVar= new EzVarText("Extraction Function", new String[]{}, 0, false);
     
     public FeatureExtractionFunction selectedExtractionFunc;
+	boolean						stopFlag = false;
+	int maxErrorCount = -1;
+	int featureCount = -1;
+    DataType outputDataType = DataType.DOUBLE;
+    String[] groupNames = new String[]{""};
     
     String lastfeatureFuncVar = "";
     public void createFeatureFunc() throws InstantiationException, IllegalAccessException{
@@ -102,9 +105,17 @@ public class FeatureExtractionEngine extends EzPlug implements Block
 		optionDict.clear();
 		guiList.clear();
 		optionDict = createConfigurations();
-		selectedExtractionFunc.initialize(optionDict,guiList);
+		try
+		{
+			selectedExtractionFunc.initialize(optionDict,guiList);
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+		}
 		//featureFuncOptions.addEzComponent(featureFuncOptions);
-
+		updateFromConfigurations();
+		
 		for(EzVar<?> v:guiList){
 			if(inputMap_!=null)
 				if(!inputMap_.contains( v.getVariable()))
@@ -113,6 +124,9 @@ public class FeatureExtractionEngine extends EzPlug implements Block
 			featureFuncOptions.addEzComponent( v);
 		}
 		lastfeatureFuncVar = featureFuncVar.getValue();
+		
+		featureFuncOptions.setVisible(featureFuncOptions.components.size()>0);
+			
     }
 
     public void buildFeatureFuncList()
@@ -175,14 +189,13 @@ public class FeatureExtractionEngine extends EzPlug implements Block
     protected void initialize()
     {
     	
-    	mainGroup.addEzComponent(input);
-    	mainGroup.addEzComponent(extractDir);
-    	mainGroup.addEzComponent(featureFuncVar); 
-    	mainGroup.addEzComponent(featureFuncOptions);
+    	addEzComponent(input);
+    	addEzComponent(extractDir);
+    	addEzComponent(featureFuncVar); 
+    	addEzComponent(featureFuncOptions);
         restrictToROI.setToolTipText("Check this option to extract only the intensity data contained within the sequence ROI");
-        mainGroup.addEzComponent(restrictToROI);
+        addEzComponent(restrictToROI);
         
-        addEzComponent(mainGroup);
     	buildFeatureFuncList();
 
     }
@@ -190,6 +203,8 @@ public class FeatureExtractionEngine extends EzPlug implements Block
     @Override
     protected void execute()
     {
+    	stopFlag = false;
+
         switch (extractDir.getValue())
         {
 	        case X:
@@ -255,17 +270,33 @@ public class FeatureExtractionEngine extends EzPlug implements Block
     
 	public  LinkedHashMap<String,Object>  createConfigurations(){
 		LinkedHashMap<String,Object> configurations = new LinkedHashMap<String,Object>();
-	    configurations.put(INPUT_SEQUENCE, input.getValue());
+		
+		maxErrorCount = -1;
+		featureCount = -1;
+	    outputDataType = DataType.DOUBLE;
+	    groupNames = new String[]{""};
+	    
+	    configurations.put(INPUT_SEQUENCE_VAR, input);
 	    configurations.put(EXTRACT_AXIS, extractDir);
-		//configurations.put(FEATURE_DATA_TYPE, new EzVarText("Feature Data Type"));
-		configurations.put(MAXIMUM_ERROR_COUNT, 1);//new EzVarInteger("Maximum Error Count"));
-		//String[] channelNames = new String[]{""};
-		//configurations.put(FEATURE_GROUPS, new EzVarInteger("Feature Groups"));
-		//configurations.put(FEATURE_GROUPS_NAMES, new EzVarText("Feature Group Names",channelNames,false));	
-		//configurations.put(FEATURE_COUNT, new EzVarInteger("Feature Count"));
+		configurations.put(FEATURE_DATA_TYPE,outputDataType);
+		configurations.put(MAXIMUM_ERROR_COUNT, maxErrorCount );//new EzVarInteger("Maximum Error Count"));
+		configurations.put(FEATURE_GROUPS, groupNames);
+		configurations.put(FEATURE_COUNT,featureCount );
 		configurations.put(IS_RESTRICT_TO_ROI, restrictToROI);
-		configurations.put(OUTPUT_SEQUENCE, output.getValue());
+		configurations.put(OUTPUT_SEQUENCE_VAR, output);
 		return configurations;
+	}
+	public void  updateFromConfigurations(){
+
+	    //configurations.put(INPUT_SEQUENCE_VAR, input);
+	    //configurations.put(EXTRACT_AXIS, extractDir);
+	    outputDataType = (DataType) optionDict.get(FEATURE_DATA_TYPE);
+	    maxErrorCount = (int) optionDict.get(MAXIMUM_ERROR_COUNT);//, maxErrorCount );//new EzVarInteger("Maximum Error Count"));
+		groupNames = (String[]) optionDict.get(FEATURE_GROUPS);//, groupNames);
+		featureCount = (int) optionDict.get(FEATURE_COUNT);//,featureCount );
+		//configurations.put(IS_RESTRICT_TO_ROI, restrictToROI);
+		//configurations.put(OUTPUT_SEQUENCE_VAR, output);
+
 	}
     
     /**
@@ -310,9 +341,9 @@ public class FeatureExtractionEngine extends EzPlug implements Block
 			return output.length;
 		}
 		catch(Exception e){
-			System.err.println("Error when excuting batchBegin().");
+			System.err.println("Error when excuting process().");
 			e.printStackTrace();
-			return 0;
+			return 1;
 		}
     }
     
@@ -341,8 +372,18 @@ public class FeatureExtractionEngine extends EzPlug implements Block
 					MessageDialog.ERROR_MESSAGE);
 			return null;
         }    	
+    	
+        try{
+			featureFunc.batchBegin();
+		}
+		catch(Exception e){
+			System.err.println("Error when excuting batchBegin().");
+			e.printStackTrace();
+			return null;
+		} 
+        updateFromConfigurations();
         
- 
+        if(featureCount<1) featureCount = testOutputLength(in,featureFunc)/groupNames.length;
         
         final List<ROI> rois = in.getROIs();
         int cpu = Runtime.getRuntime().availableProcessors();
@@ -355,19 +396,16 @@ public class FeatureExtractionEngine extends EzPlug implements Block
         
         final DataType dataType = in.getDataType_();
         
-        
 
-		final int error_exit_count = (int)optionDict.get(MAXIMUM_ERROR_COUNT);//((EzVarInteger) optionDict.get(MAXIMUM_ERROR_COUNT)).getValue();
+		final int error_exit_count = maxErrorCount;//((EzVarInteger) optionDict.get(MAXIMUM_ERROR_COUNT)).getValue();
 
-		//final String[] channel_names = new String[1];
-		//((EzVarText)optionDict.get(FEATURE_GROUPS_NAMES)).getDefaultValues(channel_names);
         final int width_out = in.getSizeX();
         final int height_out = in.getSizeY();
         final int t_length_out = in.getSizeT();
-        final int channel_scale_out = 1;// ((EzVarInteger)optionDict.get(FEATURE_GROUPS)).getValue();
+        final int channel_scale_out = groupNames.length;// ((EzVarInteger)optionDict.get(FEATURE_GROUPS)).getValue();
         final int channels_out = in.getSizeC()*channel_scale_out; 
-        final int depth_out = testOutputLength(in,featureFunc);//((EzVarInteger)optionDict.get(FEATURE_COUNT)).getValue();
-        final DataType dataType_out = in.getDataType_();//(DataType) optionDict.get(FEATURE_DATA_TYPE);
+        final int depth_out = featureCount;//((EzVarInteger)optionDict.get(FEATURE_COUNT)).getValue();
+        final DataType dataType_out = outputDataType;//(DataType) optionDict.get(FEATURE_DATA_TYPE);
 
         // this plug-in processes each channel of each stack in a separate thread
         ExecutorService service = multiThread ? Executors.newFixedThreadPool(cpu) : Executors.newSingleThreadExecutor();
@@ -380,38 +418,36 @@ public class FeatureExtractionEngine extends EzPlug implements Block
 			}
 		}
         //out.getColorModel().setColorMap(c, in.getColorModel().getColorMap(c), true);
-
-        try{
-			featureFunc.batchBegin();
-		}
-		catch(Exception e){
-			System.err.println("Error when excuting batchBegin().");
-			e.printStackTrace();
-			return null;
-		} 
     	
         for (int t = 0; t < length; t++)
         {
+        	if(stopFlag)
+        		break;
             final int time = t;
             
             final Object out_Z_C_XY = out.getDataXYCZ(time); //[Z][C][XY]
             
             for (int c = 0; c < channels; c++)
             {
+            	if(stopFlag)
+            		break;
                 final int channel = c;
                 //set channel name
                 for (int co = 0; co < channel_scale_out; co++)
             	{
-                	out.setChannelName(channel_scale_out*channel+co, in.getChannelName(c)+ "/"+co);//channel_names[co]);
+                	out.setChannelName(channel_scale_out*channel+co, in.getChannelName(c)+ "/"+groupNames[co]);//channel_names[co]);
             	}
 
                 final Object in_Z_XY = in.getDataXYZ(time, channel);
                 int off = 0;
                 for (int y = 0; y < height; y++)
                 {
-                	
+                	if(stopFlag)
+                		break;
                     for (int x = 0; x < width; x++, off++)
                     {
+                    	if(stopFlag)
+                    		break;
                     	final int offf=off;
                     	final int yy=y;
                     	final int xx=x;
@@ -451,13 +487,13 @@ public class FeatureExtractionEngine extends EzPlug implements Block
                                 
                                 double[] lineToOutput = null; //[C][Z]
                                 
-                                int outputLength = channel_scale_out*depth_out;
+                                //int outputLength = channel_scale_out*depth_out;
                                 try
                                 {
                                 	lineToOutput = featureFunc.process(lineToInput, new Point5D.Integer(xx,yy,-1,time,channel));
 		                               if(lineToOutput!=null)
 		                               {
-		                            	   if(lineToOutput.length>=outputLength)
+		                            	   //if(lineToOutput.length>=outputLength)
 		                            	   {
 				                                if (restrictToROI && rois.size() > 0)
 				                                {
@@ -506,6 +542,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block
                             		if(errorCount++>=error_exit_count){
                             			MessageDialog.showDialog("Stoped because of error! t:"+time+" c:"+channel+" x:"+xx+" y:"+yy,
                         						MessageDialog.ERROR_MESSAGE);
+                            			stopFlag = error_exit_count<0?stopFlag:true; //if error_exit_count == -1 then do not stop
                             			return;
                             		}
                                 		
@@ -573,6 +610,18 @@ public class FeatureExtractionEngine extends EzPlug implements Block
 					MessageDialog.ERROR_MESSAGE);
 			return null;
         }
+        
+    	try{
+			featureFunc.batchBegin();
+		}
+		catch(Exception e){
+			System.err.println("Error when excuting batchBegin().");
+			e.printStackTrace();
+			return null;
+		}
+    	updateFromConfigurations();
+    	if(featureCount<1) featureCount = testOutputLength(in,featureFunc)/groupNames.length;
+    	
         final List<ROI> rois = in.getROIs();
         int cpu = Runtime.getRuntime().availableProcessors();
 
@@ -585,17 +634,15 @@ public class FeatureExtractionEngine extends EzPlug implements Block
         final DataType dataType = in.getDataType_();
         
  
-		final int error_exit_count = (int)optionDict.get(MAXIMUM_ERROR_COUNT);//((EzVarInteger)optionDict.get(MAXIMUM_ERROR_COUNT)).getValue();
+		final int error_exit_count = maxErrorCount;//((EzVarInteger)optionDict.get(MAXIMUM_ERROR_COUNT)).getValue();
 
-		//final String[]  channel_names= new String[1];
-		//((EzVarText)optionDict.get(FEATURE_GROUPS_NAMES)).getDefaultValues(channel_names);
-        final int width_out =  testOutputLength(in,featureFunc);//((EzVarInteger)optionDict.get(FEATURE_COUNT)).getValue();
+        final int width_out =  featureCount;//((EzVarInteger)optionDict.get(FEATURE_COUNT)).getValue();
         final int height_out = in.getSizeY();
         final int t_length_out = in.getSizeT();
-        final int channel_scale_out = 1;//channel_names.length;
+        final int channel_scale_out =  groupNames.length;//channel_names.length;
         final int channels_out = in.getSizeC()*channel_scale_out; 
         final int depth_out = in.getSizeZ();
-        final DataType dataType_out = in.getDataType_();//(DataType) optionDict.get(FEATURE_DATA_TYPE);
+        final DataType dataType_out = outputDataType;//(DataType) optionDict.get(FEATURE_DATA_TYPE);
 
         // this plug-in processes each channel of each stack in a separate thread
         ExecutorService service = multiThread ? Executors.newFixedThreadPool(cpu) : Executors.newSingleThreadExecutor();
@@ -608,32 +655,31 @@ public class FeatureExtractionEngine extends EzPlug implements Block
 			}
 		}
         //out.getColorModel().setColorMap(c, in.getColorModel().getColorMap(c), true);
-    	try{
-			featureFunc.batchBegin();
-		}
-		catch(Exception e){
-			System.err.println("Error when excuting batchBegin().");
-			e.printStackTrace();
-			return null;
-		}
+
     	
         for (int t = 0; t < length; t++)
         {
+        	if(stopFlag)
+        		break;
             final int time = t;
             
             final Object out_Z_C_XY = out.getDataXYCZ(time); //[Z][C][XY]
             
             for (int c = 0; c < channels; c++)
             {
+            	if(stopFlag)
+            		break;
                 final int channel = c;
                 //set channel name
                 for (int co = 0; co < channel_scale_out; co++)
             	{
-                	out.setChannelName(channel_scale_out*channel+co, in.getChannelName(c)+ "/"+co);//channel_names[co]);
+                	out.setChannelName(channel_scale_out*channel+co, in.getChannelName(c)+ "/"+groupNames[co]);//channel_names[co]);
             	}
 
                 for (int z = 0; z <depth ; z++)
                 {
+                	if(stopFlag)
+                		break;
                         	
                 	final Object in_XY = in.getDataXY(time,z, channel);
                 	
@@ -678,13 +724,13 @@ public class FeatureExtractionEngine extends EzPlug implements Block
                                 }
                                 
                                 double[] lineToOutput = null;//new double[channel_scale_out*width_out]; //[C][X]
-                                int outputLength = channel_scale_out*width_out;
+                                //int outputLength = channel_scale_out*width_out;
                                 try
                                 {
                                 	lineToOutput = featureFunc.process(lineToInput, new Point5D.Integer(-1,y,stack,time,channel));
 		                               if(lineToOutput!= null)
 		                               {
-		                            	   if(lineToOutput.length>=outputLength)
+		                            	   //if(lineToOutput.length>=outputLength)
 		                            	   {
 				                                if (restrictToROI && rois.size() > 0)
 				                                {
@@ -733,6 +779,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block
                             		if(errorCount++>=error_exit_count){
                             			MessageDialog.showDialog("Stoped because of error! t:"+time+" c:"+channel+" z:"+stack+" y:"+y,
                         						MessageDialog.ERROR_MESSAGE);
+                            			stopFlag = error_exit_count<0?stopFlag:true; //if error_exit_count == -1 then do not stop
                             			return;
                             		}
                                 		
@@ -801,6 +848,18 @@ public class FeatureExtractionEngine extends EzPlug implements Block
 					MessageDialog.ERROR_MESSAGE);
 			return null;
         }
+        
+    	try{
+			featureFunc.batchBegin();
+		}
+		catch(Exception e){
+			System.err.println("Error when excuting batchBegin().");
+			e.printStackTrace();
+			return null;
+		}
+    	updateFromConfigurations();
+    	if(featureCount<1) featureCount = testOutputLength(in,featureFunc)/groupNames.length;
+    	
         final List<ROI> rois = in.getROIs();
         int cpu = Runtime.getRuntime().availableProcessors();
 
@@ -812,17 +871,15 @@ public class FeatureExtractionEngine extends EzPlug implements Block
         
         final DataType dataType = in.getDataType_();
 
-		final int error_exit_count = (int)optionDict.get(MAXIMUM_ERROR_COUNT);//((EzVarInteger)optionDict.get(MAXIMUM_ERROR_COUNT)).getValue();
+		final int error_exit_count = maxErrorCount;//((EzVarInteger)optionDict.get(MAXIMUM_ERROR_COUNT)).getValue();
 
-		//final String[]  channel_names= new String[1];
-		//((EzVarText)optionDict.get(FEATURE_GROUPS_NAMES)).getDefaultValues(channel_names);
         final int width_out = in.getSizeX();
-        final int height_out =testOutputLength(in,featureFunc);// ((EzVarInteger)optionDict.get(FEATURE_COUNT)).getValue();
+        final int height_out =featureCount;// ((EzVarInteger)optionDict.get(FEATURE_COUNT)).getValue();
         final int t_length_out = in.getSizeT();
-        final int channel_scale_out = 1;//channel_names.length;
+        final int channel_scale_out =  groupNames.length;//channel_names.length;
         final int channels_out = in.getSizeC()*channel_scale_out; 
         final int depth_out = in.getSizeZ();
-        final DataType dataType_out = in.getDataType_();//(DataType) optionDict.get(FEATURE_DATA_TYPE);
+        final DataType dataType_out = outputDataType;//(DataType) optionDict.get(FEATURE_DATA_TYPE);
 
         // this plug-in processes each channel of each stack in a separate thread
         ExecutorService service = multiThread ? Executors.newFixedThreadPool(cpu) : Executors.newSingleThreadExecutor();
@@ -835,29 +892,28 @@ public class FeatureExtractionEngine extends EzPlug implements Block
 			}
 		}
         //out.getColorModel().setColorMap(c, in.getColorModel().getColorMap(c), true);
-    	try{
-			featureFunc.batchBegin();
-		}
-		catch(Exception e){
-			System.err.println("Error when excuting batchBegin().");
-			e.printStackTrace();
-			return null;
-		}
+
         for (int t = 0; t < length; t++)
         {
+        	if(stopFlag)
+        		break;
             final int time = t;
             final Object out_Z_C_XY = out.getDataXYCZ(time); //[Z][C][XY]
             
             for (int c = 0; c < channels; c++)
             {
+            	if(stopFlag)
+            		break;
                 final int channel = c;
                 //set channel name
                 for (int co = 0; co < channel_scale_out; co++)
             	{
-                	out.setChannelName(channel_scale_out*channel+co, in.getChannelName(c)+ "/"+co);//channel_names[co]);
+                	out.setChannelName(channel_scale_out*channel+co, in.getChannelName(c)+ "/"+groupNames[co]);//channel_names[co]);
             	}
                 for (int z = 0; z <depth ; z++)
                 {
+                	if(stopFlag)
+                		break;
                 	final int stack = z;
                 	
                     final Object in_XY = in.getDataXY(time,stack,channel);
@@ -897,14 +953,14 @@ public class FeatureExtractionEngine extends EzPlug implements Block
                                 }
                                 
                                 double[] lineToOutput = null;//new double[channel_scale_out*height_out]; //[C][X]
-                                int outputLength = channel_scale_out*height_out;
+                                //int outputLength = channel_scale_out*height_out;
                                 try
                                 {
                                 	lineToOutput = featureFunc.process(lineToInput, new Point5D.Integer(x,-1,stack,time,channel));
                                 	
 		                               if(lineToOutput!= null)
 		                               {
-		                            	   if(lineToOutput.length>=outputLength)
+		                            	  // if(lineToOutput.length>=outputLength)
 		                            	   {
 				                                if (restrictToROI && rois.size() > 0)
 				                                {
@@ -953,6 +1009,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block
                             		if(errorCount++>=error_exit_count){
                             			MessageDialog.showDialog("Stoped because of error! t:"+time+" c:"+channel+" z:"+stack+" x:"+x,
                         						MessageDialog.ERROR_MESSAGE);
+                            			stopFlag = error_exit_count<0?stopFlag:true; //if error_exit_count == -1 then do not stop
                             			return;
                             		}
                                 		
@@ -1034,6 +1091,18 @@ public class FeatureExtractionEngine extends EzPlug implements Block
 					MessageDialog.ERROR_MESSAGE);
 			return null;
         }
+        
+    	try{
+			featureFunc.batchBegin();
+		}
+		catch(Exception e){
+			System.err.println("Error when excuting batchBegin().");
+			e.printStackTrace();
+			return null;
+		}
+    	updateFromConfigurations();
+    	if(featureCount<1) featureCount = testOutputLength(in,featureFunc)/groupNames.length;
+    	
         final List<ROI> rois = in.getROIs();
         int cpu = Runtime.getRuntime().availableProcessors();
 
@@ -1042,7 +1111,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block
         final DataType dataType = in.getDataType_();
         
 
-		final int error_exit_count = (int)optionDict.get(MAXIMUM_ERROR_COUNT);//((EzVarInteger)optionDict.get(MAXIMUM_ERROR_COUNT)).getValue(); 
+		final int error_exit_count = maxErrorCount;//((EzVarInteger)optionDict.get(MAXIMUM_ERROR_COUNT)).getValue(); 
 		
 		//Convert to Z stack
         SequenceUtil.adjustZT(in,in.getSizeT(),in.getSizeZ(),true);
@@ -1053,15 +1122,13 @@ public class FeatureExtractionEngine extends EzPlug implements Block
         final int length = in.getSizeT();
         final int channels = in.getSizeC();
         
-		//final String[]  channel_names= new String[1];
-		//((EzVarText)optionDict.get(FEATURE_GROUPS_NAMES)).getDefaultValues(channel_names);
         final int width_out = in.getSizeX();
         final int height_out = in.getSizeY();
         final int t_length_out = in.getSizeT();
-        final int channel_scale_out = 1;//channel_names.length;
+        final int channel_scale_out =  groupNames.length;//channel_names.length;
         final int channels_out = in.getSizeC()*channel_scale_out; 
-        final int depth_out = testOutputLength(in,featureFunc);//((EzVarInteger)optionDict.get(FEATURE_COUNT)).getValue();
-        final DataType dataType_out = in.getDataType_();//(DataType) optionDict.get(FEATURE_DATA_TYPE);
+        final int depth_out = featureCount;//((EzVarInteger)optionDict.get(FEATURE_COUNT)).getValue();
+        final DataType dataType_out = outputDataType;//(DataType) optionDict.get(FEATURE_DATA_TYPE);
 
 
         // this plug-in processes each channel of each stack in a separate thread
@@ -1075,36 +1142,36 @@ public class FeatureExtractionEngine extends EzPlug implements Block
 			}
 		}
         //out.getColorModel().setColorMap(c, in.getColorModel().getColorMap(c), true);
-    	try{
-			featureFunc.batchBegin();
-		}
-		catch(Exception e){
-			System.err.println("Error when excuting batchBegin().");
-			e.printStackTrace();
-			return null;
-		}
+
         for (int t = 0; t < length; t++)
         {
+        	if(stopFlag)
+        		break;
             final int time = t;
             
             final Object out_Z_C_XY = out.getDataXYCZ(time); //[Z][C][XY]
             
             for (int c = 0; c < channels; c++)
             {
+            	if(stopFlag)
+            		break;
                 final int channel = c;
                 //set channel name
                 for (int co = 0; co < channel_scale_out; co++)
             	{
-                	out.setChannelName(channel_scale_out*channel+co, in.getChannelName(c)+ "/"+co);//channel_names[co]);
+                	out.setChannelName(channel_scale_out*channel+co, in.getChannelName(c)+ "/"+groupNames[co]);//channel_names[co]);
             	}
 
                 final Object in_Z_XY = in.getDataXYZ(time, channel);
                 int off = 0;
                 for (int y = 0; y < height; y++)
                 {
-                	
+                	if(stopFlag)
+                		break;
                     for (int x = 0; x < width; x++, off++)
                     {
+                    	if(stopFlag)
+                    		break;
                     	final int offf=off;
                     	final int yy=y;
                     	final int xx=x;
@@ -1143,14 +1210,14 @@ public class FeatureExtractionEngine extends EzPlug implements Block
                                 }
                                 
                                 double[] lineToOutput = null;//new double[channel_scale_out*depth_out]; //[C][Z]
-                                int outputLength = channel_scale_out*depth_out;
+                                //int outputLength = channel_scale_out*depth_out;
                                 try
                                 {
                                 	lineToOutput = featureFunc.process(lineToInput, new Point5D.Integer(xx,yy,time,-1,channel));
                                 	
 		                               if(lineToOutput != null) //swap t and z
 		                               {
-		                            	   if(lineToOutput.length>=outputLength)
+		                            	   //if(lineToOutput.length>=outputLength)
 		                            	   {
 				                                if (restrictToROI && rois.size() > 0)
 				                                {
@@ -1199,6 +1266,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block
                             		if(errorCount++>=error_exit_count){
                             			MessageDialog.showDialog("Stoped because of error! z:"+time+" c:"+channel+" x:"+xx+" y:"+yy,
                         						MessageDialog.ERROR_MESSAGE);
+                            			stopFlag = error_exit_count<0?stopFlag:true; //if error_exit_count == -1 then do not stop
                             			return;
                             		}
                                 		
@@ -1244,6 +1312,11 @@ public class FeatureExtractionEngine extends EzPlug implements Block
 		}
         return out;
     }
+    @Override
+	public void stopExecution()
+	{
+		stopFlag = true;
+	}
     
     @Override
     public void declareInput(VarList inputMap)
@@ -1260,7 +1333,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block
     @Override
     public void declareOutput(VarList outputMap)
     {
-        outputMap.add("Output Sequence", output);
+        outputMap.add("Output Sequence", output.getVariable());
     }
     
 }

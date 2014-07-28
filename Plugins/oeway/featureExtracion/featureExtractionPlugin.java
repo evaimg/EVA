@@ -11,21 +11,20 @@ import icy.plugin.abstract_.Plugin;
 import icy.type.point.Point5D;
 
 public abstract class featureExtractionPlugin extends Plugin implements FeatureExtractionFunction, Block{
-	protected final String INPUT_SEQUENCE = "InputSequence";
-	protected final String EXTRACT_AXIS = "ExtractAxis";
-	protected final String FEATURE_GROUPS = "FeatureGroups";
-	protected final String FEATURE_GROUPS_NAMES = "FeatureGroupsNames";
-	protected final String FEATURE_COUNT = "FeatureCount";
-	protected final String FEATURE_DATA_TYPE = "FeatureDataType";
-	protected final String MAXIMUM_ERROR_COUNT = "MaximumErrorCount";
-	protected final String IS_RESTRICT_TO_ROI = "IsRestrictToROI";
-	protected final String OUTPUT_SEQUENCE = "OutputSequence";
+	protected final String INPUT_SEQUENCE_VAR = "Input(EzVarSequence)";
+	protected final String EXTRACT_AXIS = "ExtractAxis(EzVarEnum<ExtractDirection>)";
+	protected final String FEATURE_GROUPS = "FeatureGroups(String[])";
+	protected final String FEATURE_COUNT = "FeatureCount(int)";
+	protected final String FEATURE_DATA_TYPE = "FeatureDataType(Double)";
+	protected final String MAXIMUM_ERROR_COUNT = "MaximumErrorCount(int)";
+	protected final String IS_RESTRICT_TO_ROI = "IsRestrictToROI(EzVarBoolean)";
+	protected final String OUTPUT_SEQUENCE_VAR = "Output(EzVarSequence)";
 	
 	EzVarDoubleArrayNative			varDoubleInput=new EzVarDoubleArrayNative("input",null, true);
 	EzVarDoubleArrayNative			varDoubleOutput=new EzVarDoubleArrayNative("output",null, true);
 	
 	@Override
-	public void initialize(HashMap<String,Object> options,ArrayList<EzVar<?>> gui) {
+	public void initialize(HashMap<String,Object> options,ArrayList<EzVar<?>> optionUI) {
 
 	}
 	
