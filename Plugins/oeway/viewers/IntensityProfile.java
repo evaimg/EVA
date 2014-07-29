@@ -26,14 +26,19 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Insets;
+import java.awt.Paint;
 import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
+import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.HashSet;
+import java.util.LinkedHashSet;
 import java.util.List;
+import java.util.Random;
 import java.util.Set;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
@@ -91,7 +96,7 @@ public class IntensityProfile  {
 	public double posY = 0.0;
 	
 	double pixelSize = 1.0;
-		
+	int paintersSize = 0;
 	public IntensityProfile(IcyCanvas mainCav,Sequence seq){
 		
 		sequence = seq;
@@ -124,14 +129,14 @@ public class IntensityProfile  {
             public void actionPerformed(ActionEvent e)
             {
                 String xlabel;
-                String title;
+                //String title;
             	if(rowOColBtn.getText()=="row")
             	{
             		rowOColBtn.setText("column");
             		rowMode = false;	
   
             		xlabel = "Column (Y)";
-            		title = "Intensity Profile of Each Column";
+            		//title = "Intensity Profile of Each Column";
   
             	}
             	else
@@ -140,11 +145,12 @@ public class IntensityProfile  {
             		rowMode = true;
 
             		xlabel = "Row (X)";
-            		title = "Intensity Profile of Each Row";
+            		//title = "Intensity Profile of Each Row";
   
             	}
-            	chart.setTitle(title);
+            	//chart.setTitle(title);
             	chart.getXYPlot().getDomainAxis().setLabel(xlabel);
+            	updateXYNav();
             	updateChart();
             }
         });
@@ -223,56 +229,59 @@ public class IntensityProfile  {
         });
         ComponentUtil.setFixedHeight(slider, 22);
         String xlabel;
-        String title;
+        //String title;
     	if(rowMode)
     	{
     		xlabel = "Row (X)";
-    		title = "Intensity Profile of Each Row";
+    		//title = "Intensity Profile of Each Row";
     	}
     	else
     	{
     		xlabel = "Column (Y)";
-    		title = "Intensity Profile of Each Column";
+    		//title = "Intensity Profile of Each Column";
     	}
         
 		// Chart
 		chart = ChartFactory.createXYLineChart(
-				title,xlabel, "Intensity Value", xyDataset,
+				"",xlabel, "Intensity Value", xyDataset,
 				PlotOrientation.VERTICAL, false, true, true);
 		chartPanel = new PanningChartPanel(chart, 1024, 500, 500, 200, 10000, 10000, false, false, true, false, true, true);		
 		
 		chartPanel.addChartMouseListener(new ChartMouseListener() {
 			@Override
 			public void chartMouseClicked(ChartMouseEvent arg0) {
-            	if(rowMode)
-            	{
-            		posX = chart.getXYPlot().getDomainCrosshairValue();
-            		mainCanvas.mouseImagePositionChanged(DimensionId.X);
-            	}
-            	else
-            	{
-            		posY = chart.getXYPlot().getDomainCrosshairValue();
-            		mainCanvas.mouseImagePositionChanged(DimensionId.Y);
-            	}
+			       chart.getXYPlot().setDomainCrosshairVisible(true);
+			       chart.getXYPlot().setDomainCrosshairLockedOnData(true);
+			       chart.getXYPlot().setRangeCrosshairVisible(true);
+			       chart.getXYPlot().setRangeCrosshairLockedOnData(true);
 			}
 
 			@Override
 			public void chartMouseMoved(ChartMouseEvent chartMouseEvent) {
 
-			    //Point MousePoint = chartMouseEvent.getTrigger().getPoint();
-		        //Point2D pos = chartPanel.translateScreenToJava2D(MousePoint);
-
+				Point2D p = chartPanel.translateScreenToJava2D(chartMouseEvent.getTrigger().getPoint());
+				Rectangle2D plotArea = chartPanel.getScreenDataArea();
+				XYPlot plot = (XYPlot) chart.getPlot(); // your plot
+				double chartX = plot.getDomainAxis().java2DToValue(p.getX(), plotArea, plot.getDomainAxisEdge());
+				//double chartY = plot.getRangeAxis().java2DToValue(p.getY(), plotArea, plot.getRangeAxisEdge());
+            	if(rowMode)
+            	{
+            		posX = chartX;//pos.getX();//chart.getXYPlot().getDomainCrosshairValue();
+            		mainCanvas.mouseImagePositionChanged(DimensionId.X);
+            	}
+            	else
+            	{
+            		posY = chartX;//pos.getX();//chart.getXYPlot().getDomainCrosshairValue();
+            		mainCanvas.mouseImagePositionChanged(DimensionId.Y);
+            	}
 			}
 		});
 		    
 		//disable autorange
-        chart.getXYPlot().getRangeAxis(0).setAutoRange(false);
-        chart.getXYPlot().getDomainAxis(0).setAutoRange(false);	
+        chart.getXYPlot().getRangeAxis(0).setAutoRange(true);
+        chart.getXYPlot().getDomainAxis(0).setAutoRange(true);	
         
-        chart.getXYPlot().setDomainCrosshairVisible(true);
-        chart.getXYPlot().setDomainCrosshairLockedOnData(true);
-        chart.getXYPlot().setRangeCrosshairVisible(true);
-        chart.getXYPlot().setRangeCrosshairLockedOnData(true);
+ 
         
         chart.getXYPlot().setDomainCrosshairPaint(Color.red);
         chart.getXYPlot().setRangeCrosshairPaint(Color.red);
@@ -283,7 +292,7 @@ public class IntensityProfile  {
         
 		mainCanvas = mainCav;
 		//add to canvas
-		mainCanvas.add( GuiUtil.createPageBoxPanel(GuiUtil.createLineBoxPanel(consoleOutputBtn,optionComboBox),chartPanel,GuiUtil.createLineBoxPanel(rowOColBtn,slider,maxIndexLbl) )) ;
+		mainCanvas.add( GuiUtil.createPageBoxPanel(GuiUtil.createLineBoxPanel(optionComboBox,consoleOutputBtn),chartPanel,GuiUtil.createLineBoxPanel(rowOColBtn,slider,maxIndexLbl) )) ;
 
 		// NOW DO SOME OPTIONAL CUSTOMISATION OF THE CHART...
         chart.setBackgroundPaint(Color.white);
@@ -310,8 +319,8 @@ public class IntensityProfile  {
         );
 
         plot.getRenderer().setSeriesShape(0, null);
-        plot.getRenderer().setSeriesPaint(0, Color.blue);
-        
+        //plot.getRenderer().setSeriesPaint(0, Color.blue);
+
         updateXYNav();
     	updateChart();
 	}
@@ -326,11 +335,82 @@ public class IntensityProfile  {
 			return objBufferedImage;
 
 	}
+	
+	private int lastChannelSize=0;
+	public void updateChannelOptions()
+	{
+		int size = sequence.getSizeC();
+		if(lastChannelSize != size)
+		{
+			// update options
+			Set<String> mapValue = new LinkedHashSet<String>(); 
+			mapValue.add( OPTION_meanAlongZ );
+			mapValue.add( OPTION_meanAlongT );	
+			for(int i=0;i<size;i++){
+					mapValue.add("channel " +i+"("+sequence.getChannelName(i)+")");
+			}
+			optionComboBox.resetObjs(mapValue, false);
+			Collection<String> selectedValues= new ArrayList<String>();
+			for(int i=0;i<size;i++){
+				
+				if(i<sequence.getSizeC())
+					selectedValues.add("channel " +i+"("+sequence.getChannelName(i)+")");
+			}
+			optionComboBox.addSelectedItems(selectedValues);
+			lastChannelSize = size;
+		}
+	}
+	public void updateChannelPainters()
+	{
+		//set painter
+		final XYPlot plot = chart.getXYPlot();
+		int size = xyDataset.getSeries().size();
+		if(paintersSize!=size)
+		{
+			if(size ==1 ){
+				plot.getRenderer().setSeriesPaint(0, Color.blue);
+			}else if(size==2)
+			{
+				plot.getRenderer().setSeriesPaint(0, Color.blue);
+				plot.getRenderer().setSeriesPaint(1, Color.red);
+			}
+			else if(size==3)
+			{
+				plot.getRenderer().setSeriesPaint(0, Color.red);
+				plot.getRenderer().setSeriesPaint(1, Color.green);
+				plot.getRenderer().setSeriesPaint(1, Color.blue);
+			}
+			else{
+				
+				for(int i=paintersSize;i<size;i++){
+					
+					int R = (int)(Math.random()*256);
+					int G = (int)(Math.random()*256);
+					int B= (int)(Math.random()*256);
+					Color color = new Color(R, G, B); //random color, but can be bright or dull
+		
+					//to get rainbow, pastel colors
+					Random random = new Random();
+					final float hue = random.nextFloat();
+					final float saturation = 0.9f;//1.0 for brilliant, 0.0 for dull
+					final float luminance = 1.0f; //1.0 for brighter, 0.0 for black
+					color = Color.getHSBColor(hue, saturation, luminance);
+					plot.getRenderer().setSeriesPaint(i, color);
+					
+				}
+			}
+
+
+		}
+		paintersSize = size;
+		
+		
+	}
 	public void updateChart()
 	{
 		chart.setAntiAlias( true );
 		chart.setTextAntiAlias( true );
-		
+		updateChannelOptions();
 		
 	//	updateChartThreaded();
 		if ( updateRunnable == null )
@@ -342,6 +422,7 @@ public class IntensityProfile  {
 					try
 					{
 						updateChartThreaded();
+						
 					}
 					catch(Exception e)
 					{
@@ -350,7 +431,9 @@ public class IntensityProfile  {
 				}
 			};
 		}
+		
 		ThreadUtil.bgRunSingle( updateRunnable );
+		updateChannelPainters();
 	}
 	
 	int runCount =0;
@@ -358,7 +441,7 @@ public class IntensityProfile  {
 		
 		// check if ROI still exist in a sequence
 		
-		removeAllHorizontalRangeMarker();
+		//removeAllHorizontalRangeMarker();
 		
 		if ( associatedROI != null )
 		{
@@ -370,7 +453,7 @@ public class IntensityProfile  {
 		
 		// create dataSet		
 
-		xyDataset.removeAllSeries();		
+		//xyDataset.removeAllSeries();		
 
 		// check z to display
 		
@@ -425,8 +508,10 @@ public class IntensityProfile  {
 				
 				if(pointList.size()>1)
 				{
+					
+					
 					computeLineProfile( pointList, currentT, currentZ , sequence );
-									
+					
 					if ( optionComboBox.isItemSelected( OPTION_meanAlongZ ) )
 					{
 						computeZMeanLineProfile( pointList, currentT, sequence );
@@ -435,22 +520,27 @@ public class IntensityProfile  {
 					{
 						computeTMeanLineProfile( pointList, currentZ , sequence );
 					}
+
+					updateChannelPainters();
 					chart.fireChartChanged();
 
 				}
-				if(runCount >10)
-				{
-					//disable autorange
-					chart.getXYPlot().getRangeAxis(0).setAutoRange(false);
-					chart.getXYPlot().getDomainAxis(0).setAutoRange(false);	
-				}
-				else
-				{
-					//disable autorange
-					chart.getXYPlot().getRangeAxis(0).setAutoRange(true);
-					chart.getXYPlot().getDomainAxis(0).setAutoRange(true);	
-					runCount++;
-				}
+				
+				
+				
+//				if(runCount >10)
+//				{
+//					//disable autorange
+//					chart.getXYPlot().getRangeAxis(0).setAutoRange(false);
+//					chart.getXYPlot().getDomainAxis(0).setAutoRange(false);	
+//				}
+//				else
+//				{
+//					//disable autorange
+//					chart.getXYPlot().getRangeAxis(0).setAutoRange(true);
+//					chart.getXYPlot().getDomainAxis(0).setAutoRange(true);	
+//					runCount++;
+//				}
 				
 				
 	        }
@@ -609,12 +699,26 @@ public class IntensityProfile  {
 
 			for( int c= 0 ; c < sequence.getSizeC() ; c++ )
 			{
+				boolean found = false;
+				XYSeries seriesXY2 =null;
+				try{
+					seriesXY2=xyDataset.getSeries("Mean along Z c" +c);
+					
+					found = true;
+				}
+				catch(Exception e)
+				{
+	
+				}
 				XYSeries seriesXY = new XYSeries("Mean along Z c" +c );		
 				for( int i = 0 ; i < result[c].length ; i++ )
 				{							
-					seriesXY.add(i, result[c][i]);
+					seriesXY.add(i*pixelSize, result[c][i]);
 				}						
 				xyDataset.addSeries(seriesXY);
+				if(found && seriesXY2 != null)
+					xyDataset.removeSeries(seriesXY2);	
+
 			}
 		}
 		
@@ -652,15 +756,33 @@ public class IntensityProfile  {
 				}
 			}
 
+		
 			for( int c= 0 ; c < sequence.getSizeC() ; c++ )
-			{
+			{			
+				boolean found = false;
+				XYSeries seriesXY2 =null;
+				try{
+					seriesXY2=xyDataset.getSeries("Mean along T c" +c );
+					
+					found = true;
+				}
+				catch(Exception e)
+				{
+	
+				}
 				XYSeries seriesXY = new XYSeries("Mean along T c" +c );		
 				for( int i = 0 ; i < result[c].length ; i++ )
 				{							
-					seriesXY.add(i, result[c][i]);
+					seriesXY.add(i*pixelSize, result[c][i]);
 				}						
 				xyDataset.addSeries(seriesXY);
+				if(found && seriesXY2 != null)
+					xyDataset.removeSeries(seriesXY2);				
 			}
+
+
+			
+
 		}
 		
 	}
@@ -671,15 +793,35 @@ public class IntensityProfile  {
 
 		drawVerticalROIBreakBar( profile );
 
+		boolean found=false;
 		for( int c= 0 ; c < sequence.getSizeC() ; c++ )
 		{
-			XYSeries seriesXY = new XYSeries("Intensity c" +c + " t"+currentT + " z" +currentZ );	
-			for( int i = 0 ; i < profile.values[c].length ; i++ )
-			{							
-				//System.out.println(i*pixelSize + " , "+ profile.values[c][i]);
-				seriesXY.add(i*pixelSize, profile.values[c][i]);
+			XYSeries seriesXY =null;
+			try{
+				seriesXY=xyDataset.getSeries("channel " +c);
+				
+				found = true;
 			}
-			xyDataset.addSeries(seriesXY);
+			catch(Exception e)
+			{
+
+			}
+		
+			if ( optionComboBox.isItemSelected( "channel " +c+"("+sequence.getChannelName(c)+")" ))
+			{
+				XYSeries seriesXY2 = new XYSeries("channel " +c);	
+				for( int i = 0 ; i < profile.values[c].length ; i++ )
+				{							
+					//System.out.println(i*pixelSize + " , "+ profile.values[c][i]);
+					seriesXY2.add(i*pixelSize,  profile.values[c][i]);
+				}
+
+				xyDataset.addSeries(seriesXY2);
+			}
+
+			if(found && seriesXY != null)
+				xyDataset.removeSeries(seriesXY);
+			
 		}
 		
 	}

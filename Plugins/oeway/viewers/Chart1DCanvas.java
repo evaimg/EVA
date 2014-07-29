@@ -71,7 +71,8 @@ public class Chart1DCanvas extends PluginActionable implements PluginCanvas, Seq
             	{
             		ChartCanvas.iprofile.updateXYNav();
             	}
-            	ChartCanvas.iprofile .updateChart();
+            	ChartCanvas.iprofile.updateChart();
+            	ChartCanvas.iprofile.updateChannelPainters();
             	break;
 		default:
 			break;
@@ -145,7 +146,8 @@ public class Chart1DCanvas extends PluginActionable implements PluginCanvas, Seq
 	    public void changed(IcyCanvasEvent event)
 	    {
 	        super.changed(event);
-
+	        if(iprofile==null)
+	        	return;
 	        switch (event.getType())
 	        {
 	            case POSITION_CHANGED:

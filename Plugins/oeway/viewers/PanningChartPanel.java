@@ -1,5 +1,6 @@
 package plugins.oeway.viewers;
 
+import java.awt.Graphics;
 import java.awt.Point;
 import java.awt.event.MouseEvent;
 import java.awt.event.MouseWheelEvent;
@@ -109,7 +110,17 @@ public class PanningChartPanel
               maximumDrawHeight, useBuffer, properties, save, print, zoom, tooltips);
         addMouseWheelListener(this);
     }
-
+    @Override
+    public void paintComponent(Graphics g){
+    	try
+    	{
+    		super.paintComponent(g);
+    	}
+    	catch(Exception e)
+    	{
+    		
+    	}
+    }
     /**
      * Returns a point based on (x, y) but constrained to be within the bounds of the given
      * rectangle. This method could be moved to JCommon.

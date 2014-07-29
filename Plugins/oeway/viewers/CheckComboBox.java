@@ -142,6 +142,24 @@ class CheckComboBox extends JComboBox<Object> {
 //      
 //      return ret.toArray(new Object[ret.size()]);
   }
+  
+  public void setItemColor( String text , Color color ) {
+
+      for (Map.Entry<Object,Boolean> entry : mapObjSelected.entrySet()) {
+           Object obj = entry.getKey();
+           if(text.equals(obj))
+           for(ObjCheckBox b:cbs)
+        	   if(b.getObj().equals(obj))
+        	   {
+        		  b.setBackground(color);
+        		   break;
+        	   }
+       }
+
+//      if (ret.isEmpty()) return null;
+//      
+//      return ret.toArray(new Object[ret.size()]);
+  }
 
   public void addSelectedItems(Collection<?> c) {
       if (c==null) return;
@@ -313,8 +331,8 @@ class CheckComboBox extends JComboBox<Object> {
                        return separator;
                    }
 
-                   cb.setBackground(isSelected ? Color.blue : Color.white);
-                   cb.setForeground(isSelected ? Color.white : Color.black);
+                   //cb.setBackground(isSelected ? Color.blue : Color.white);
+                   //cb.setForeground(isSelected ? Color.white : Color.black);
 
                    return cb;
            }

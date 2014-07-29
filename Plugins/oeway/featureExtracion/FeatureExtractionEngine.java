@@ -28,6 +28,7 @@ import java.util.concurrent.Future;
 
 import plugins.adufour.blocks.lang.Block;
 import plugins.adufour.blocks.util.VarList;
+import plugins.adufour.ezplug.EzComponent;
 import plugins.adufour.ezplug.EzGroup;
 import plugins.adufour.ezplug.EzPlug;
 import plugins.adufour.ezplug.EzStoppable;
@@ -74,7 +75,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
     private VarList inputMap_ = null;
     
     LinkedHashMap<String,Object> optionDict = new LinkedHashMap<String,Object>();
-    ArrayList<EzVar<?>> guiList = new ArrayList<EzVar<?>> ();
+    ArrayList<Object> guiList = new ArrayList<Object> ();
     
     private HashMap<String,Class<? extends FeatureExtractionFunction>> pluginList ;
     
@@ -96,10 +97,14 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
 		selectedExtractionFunc = pluginList.get(featureFuncVar.getValue()).newInstance();
 		featureFuncOptions.components.clear();
 
-		for(EzVar<?> v:guiList){
-			if(inputMap_!=null)
-				if(inputMap_.contains(v.getVariable()))
-					inputMap_.remove(v.getVariable());
+		for(Object o:guiList){
+			if(o instanceof EzVar<?>)
+			{
+				EzVar<?> v= (EzVar<?>)o;
+				if(inputMap_!=null)
+					if(inputMap_.contains( v.getVariable()))
+						inputMap_.remove(v.getVariable());
+			}
 		}
 			
 		optionDict.clear();
@@ -116,12 +121,20 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
 		//featureFuncOptions.addEzComponent(featureFuncOptions);
 		updateFromConfigurations();
 		
-		for(EzVar<?> v:guiList){
-			if(inputMap_!=null)
-				if(!inputMap_.contains( v.getVariable()))
-					inputMap_.add(( v).getVariable());	
-			//if(!mainGroup.components.contains(v))
-			featureFuncOptions.addEzComponent( v);
+		for(Object o:guiList){
+			if(o instanceof EzVar<?>)
+			{
+				EzVar<?> v= (EzVar<?>)o;
+				if(inputMap_!=null)
+					if(!inputMap_.contains( v.getVariable()))
+						inputMap_.add(( v).getVariable());	
+			}
+			if(o instanceof EzComponent)
+			{
+				EzComponent v2= (EzComponent)o;
+				//if(!mainGroup.components.contains(v))
+				featureFuncOptions.addEzComponent( v2);
+			}
 		}
 		lastfeatureFuncVar = featureFuncVar.getValue();
 		
@@ -728,17 +741,20 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
                                 try
                                 {
                                 	lineToOutput = featureFunc.process(lineToInput, new Point5D.Integer(-1,y,stack,time,channel));
-		                               if(lineToOutput!= null)
+                                	if(lineToOutput!= null)
+                                    {
+                                	   
+                                		for (int co = 0; co < channel_scale_out; co++)
 		                               {
+		                            	   
 		                            	   //if(lineToOutput.length>=outputLength)
 		                            	   {
 				                                if (restrictToROI && rois.size() > 0)
 				                                {
-				                                    int nbValues = 0;
+				                                    int nbValues = width_out*co;
 				                                    for (int x = 0; x < width_out; x++,offout++)
 			                                    	{
-					                                    for (int co = 0; co < channel_scale_out; co++)
-					                                    {
+					                                    
 					                                        for (ROI roi : rois)
 					                                        {
 					                                            if (roi.contains(x, y, stack, time, channel))
@@ -749,7 +765,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
 					                                                break;
 					                                            }
 					                                        }
-					                                    }
+					                                    
 			                                    	}
 				                                    
 				                                    if (nbValues == 0) continue;
@@ -758,15 +774,15 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
 				                                }
 				                                else
 				                                {
-				                                	int nbValues = 0;
+				                                	int nbValues = width_out*co;
 			                                    	for (int x = 0; x < width_out; x++,offout++)
 			                                    	{
-			                                    		for (int co = 0; co < channel_scale_out; co++)
 			                                    			Array1DUtil.setValue(((Object[][]) out_Z_C_XY)[stack][channel_scale_out*channel+co], offout, dataType_out,lineToOutput[nbValues++]);
 			                                    	}
 				                                }
 		                            	   }
 		                               }
+                                    }
                                 }
                                 catch(Exception e)
                                 {
@@ -957,29 +973,29 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
                                 try
                                 {
                                 	lineToOutput = featureFunc.process(lineToInput, new Point5D.Integer(x,-1,stack,time,channel));
-                                	
-		                               if(lineToOutput!= null)
+                                	if(lineToOutput!= null)
+                                    {
+                                		for (int co = 0; co < channel_scale_out; co++)
 		                               {
 		                            	  // if(lineToOutput.length>=outputLength)
 		                            	   {
 				                                if (restrictToROI && rois.size() > 0)
 				                                {
-				                                    int nbValues = 0;
+				                                    int nbValues = co*height_out;
 				                                    for (int y = 0; y < height_out; y++)
 			                                    	{
-					                                    for (int co = 0; co < channel_scale_out; co++)
-					                                    {
-					                                        for (ROI roi : rois)
-					                                        {
-					                                            if (roi.contains(x, y, stack, time, channel))
-					                                            {
-					                                            	
-					                                            	Array1DUtil.setValue(((Object[][]) out_Z_C_XY)[stack][channel_scale_out*channel+co], y*width_out+x, dataType_out,lineToOutput[nbValues++]);
-					                                            	
-					                                                break;
-					                                            }
-					                                        }
-					                                    }
+					                                    
+				                                        for (ROI roi : rois)
+				                                        {
+				                                            if (roi.contains(x, y, stack, time, channel))
+				                                            {
+				                                            	
+				                                            	Array1DUtil.setValue(((Object[][]) out_Z_C_XY)[stack][channel_scale_out*channel+co], y*width_out+x, dataType_out,lineToOutput[nbValues++]);
+				                                            	
+				                                                break;
+				                                            }
+				                                        }
+					                                    
 			                                    	}
 				                                    
 				                                    if (nbValues == 0) continue;
@@ -988,15 +1004,15 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
 				                                }
 				                                else
 				                                {
-				                                	int nbValues = 0;
+				                                	int nbValues = co*height_out;
 			                                    	for (int y = 0; y < height_out; y++)
 			                                    	{
-			                                    		for (int co = 0; co < channel_scale_out; co++)
 			                                    			Array1DUtil.setValue(((Object[][]) out_Z_C_XY)[stack][channel_scale_out*channel+co],  y*width_out+x, dataType_out,lineToOutput[nbValues++]);
 			                                    	}
 				                                }
 		                            	   }
 		                               }
+                                    }
                                 }
                                 catch(Exception e)
                                 {

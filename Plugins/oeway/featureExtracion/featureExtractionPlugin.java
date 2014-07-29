@@ -24,7 +24,7 @@ public abstract class featureExtractionPlugin extends Plugin implements FeatureE
 	EzVarDoubleArrayNative			varDoubleOutput=new EzVarDoubleArrayNative("output",null, true);
 	
 	@Override
-	public void initialize(HashMap<String,Object> options,ArrayList<EzVar<?>> optionUI) {
+	public void initialize(HashMap<String,Object> options,ArrayList<Object> optionUI) {
 
 	}
 	
