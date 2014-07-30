@@ -53,9 +53,9 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
     
     private final EzVarSequence                  input          = new EzVarSequence("Input Sequence");
     
-    private final EzVarEnum<DimensionId> extractDir  = new EzVarEnum<DimensionId>("Extract Along", DimensionId.values(), DimensionId.Z);
+    private final EzVarEnum<DimensionId> extractDir  = new EzVarEnum<DimensionId>("Extract Along", new DimensionId[]{DimensionId.X,DimensionId.Y,DimensionId.Z,DimensionId.T,DimensionId.C}, DimensionId.Z);
     
-    private final EzVarEnum<DimensionId> concatDir  = new EzVarEnum<DimensionId>("Output Concat Mode", DimensionId.values(), DimensionId.C);
+    private final EzVarEnum<DimensionId> concatDir  = new EzVarEnum<DimensionId>("Output Concat Mode", new DimensionId[]{DimensionId.NULL,DimensionId.C,DimensionId.Z,DimensionId.T}, DimensionId.C);
     
     private final EzVarSequence                    outputVar         = new EzVarSequence("Output Sequence");
     
@@ -328,9 +328,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
         updateFromConfigurations();
         
    	 	int groupCount = groupNames.length;
-   	 	
    	 	if(groupCount<1) groupCount = 1;
-   	 	if(featureCount<1) featureCount = 1;
         
 		int error_exit_count = maxErrorCount;//((EzVarInteger) optionDict.get(MAXIMUM_ERROR_COUNT)).getValue();
 
@@ -340,13 +338,14 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
     	{
         	try{
         		double[] o=featureFunc.process(input.get(),input.getCursor());
-                if(featureCount<1) featureCount = o.length/groupCount;
+                featureCount = o.length/groupCount;
     		}
     		catch(Exception e){
     			System.err.println("Error when excuting process().");
     			e.printStackTrace();
     		}
     	}
+    	if(featureCount<1) featureCount = 1;
     	
         int zz = in.getSizeZ();
         int xx = in.getSizeX();
