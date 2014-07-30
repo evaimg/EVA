@@ -13,18 +13,20 @@ import plugins.adufour.ezplug.EzVarBoolean;
 public class Projections extends featureExtractionPlugin {
 	@Override
 	public void initialize(HashMap<String,Object> options, ArrayList<Object> optionUI) {
+		EzLabel label = new EzLabel("Projections");
 		EzVarBoolean  b  = new EzVarBoolean("hello world", false);
-		EzLabel b2 = new EzLabel("hello");
-		optionUI.add(b2);
-		optionUI.add( b);
+		optionUI.add(label);
+		optionUI.add(b);
+		options.put(FEATURE_GROUPS, new String[]{"o1","o2"});
 	}
 	@Override
 	public double[] process(double[] input, Point5D position) {
 		double[] output = new double[]{
-				ArrayMath.max(input),
+				ArrayMath.min(input),
 				ArrayMath.mean(input),
+				ArrayMath.max(input),
 				ArrayMath.min(input)
-				};
+		};
 
 		return output;
 	}
