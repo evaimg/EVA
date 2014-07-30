@@ -8,10 +8,22 @@ import icy.type.DataType;
 import icy.type.collection.array.Array1DUtil;
 import icy.type.point.Point5D;
 
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
 import java.util.Iterator;
 
+import plugins.adufour.blocks.lang.Block;
+import plugins.adufour.blocks.util.VarList;
+import plugins.adufour.ezplug.EzButton;
+import plugins.adufour.ezplug.EzPlug;
+import plugins.adufour.ezplug.EzVarBoolean;
+import plugins.adufour.ezplug.EzVarDoubleArrayNative;
+import plugins.adufour.ezplug.EzVarEnum;
+import plugins.adufour.ezplug.EzVarInteger;
+import plugins.adufour.ezplug.EzVarSequence;
 
-public class SequenceAxisIterator implements Iterator<double[]>{
+public class SequenceAxisIterator extends EzPlug implements Iterator<double[]>,Block{
+
 	private Sequence seq;
 	private DimensionId dir;
 	private Point5D.Integer cur;
@@ -25,6 +37,20 @@ public class SequenceAxisIterator implements Iterator<double[]>{
 	
 	private boolean stop = true;
 	
+	private EzVarInteger xVar = new EzVarInteger("x");
+	private EzVarInteger yVar = new EzVarInteger("y");
+	private EzVarInteger zVar = new EzVarInteger("z");
+	private EzVarInteger tVar = new EzVarInteger("t");
+	private EzVarInteger cVar = new EzVarInteger("c");
+    private final EzVarEnum<DimensionId> dirVar  = new EzVarEnum<DimensionId>("Extract Along", new DimensionId[]{DimensionId.X,DimensionId.Y,DimensionId.Z,DimensionId.T,DimensionId.C}, DimensionId.Z);
+	private EzVarSequence seqVar = new EzVarSequence("Input");
+	private EzVarDoubleArrayNative outputVar = new EzVarDoubleArrayNative("Output",null, false);
+	private EzVarBoolean exportAllVar = new EzVarBoolean("Export all data",false);
+	private EzButton exportBtn;
+	public SequenceAxisIterator()
+	{
+
+	}
 	public SequenceAxisIterator(Sequence sequence,DimensionId direction)
 	{
 		seq = sequence;
@@ -321,6 +347,89 @@ public class SequenceAxisIterator implements Iterator<double[]>{
 	public void remove() {
 		//do nothing
 		
+	}
+	@Override
+	public void declareInput(VarList inputMap) {
+		inputMap.add(xVar.getVariable());
+		inputMap.add(yVar.getVariable());
+		inputMap.add(zVar.getVariable());
+		inputMap.add(tVar.getVariable());
+		inputMap.add(cVar.getVariable());
+		inputMap.add(dirVar.getVariable());
+		inputMap.add(seqVar.getVariable());
+	}
+	@Override
+	public void declareOutput(VarList outputMap) {
+		outputMap.add(outputVar.getVariable());
+	}
+	@Override
+	public void run() {
+		seq = seqVar.getValue();
+	
+		dir = dirVar.getValue();
+		cur = new Point5D.Integer();
+		len = new Point5D.Integer();
+		reset();
+		seq.addListener(new SequenceListener(){
+			@Override
+			public void sequenceChanged(SequenceEvent sequenceEvent) {
+				len.x = seq.getSizeX();
+				len.y = seq.getSizeY();
+				len.z = seq.getSizeZ();
+				len.t = seq.getSizeT();
+				len.c = seq.getSizeC();
+				dt = seq.getDataType_();
+			}
+
+			@Override
+			public void sequenceClosed(Sequence sequence) {
+				stop = true;
+			}
+		});
+		
+		cur.x = xVar.getValue();
+		cur.y = yVar.getValue();
+		cur.z = zVar.getValue();
+		cur.c = cVar.getValue();
+		cur.t = tVar.getValue();
+		
+		outputVar.setValue(get());
+		
+	}
+	@Override
+	public void clean() {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	protected void execute() {
+		// TODO Auto-generated method stub
+		
+	}
+	@Override
+	protected void initialize() {
+		addEzComponent(xVar);
+		addEzComponent(yVar);
+		addEzComponent(zVar);
+		addEzComponent(tVar);
+		addEzComponent(cVar);
+		addEzComponent(dirVar);
+		addEzComponent(seqVar);
+		addEzComponent(exportAllVar);
+		addEzComponent(outputVar);
+		
+		
+		ActionListener btnListener = new ActionListener(){
+
+			@Override
+			public void actionPerformed(ActionEvent e) {
+				
+				
+			}
+			
+		};
+		exportBtn= new EzButton(null, btnListener );
+		addEzComponent(exportBtn);
 	}
 
 }
