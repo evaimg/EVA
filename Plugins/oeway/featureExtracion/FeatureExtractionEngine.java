@@ -192,7 +192,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
     @Override
     protected void initialize()
     {
-    	
+    	getUI().setParametersIOVisible(false);
     	addEzComponent(input);
     	addEzComponent(extractDir);
     	addEzComponent(featureFuncVar); 
@@ -206,7 +206,20 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
     protected void execute()
     {
     	stopFlag = false;
-    	
+        if(selectedExtractionFunc==null)
+        {
+			MessageDialog.showDialog("Extraction Function is not available",
+					MessageDialog.ERROR_MESSAGE);
+			return ;
+        } 
+        if(extractDir.getValue()==DimensionId.NULL)
+        {
+        	extractDir.setValue(DimensionId.Z);
+			MessageDialog.showDialog("Unsupported extraction direction.",
+					MessageDialog.ERROR_MESSAGE);
+			return ;
+        } 
+        
     	Sequence[] seqs = Extract(input.getValue(true), true);
     	if(concatDir.getValue() != DimensionId.NULL)
     		outputVar.setValue(mergeSequences(seqs,concatDir.getValue()));
@@ -304,12 +317,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
     {
        
         final FeatureExtractionFunction featureFunc = selectedExtractionFunc;
-        if(selectedExtractionFunc==null)
-        {
-			MessageDialog.showDialog("Extraction Function is not available",
-					MessageDialog.ERROR_MESSAGE);
-			return null;
-        }    	
+
         try{
 			featureFunc.batchBegin();
 		}
