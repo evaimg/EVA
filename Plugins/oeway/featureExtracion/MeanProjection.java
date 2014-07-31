@@ -6,15 +6,17 @@ import icy.type.point.Point5D;
 import java.util.ArrayList;
 import java.util.HashMap;
 
-import plugins.adufour.ezplug.EzVar;
+import plugins.adufour.ezplug.EzLabel;
+import plugins.adufour.ezplug.EzVarBoolean;
 
-class MeanProjection extends featureExtractionPlugin{
-	
+public class MeanProjection extends featureExtractionPlugin{
 	@Override
 	public double[] process(double[] input, Point5D position) {
-		return new double[]{ ArrayMath.mean(input)};
+		double[] output = new double[]{
+				ArrayMath.mean(input)
+		};
+
+		return output;
 	}
-
-
 	
 }

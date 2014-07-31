@@ -17,7 +17,7 @@ public class Projections extends featureExtractionPlugin {
 		EzVarBoolean  b  = new EzVarBoolean("hello world", false);
 		optionUI.add(label);
 		optionUI.add(b);
-		options.put(FEATURE_GROUPS, new String[]{"o1","o2"});
+		options.put(FEATURE_GROUPS, new String[]{"output1","output2"});
 	}
 	@Override
 	public double[] process(double[] input, Point5D position) {

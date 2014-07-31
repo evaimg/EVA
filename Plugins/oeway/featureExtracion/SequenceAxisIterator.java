@@ -1,5 +1,8 @@
 package plugins.oeway.featureExtraction;
 
+import icy.gui.dialog.MessageDialog;
+import icy.image.IcyBufferedImage;
+import icy.main.Icy;
 import icy.sequence.DimensionId;
 import icy.sequence.Sequence;
 import icy.sequence.SequenceEvent;
@@ -10,6 +13,7 @@ import icy.type.point.Point5D;
 
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.awt.image.BufferedImage;
 import java.util.Iterator;
 
 import plugins.adufour.blocks.lang.Block;
@@ -21,6 +25,8 @@ import plugins.adufour.ezplug.EzVarDoubleArrayNative;
 import plugins.adufour.ezplug.EzVarEnum;
 import plugins.adufour.ezplug.EzVarInteger;
 import plugins.adufour.ezplug.EzVarSequence;
+import plugins.adufour.vars.lang.Var;
+import plugins.adufour.vars.util.VarListener;
 
 public class SequenceAxisIterator extends EzPlug implements Iterator<double[]>,Block{
 
@@ -47,6 +53,7 @@ public class SequenceAxisIterator extends EzPlug implements Iterator<double[]>,B
 	private EzVarDoubleArrayNative outputVar = new EzVarDoubleArrayNative("Output",null, false);
 	private EzVarBoolean exportAllVar = new EzVarBoolean("Export all data",false);
 	private EzButton exportBtn;
+	Sequence outputSeq = null;
 	public SequenceAxisIterator()
 	{
 
@@ -357,6 +364,27 @@ public class SequenceAxisIterator extends EzPlug implements Iterator<double[]>,B
 		inputMap.add(cVar.getVariable());
 		inputMap.add(dirVar.getVariable());
 		inputMap.add(seqVar.getVariable());
+		VarListener listener = new VarListener()
+		{
+			@Override
+			public void valueChanged(Var source, Object oldValue, Object newValue) {
+				run();
+			}
+	
+			@Override
+			public void referenceChanged(Var source, Var oldReference,
+					Var newReference) {
+				run();
+				
+			}
+		};
+		xVar.getVariable().addListener(listener);
+		yVar.getVariable().addListener(listener);
+		zVar.getVariable().addListener(listener);
+		tVar.getVariable().addListener(listener);
+		cVar.getVariable().addListener(listener);
+		dirVar.getVariable().addListener(listener);
+		seqVar.getVariable().addListener(listener);
 	}
 	@Override
 	public void declareOutput(VarList outputMap) {
@@ -364,46 +392,63 @@ public class SequenceAxisIterator extends EzPlug implements Iterator<double[]>,B
 	}
 	@Override
 	public void run() {
-		seq = seqVar.getValue();
-	
-		dir = dirVar.getValue();
-		cur = new Point5D.Integer();
-		len = new Point5D.Integer();
-		reset();
-		seq.addListener(new SequenceListener(){
-			@Override
-			public void sequenceChanged(SequenceEvent sequenceEvent) {
-				len.x = seq.getSizeX();
-				len.y = seq.getSizeY();
-				len.z = seq.getSizeZ();
-				len.t = seq.getSizeT();
-				len.c = seq.getSizeC();
-				dt = seq.getDataType_();
-			}
-
-			@Override
-			public void sequenceClosed(Sequence sequence) {
-				stop = true;
-			}
-		});
+		try
+		{
+			seq = seqVar.getValue();
 		
-		cur.x = xVar.getValue();
-		cur.y = yVar.getValue();
-		cur.z = zVar.getValue();
-		cur.c = cVar.getValue();
-		cur.t = tVar.getValue();
-		
-		outputVar.setValue(get());
+			dir = dirVar.getValue();
+			cur = new Point5D.Integer();
+			len = new Point5D.Integer();
+			reset();
+			
+			cur.x = xVar.getValue();
+			cur.y = yVar.getValue();
+			cur.z = zVar.getValue();
+			cur.c = cVar.getValue();
+			cur.t = tVar.getValue();
+			
+			outputVar.setValue(get());
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			 if (!isHeadLess())
+			  {
+				 MessageDialog.showDialog("Sequence Axis Iterator -- Error Occured.",
+						 MessageDialog.ERROR_MESSAGE);
+			  }
+		}
 		
 	}
 	@Override
 	public void clean() {
-		// TODO Auto-generated method stub
+
 		
 	}
 	@Override
 	protected void execute() {
-		// TODO Auto-generated method stub
+		try
+		{
+			if(outputSeq == null)
+			{
+				Sequence outputSeq = new Sequence();
+			}
+			double[] da = outputVar.getValue();
+			Object out = null;
+			Array1DUtil.doubleArrayToSafeArray(da, out, true);
+			IcyBufferedImage img = new IcyBufferedImage(da.length, 1, out);	
+			outputSeq.addImage(img);
+			if(!Icy.getMainInterface().isOpened(outputSeq))
+			{
+				addSequence(outputSeq);
+			}
+		}
+		catch(Exception e)
+		{
+			e.printStackTrace();
+			MessageDialog.showDialog("Error Occured.",
+					MessageDialog.ERROR_MESSAGE);
+		}
 		
 	}
 	@Override

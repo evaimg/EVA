@@ -86,6 +86,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
     		return;
     	
 		selectedExtractionFunc = pluginList.get(featureFuncVar.getValue()).newInstance();
+		
 		featureFuncOptions.components.clear();
 
 		for(Object o:guiList){
@@ -188,7 +189,10 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
         }
     }
 	
-    
+    public void setExtractionFunction(String funcName)
+    {
+    		featureFuncVar.setValue(funcName);
+    }
     @Override
     protected void initialize()
     {
@@ -294,9 +298,9 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
 	public void  updateFromConfigurations(){
 
 	    outputDataType = (DataType) optionDict.get(FEATURE_DATA_TYPE);
-	    maxErrorCount = (int) optionDict.get(MAXIMUM_ERROR_COUNT);//, maxErrorCount );//new EzVarInteger("Maximum Error Count"));
+	    maxErrorCount =  (Integer) optionDict.get(MAXIMUM_ERROR_COUNT);//, maxErrorCount );//new EzVarInteger("Maximum Error Count"));
 		groupNames = (String[]) optionDict.get(FEATURE_GROUPS);//, groupNames);
-		featureCount = (int) optionDict.get(FEATURE_COUNT);//,featureCount );
+		featureCount = (Integer) optionDict.get(FEATURE_COUNT);//,featureCount );
 
 	}
 
@@ -492,6 +496,9 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
                 out = SequenceUtil.concatT(seqs, true, true,true, pf);
                 break;
         }
+        
+        out.setMetaData(OMEUtil.createOMEMetadata(seqs[0].getMetadata()));
+        
         out.setName("Extraction of " + input.getValue().getName() +" along " + extractDir.getValue().toString());        
         pf.close();
         return out;
