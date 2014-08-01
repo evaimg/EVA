@@ -33,6 +33,9 @@ import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
 import java.awt.geom.Rectangle2D;
 import java.awt.image.BufferedImage;
+import java.io.BufferedWriter;
+import java.io.File;
+import java.io.FileWriter;
 import java.util.ArrayList;
 import java.util.Collection;
 import java.util.HashSet;
@@ -42,6 +45,7 @@ import java.util.Random;
 import java.util.Set;
 import javax.swing.JButton;
 import javax.swing.JCheckBox;
+import javax.swing.JFileChooser;
 import javax.swing.JLabel;
 import javax.swing.SwingConstants;
 
@@ -70,7 +74,7 @@ public class IntensityProfile  {
 	//JButton exportToExcelButton = new JButton("Export to excel");
 	JCheckBox graphOverZ = new JCheckBox("Graph Z");
 	JButton rowOColBtn = new JButton("row");
-	JButton consoleOutputBtn = new JButton("Export to console");
+	JButton exportToFileBtn = new JButton("Export to file");
 	JLabel indexLbl = new JLabel("0");
 	JLabel maxIndexLbl = new JLabel("0");
 	public PanningChartPanel chartPanel ;
@@ -156,12 +160,12 @@ public class IntensityProfile  {
         });
         rowOColBtn.setToolTipText("slide in row or column");
   
-        consoleOutputBtn.setFocusPainted(false);
-        consoleOutputBtn.setPreferredSize(new Dimension(180, 22));
-        consoleOutputBtn.setMaximumSize(new Dimension(240, 22));
-        consoleOutputBtn.setMinimumSize(new Dimension(120, 22));
-        consoleOutputBtn.setMargin(new Insets(2, 8, 2, 8));
-        consoleOutputBtn.addActionListener(new ActionListener()
+        exportToFileBtn.setFocusPainted(false);
+        exportToFileBtn.setPreferredSize(new Dimension(180, 22));
+        exportToFileBtn.setMaximumSize(new Dimension(240, 22));
+        exportToFileBtn.setMinimumSize(new Dimension(120, 22));
+        exportToFileBtn.setMargin(new Insets(2, 8, 2, 8));
+        exportToFileBtn.addActionListener(new ActionListener()
         {
             @Override
             public void actionPerformed(ActionEvent e)
@@ -169,24 +173,80 @@ public class IntensityProfile  {
         		int currentT = mainCanvas.getPositionT();
         		int currentZ = mainCanvas.getPositionZ();
         		
-        		System.out.println("-----------------------------------------");
-        		System.out.println("---------- Time:"+ currentT +", Z:"+currentZ+" ---------");
-        		for( int c= 0 ; c < sequence.getSizeC() ; c++ )
-        		{
-        			XYSeries seriesXY = xyDataset.getSeries(0);	
-        			List<XYDataItem> it = seriesXY.getItems();
-        			System.out.println("----------channel:"+ c +"---------");
-        			System.out.println("X , Y");
-        			for( int i = 0 ; i <it.size()  ; i++ )
-        			{							
-        				System.out.println(it.get(i).getXValue() + " , "+ it.get(i).getYValue());
-        				
-        			}
-        			System.out.println("-----------------------------------------");
-        		}
+
+        		JFileChooser jdir = new JFileChooser();  
+
+                jdir.setFileSelectionMode(JFileChooser.FILES_ONLY);  
+ 
+                if (JFileChooser.APPROVE_OPTION == jdir.showOpenDialog(null)) {
+                    String path = jdir.getSelectedFile().getAbsolutePath();
+                    if(!path.contains("."))
+                    	path+=".txt";
+                    BufferedWriter writer = null;
+                    try {
+                        //create a temporary file
+
+                        File outputFile = new File(path);
+                        writer = new BufferedWriter(new FileWriter(outputFile));
+//                		System.out.println("-----------------------------------------");
+//                		System.out.println("---------- Time:"+ currentT +", Z:"+currentZ+" ---------");
+                        int maxSize = 0;
+                		for(Object s:xyDataset.getSeries())
+                		{
+                			if(maxSize<((XYSeries)s).getItemCount())
+                				maxSize=((XYSeries)s).getItemCount();
+                		}
+                        
+                		String[] dataArr = new String[maxSize+1];
+                		
+          				for( int i = 0 ; i <maxSize+1  ; i++ )
+            			{
+          					dataArr[i] ="";
+            			}
+                        
+            			for( int c= 0 ; c < xyDataset.getSeriesCount(); c++ )
+                		{
+            				XYSeries seriesXY = xyDataset.getSeries(c);	
+                			List<XYDataItem> it = seriesXY.getItems();
+                			int size = it.size();
+                			dataArr[0] +=seriesXY.getKey().toString()+"(X)\t"+seriesXY.getKey().toString()+"(Y)\t";
+            				for( int i = 1 ; i <maxSize+1  ; i++ )
+                			{
+            					if(size>i)
+            					{
+            						//System.out.println(it.get(i).getXValue() + " , "+ it.get(i).getYValue());
+            						dataArr[i]+=(it.get(i).getXValue() + "\t"+ it.get(i).getYValue()+"\t");
+            					}
+            					else
+            					{
+            						dataArr[i]+=" \t \t";
+            					}
+                			}
+
+                		}
+            			for(String s:dataArr)
+            			{
+
+            				writer.write(s+"\n");
+
+            			}
+
+                    } catch (Exception e1) {
+                        e1.printStackTrace();
+                    } finally {
+                        try {
+                            // Close the writer regardless of what happens...
+                            writer.close();
+                        } catch (Exception e1) {
+                        }
+                    }
+                    
+                    
+                }  
+                
             }
         });
-        consoleOutputBtn.setToolTipText("Print current line data to the console of Icy.");
+        exportToFileBtn.setToolTipText("Print current line data to the console of Icy.");
         
 
         
@@ -292,7 +352,7 @@ public class IntensityProfile  {
         
 		mainCanvas = mainCav;
 		//add to canvas
-		mainCanvas.add( GuiUtil.createPageBoxPanel(GuiUtil.createLineBoxPanel(optionComboBox,consoleOutputBtn),chartPanel,GuiUtil.createLineBoxPanel(rowOColBtn,slider,maxIndexLbl) )) ;
+		mainCanvas.add( GuiUtil.createPageBoxPanel(GuiUtil.createLineBoxPanel(optionComboBox,exportToFileBtn),chartPanel,GuiUtil.createLineBoxPanel(rowOColBtn,slider,maxIndexLbl) )) ;
 
 		// NOW DO SOME OPTIONAL CUSTOMISATION OF THE CHART...
         chart.setBackgroundPaint(Color.white);
@@ -330,8 +390,7 @@ public class IntensityProfile  {
 	
 	public BufferedImage getImage()
 	{
-
-			BufferedImage objBufferedImage=chart.createBufferedImage(600,800);
+			BufferedImage objBufferedImage=chart.createBufferedImage(1024,800);
 			return objBufferedImage;
 
 	}

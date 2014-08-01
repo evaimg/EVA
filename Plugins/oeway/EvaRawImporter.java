@@ -1,44 +1,39 @@
 package plugins.oeway;
-/*
- * Sam file importer for PAV Scanning Acoustic Microscope
- * Used by EVA project(http://www.evaimg.org/)
- * 
- *  @author Will Ouyang
- */
-import java.awt.Rectangle;
+import java.awt.Container;
+import java.awt.Point;
+import java.awt.event.MouseEvent;
+import java.awt.event.MouseListener;
+import java.awt.event.MouseMotionListener;
 import java.io.File;
 import java.io.IOException;
-import java.io.InputStream;
-import java.io.RandomAccessFile;
-import java.util.ArrayList;
-import java.util.HashMap;
-import java.util.List;
-import javax.swing.filechooser.FileFilter;
+
+import javax.swing.JOptionPane;
+
 import icy.type.collection.array.ArrayUtil;
+import plugins.adufour.ezplug.EzException;
 import plugins.adufour.ezplug.EzGroup;
+import plugins.adufour.ezplug.EzLabel;
 import plugins.adufour.ezplug.EzPlug;
 import plugins.adufour.ezplug.EzVar;
 import plugins.adufour.ezplug.EzVarBoolean;
-import plugins.adufour.ezplug.EzVarEnum;
 import plugins.adufour.ezplug.EzVarFile;
 import plugins.adufour.ezplug.EzVarInteger;
 import plugins.adufour.ezplug.EzVarListener;
 import plugins.adufour.ezplug.EzVarText;
 import loci.common.services.ServiceException;
-import loci.formats.gui.ExtensionFileFilter;
 import loci.formats.ome.OMEXMLMetadataImpl;
+import icy.canvas.IcyCanvas;
+import icy.canvas.IcyCanvasEvent;
+import icy.canvas.IcyCanvasListener;
+import icy.canvas.IcyCanvasEvent.IcyCanvasEventType;
 import icy.common.exception.UnsupportedFormatException;
 import icy.common.listener.ProgressListener;
 import icy.file.FileUtil;
 import icy.file.Importer;
-import icy.file.Loader;
-import icy.gui.viewer.Viewer;
+import icy.gui.dialog.MessageDialog;
 import icy.image.IcyBufferedImage;
-import icy.image.IcyBufferedImageUtil;
-import icy.imagej.ImageJUtil;
+import icy.main.Icy;
 import icy.math.ArrayMath;
-import icy.plugin.abstract_.PluginImporter;
-import icy.plugin.abstract_.PluginSequenceFileImporter;
 import icy.type.DataType;
 import icy.type.collection.array.Array1DUtil;
 import icy.type.collection.array.Array2DUtil;
@@ -47,6 +42,7 @@ import ij.io.FileInfo;
 import ij.io.FileOpener;
 import ij.measure.Calibration;
 import ij.process.ImageProcessor;
+import icy.sequence.DimensionId;
 import icy.sequence.MetaDataUtil;
 import icy.sequence.Sequence;
 import icy.system.thread.ThreadUtil;
@@ -92,10 +88,12 @@ public class EvaRawImporter extends EzPlug implements Importer,EzVarListener
  	EzVarBoolean whiteIsZeroVar = new EzVarBoolean("White is zero",false);
  	EzVarBoolean intelByteOrderVar =  new EzVarBoolean("Little-endian byte order",false);
  	EzVarBoolean openAllFilesVar = new EzVarBoolean("Open all files in folder", false);
-     
+    EzLabel mouseOffsetLocation = new EzLabel("");
  	EzVarFile fileVar = new EzVarFile("file","");
  	Sequence seq = new Sequence();
- 	
+	float bytePerPixel = 1;
+	float byteOffset = 0;
+	@SuppressWarnings("unchecked")
 	@Override
 	protected void initialize() {
 		addEzComponent(fileVar);
@@ -112,7 +110,10 @@ public class EvaRawImporter extends EzPlug implements Importer,EzVarListener
 		gp.addEzComponent(intelByteOrderVar);
 		gp.addEzComponent(openAllFilesVar);
 		
+		
 		addEzComponent(gp);
+		
+		addEzComponent(mouseOffsetLocation);
 		
 		widthVar.setValue(128);
 		heightVar.setValue(128);
@@ -129,9 +130,8 @@ public class EvaRawImporter extends EzPlug implements Importer,EzVarListener
 		intelByteOrderVar.addVarChangeListener(this);
 		
 		fileVar.addVarChangeListener(this);
-		
-		addSequence(seq);
-		
+
+		seq.setName("Preview");
 	}
 	
 	
@@ -154,44 +154,79 @@ public class EvaRawImporter extends EzPlug implements Importer,EzVarListener
 			fi.longOffset = offset;
 		else
 			fi.offset = (int)offset;
+		byteOffset =offset;
 		
 		fi.nImages = numImgVar.getValue();
 		fi.gapBetweenImages = gapVar.getValue();
 		fi.intelByteOrder = intelByteOrderVar.getValue();  //little-endian
 		fi.whiteIsZero = whiteIsZeroVar.getValue();
-		
-
+				
 		String imageType = imageTypeVar.getValue();
 		if (imageType.equals("8-bit"))
+		{
 			fi.fileType = FileInfo.GRAY8;
+			bytePerPixel = 1;
+		}
 		else if (imageType.equals("16-bit Signed"))
+		{
 			fi.fileType = FileInfo.GRAY16_SIGNED;
+			bytePerPixel = 2;
+		}
 		else if (imageType.equals("16-bit Unsigned"))
+		{
 			fi.fileType = FileInfo.GRAY16_UNSIGNED;
+			bytePerPixel = 2;
+		}
 		else if (imageType.equals("32-bit Signed"))
-			fi.fileType = FileInfo.GRAY32_INT;
+		{	fi.fileType = FileInfo.GRAY32_INT;
+			bytePerPixel = 4;
+		}
 		else if (imageType.equals("32-bit Unsigned"))
-			fi.fileType = FileInfo.GRAY32_UNSIGNED;
+		{	fi.fileType = FileInfo.GRAY32_UNSIGNED;
+			bytePerPixel = 4;
+		}
 		else if (imageType.equals("32-bit Real"))
-			fi.fileType = FileInfo.GRAY32_FLOAT;
+		{	fi.fileType = FileInfo.GRAY32_FLOAT;
+		bytePerPixel = 4;
+		}
 		else if (imageType.equals("64-bit Real"))
-			fi.fileType = FileInfo.GRAY64_FLOAT;
+		{	fi.fileType = FileInfo.GRAY64_FLOAT;
+		bytePerPixel = 8;
+		}
 		else if (imageType.equals("24-bit RGB"))
-			fi.fileType = FileInfo.RGB;
+		{	fi.fileType = FileInfo.RGB;
+		bytePerPixel =3;
+		}
 		else if (imageType.equals("24-bit RGB Planar"))
-			fi.fileType = FileInfo.RGB_PLANAR;
+		{	fi.fileType = FileInfo.RGB_PLANAR;
+		bytePerPixel = 3;
+		}
 		else if (imageType.equals("24-bit BGR"))
-			fi.fileType = FileInfo.BGR;
+		{	fi.fileType = FileInfo.BGR;
+		bytePerPixel = 3;
+		}
 		else if (imageType.equals("24-bit Integer"))
-			fi.fileType = FileInfo.GRAY24_UNSIGNED;
+		{	fi.fileType = FileInfo.GRAY24_UNSIGNED;
+		bytePerPixel = 3;
+		}
 		else if (imageType.equals("32-bit ARGB"))
-			fi.fileType = FileInfo.ARGB;
+		{	fi.fileType = FileInfo.ARGB;
+		bytePerPixel = 4;
+		}
 		else if (imageType.equals("32-bit ABGR"))
-			fi.fileType = FileInfo.ABGR;
+		{	fi.fileType = FileInfo.ABGR;
+		bytePerPixel = 4;
+		}
 		else if (imageType.equals("1-bit Bitmap"))
-			fi.fileType = FileInfo.BITMAP;
+		{	fi.fileType = FileInfo.BITMAP;
+		bytePerPixel = 1/8;
+		}
 		else
+		{
 			fi.fileType = FileInfo.GRAY8;
+			bytePerPixel = 1;
+		}
+		
 		return fi;
 	}
 	
@@ -245,19 +280,44 @@ public class EvaRawImporter extends EzPlug implements Importer,EzVarListener
 
 	@Override
 	public boolean load() throws Exception {
-		// TODO Auto-generated method stub
-		return false;
+
+//        try
+//        {
+//            // generate the user interface
+//            createUI();
+//            
+//            // show the interface to the user
+//            showUI();
+//        }
+//        catch (EzException e)
+//        {
+//            if (e.catchException)
+//                JOptionPane.showMessageDialog(getUI().getFrame(), e.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+//            else throw e;
+//        }
+//		return true;
+		return true;
 	}
 
 	@Override
 	public void clean() {
-		// TODO Auto-generated method stub
 		
 	}
 
 	@Override
 	protected void execute() {
-		// TODO Auto-generated method stub
+		try
+		{
+			Sequence result = new Sequence();
+			open(fileVar.getValue().getAbsolutePath(),0);
+			convertToIcySequence(image,result, null);
+			addSequence(result);
+		}
+		catch(Exception e)
+		{
+			MessageDialog.showDialog("Error occured when trying to import data.",
+					MessageDialog.ERROR_MESSAGE);
+		}
 		
 	}
     private static void calibrateIcySequence(Sequence sequence, Calibration cal)
@@ -277,10 +337,10 @@ public class EvaRawImporter extends EzPlug implements Importer,EzVarListener
         }
     }
 
-	 public  Sequence convertToIcySequence(ImagePlus image, ProgressListener progressListener)
+	 public  Sequence convertToIcySequence(ImagePlus image, Sequence output, ProgressListener progressListener)
 	    {
-		 	seq.setName(image.getTitle());
-	        final Sequence result = seq;
+		 	output.setName(image.getTitle());
+	        final Sequence result = output;
 	        final int[] dim = image.getDimensions(true);
 
 	        final int sizeX = dim[0];
@@ -361,23 +421,53 @@ public class EvaRawImporter extends EzPlug implements Importer,EzVarListener
 	@Override
 	public void variableChanged(EzVar source, Object newValue) {
         // can take sometime so we do it in background
-        ThreadUtil.bgRun(new Runnable()
-        {
-            @Override
-            public void run()
-            {
+//        ThreadUtil.bgRun(new Runnable()
+//        {
+//            @Override
+//            public void run()
+//            {
         		try
         		{
         			seq.removeAllImages();
         			open(fileVar.getValue().getAbsolutePath(),0);
-        			convertToIcySequence(image,null);
+        			convertToIcySequence(image,seq,null);
+        			
+        			if(!Icy.getMainInterface().isOpened(seq)){
+        				addSequence(seq);
+        				final IcyCanvas canvas = seq.getViewers().get(0).getCanvas();
+        				canvas.addCanvasListener(new IcyCanvasListener(){
+							@Override
+							public void canvasChanged(IcyCanvasEvent event) {
+								try
+								{
+									final IcyCanvasEventType eventType = event.getType();
+									if(eventType == IcyCanvasEvent.IcyCanvasEventType.MOUSE_IMAGE_POSITION_CHANGED)
+									{
+										mouseOffsetLocation.setText("");
+										int x = (int) canvas.getMouseImagePos(DimensionId.X);
+										int y = (int) canvas.getMouseImagePos(DimensionId.Y);
+										int toffset = (int) (bytePerPixel* (x+y*seq.getWidth()) + byteOffset);
+										if(toffset>0)
+											mouseOffsetLocation.setText("Mouse offset: "+toffset + " bytes");	
+									}
+
+								}
+								catch(Exception e)
+								{
+									
+								}
+							}
+
+        				
+        				});
+        			}
         		}
         		catch(Exception e)
         		{
         			
         		}
-            }
-        });
+//            }
+//        });
 
 		
 	}

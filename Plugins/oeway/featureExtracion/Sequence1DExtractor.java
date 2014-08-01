@@ -28,7 +28,7 @@ import plugins.adufour.ezplug.EzVarSequence;
 import plugins.adufour.vars.lang.Var;
 import plugins.adufour.vars.util.VarListener;
 
-public class SequenceAxisIterator extends EzPlug implements Iterator<double[]>,Block{
+public class Sequence1DExtractor extends EzPlug implements Iterator<double[]>,Block{
 
 	private Sequence seq;
 	private DimensionId dir;
@@ -52,13 +52,12 @@ public class SequenceAxisIterator extends EzPlug implements Iterator<double[]>,B
 	private EzVarSequence seqVar = new EzVarSequence("Input");
 	private EzVarDoubleArrayNative outputVar = new EzVarDoubleArrayNative("Output",null, false);
 	private EzVarBoolean exportAllVar = new EzVarBoolean("Export all data",false);
-	private EzButton exportBtn;
 	Sequence outputSeq = null;
-	public SequenceAxisIterator()
+	public Sequence1DExtractor()
 	{
 
 	}
-	public SequenceAxisIterator(Sequence sequence,DimensionId direction)
+	public Sequence1DExtractor(Sequence sequence,DimensionId direction)
 	{
 		seq = sequence;
 		dir = direction;
@@ -462,19 +461,6 @@ public class SequenceAxisIterator extends EzPlug implements Iterator<double[]>,B
 		addEzComponent(seqVar);
 		addEzComponent(exportAllVar);
 		addEzComponent(outputVar);
-		
-		
-		ActionListener btnListener = new ActionListener(){
-
-			@Override
-			public void actionPerformed(ActionEvent e) {
-				
-				
-			}
-			
-		};
-		exportBtn= new EzButton(null, btnListener );
-		addEzComponent(exportBtn);
 	}
 
 }

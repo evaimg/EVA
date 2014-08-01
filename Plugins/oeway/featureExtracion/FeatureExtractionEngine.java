@@ -97,6 +97,13 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
 					if(inputMap_.contains( v.getVariable()))
 						inputMap_.remove(v.getVariable());
 			}
+			if(o instanceof Var<?>)
+			{
+				Var<?> v= (Var<?>)o;
+				if(inputMap_!=null)
+					if(inputMap_.contains(v))
+						inputMap_.remove(v);
+			}
 		}
 			
 		optionDict.clear();
@@ -120,6 +127,13 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
 				if(inputMap_!=null)
 					if(!inputMap_.contains( v.getVariable()))
 						inputMap_.add(( v).getVariable());	
+			}
+			if(o instanceof Var<?>)
+			{
+				Var<?> v= (Var<?>)o;
+				if(inputMap_!=null)
+					if(!inputMap_.contains(v))
+						inputMap_.add(v);
 			}
 			if(o instanceof EzComponent)
 			{
@@ -336,7 +350,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
         
 		int error_exit_count = maxErrorCount;//((EzVarInteger) optionDict.get(MAXIMUM_ERROR_COUNT)).getValue();
 
-    	SequenceAxisIterator input = new SequenceAxisIterator(in,extractDir.getValue());
+    	Sequence1DExtractor input = new Sequence1DExtractor(in,extractDir.getValue());
     	//test output length
     	if(input.hasNext())
     	{
@@ -379,7 +393,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
         }
         
 
-        SequenceAxisIterator[] seqAIList = new SequenceAxisIterator[groupCount];
+        Sequence1DExtractor[] seqAIList = new Sequence1DExtractor[groupCount];
         
         for(int i=0;i<groupCount;i++)
         {
@@ -394,7 +408,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
 	
 				}
 			}
-	    	SequenceAxisIterator sai = new SequenceAxisIterator(o,extractDir.getValue());
+	    	Sequence1DExtractor sai = new Sequence1DExtractor(o,extractDir.getValue());
 	    	seqAIList[i] = sai;
         }
 
@@ -403,7 +417,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
         ExecutorService service = multiThread ? Executors.newFixedThreadPool(cpu) : Executors.newSingleThreadExecutor();
         ArrayList<Future<?>> futures = new ArrayList<Future<?>>(10);
         
-		for(SequenceAxisIterator sai:seqAIList)
+		for(Sequence1DExtractor sai:seqAIList)
 		{
 	        sai.getSequence().beginUpdate();
 		}
@@ -415,7 +429,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
         	try{
     			double[] o = featureFunc.process(input.next(),input.getCursor());
     			int offset = 0;
-        		for(SequenceAxisIterator sai:seqAIList)
+        		for(Sequence1DExtractor sai:seqAIList)
         		{
         			if(sai.hasNext())
         				sai.setNext(o,offset);
@@ -467,7 +481,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
     	
     	Sequence[] seqList = new Sequence[seqAIList.length];
     	int i=0;
-		for(SequenceAxisIterator sai:seqAIList)
+		for(Sequence1DExtractor sai:seqAIList)
 		{
 			sai.getSequence().endUpdate();
 	        sai.getSequence().updateChannelsBounds(true);
@@ -480,7 +494,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
     public Sequence mergeSequences(final Sequence [] seqs, DimensionId dir)
     {
     	Sequence out;
-        final ProgressFrame pf = new ProgressFrame("Merging sequences...");
+        final ProgressFrame pf = null;// new ProgressFrame("Merging sequences...");
         switch (dir)
         {
             default:

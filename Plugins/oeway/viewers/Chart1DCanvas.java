@@ -138,8 +138,8 @@ public class Chart1DCanvas extends PluginActionable implements PluginCanvas, Seq
 		@Override
 		public BufferedImage getRenderedImage(int t, int z, int c,
 				boolean canvasView) {
-			// TODO Auto-generated method stub
-			return null;
+
+			return iprofile.getImage();
 		}
       
 	    @Override
