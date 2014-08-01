@@ -304,7 +304,7 @@ public class IntensityProfile  {
 		// Chart
 		chart = ChartFactory.createXYLineChart(
 				"",xlabel, "Intensity Value", xyDataset,
-				PlotOrientation.VERTICAL, false, true, true);
+				PlotOrientation.VERTICAL, true, true, true);
 		chartPanel = new PanningChartPanel(chart, 1024, 500, 500, 200, 10000, 10000, false, false, true, false, true, true);		
 		
 		chartPanel.addChartMouseListener(new ChartMouseListener() {

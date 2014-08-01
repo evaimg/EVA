@@ -510,7 +510,18 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
                 break;
         }
         
+        String[] channelNames = new String[out.getSizeC()]; 
+        for(int i=0;i<out.getSizeC();i++)
+        {
+        	channelNames[i] = out.getChannelName(i);
+        }
+        
         out.setMetaData(OMEUtil.createOMEMetadata(seqs[0].getMetadata()));
+        
+        for(int i=0;i<out.getSizeC();i++)
+        {
+        	out.setChannelName(i, channelNames[i]);
+        }
         
         out.setName("Extraction of " + input.getValue().getName() +" along " + extractDir.getValue().toString());        
         //pf.close();
