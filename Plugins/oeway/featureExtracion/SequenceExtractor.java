@@ -11,14 +11,10 @@ import icy.type.DataType;
 import icy.type.collection.array.Array1DUtil;
 import icy.type.point.Point5D;
 
-import java.awt.event.ActionEvent;
-import java.awt.event.ActionListener;
-import java.awt.image.BufferedImage;
 import java.util.Iterator;
 
 import plugins.adufour.blocks.lang.Block;
 import plugins.adufour.blocks.util.VarList;
-import plugins.adufour.ezplug.EzButton;
 import plugins.adufour.ezplug.EzPlug;
 import plugins.adufour.ezplug.EzVarBoolean;
 import plugins.adufour.ezplug.EzVarDoubleArrayNative;
@@ -28,7 +24,7 @@ import plugins.adufour.ezplug.EzVarSequence;
 import plugins.adufour.vars.lang.Var;
 import plugins.adufour.vars.util.VarListener;
 
-public class Sequence1DExtractor extends EzPlug implements Iterator<double[]>,Block{
+public class SequenceExtractor extends EzPlug implements Iterator<double[]>,Block{
 
 	private Sequence seq;
 	private DimensionId dir;
@@ -53,11 +49,11 @@ public class Sequence1DExtractor extends EzPlug implements Iterator<double[]>,Bl
 	private EzVarDoubleArrayNative outputVar = new EzVarDoubleArrayNative("Output",null, false);
 	private EzVarBoolean exportAllVar = new EzVarBoolean("Export all data",false);
 	Sequence outputSeq = null;
-	public Sequence1DExtractor()
+	public SequenceExtractor()
 	{
 
 	}
-	public Sequence1DExtractor(Sequence sequence,DimensionId direction)
+	public SequenceExtractor(Sequence sequence,DimensionId direction)
 	{
 		seq = sequence;
 		dir = direction;

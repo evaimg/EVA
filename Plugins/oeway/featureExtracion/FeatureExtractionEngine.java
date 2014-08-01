@@ -3,7 +3,6 @@ package plugins.oeway.featureExtraction;
 import icy.gui.dialog.MessageDialog;
 import icy.gui.frame.progress.ProgressFrame;
 import icy.image.IcyBufferedImage;
-import icy.main.Icy;
 import icy.plugin.PluginDescriptor;
 import icy.plugin.PluginLoader;
 import icy.plugin.abstract_.Plugin;
@@ -350,7 +349,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
         
 		int error_exit_count = maxErrorCount;//((EzVarInteger) optionDict.get(MAXIMUM_ERROR_COUNT)).getValue();
 
-    	Sequence1DExtractor input = new Sequence1DExtractor(in,extractDir.getValue());
+    	SequenceExtractor input = new SequenceExtractor(in,extractDir.getValue());
     	//test output length
     	if(input.hasNext())
     	{
@@ -393,7 +392,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
         }
         
 
-        Sequence1DExtractor[] seqAIList = new Sequence1DExtractor[groupCount];
+        SequenceExtractor[] seqAIList = new SequenceExtractor[groupCount];
         
         for(int i=0;i<groupCount;i++)
         {
@@ -408,7 +407,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
 	
 				}
 			}
-	    	Sequence1DExtractor sai = new Sequence1DExtractor(o,extractDir.getValue());
+	    	SequenceExtractor sai = new SequenceExtractor(o,extractDir.getValue());
 	    	seqAIList[i] = sai;
         }
 
@@ -417,7 +416,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
         ExecutorService service = multiThread ? Executors.newFixedThreadPool(cpu) : Executors.newSingleThreadExecutor();
         ArrayList<Future<?>> futures = new ArrayList<Future<?>>(10);
         
-		for(Sequence1DExtractor sai:seqAIList)
+		for(SequenceExtractor sai:seqAIList)
 		{
 	        sai.getSequence().beginUpdate();
 		}
@@ -429,7 +428,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
         	try{
     			double[] o = featureFunc.process(input.next(),input.getCursor());
     			int offset = 0;
-        		for(Sequence1DExtractor sai:seqAIList)
+        		for(SequenceExtractor sai:seqAIList)
         		{
         			if(sai.hasNext())
         				sai.setNext(o,offset);
@@ -481,7 +480,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
     	
     	Sequence[] seqList = new Sequence[seqAIList.length];
     	int i=0;
-		for(Sequence1DExtractor sai:seqAIList)
+		for(SequenceExtractor sai:seqAIList)
 		{
 			sai.getSequence().endUpdate();
 	        sai.getSequence().updateChannelsBounds(true);
@@ -514,7 +513,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
         out.setMetaData(OMEUtil.createOMEMetadata(seqs[0].getMetadata()));
         
         out.setName("Extraction of " + input.getValue().getName() +" along " + extractDir.getValue().toString());        
-        pf.close();
+        //pf.close();
         return out;
     }
   
