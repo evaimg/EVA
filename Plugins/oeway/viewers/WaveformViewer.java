@@ -18,12 +18,11 @@ import org.jfree.data.xy.XYSeriesCollection;
 import plugins.adufour.vars.gui.swing.SwingVarEditor;
 import plugins.adufour.vars.lang.Var;
 
-public class WaveformViewer extends SwingVarEditor<double[]>{
+public class WaveformViewer extends SwingVarEditor<XYSeriesCollection>{
 	
-
-	double step=1.0;
-	public WaveformViewer(Var<double[]> v) {
+	public WaveformViewer(Var<XYSeriesCollection> v) {
 		super(v);
+		setComponentResizeable(true);
 	}
 	@Override
 	protected JComponent createEditorComponent() {
@@ -44,7 +43,7 @@ public class WaveformViewer extends SwingVarEditor<double[]>{
         renderer.setLegendItemToolTipGenerator(
             new StandardXYSeriesLabelGenerator("Legend {0}"));
 
-        chart.setBackgroundPaint(Color.white);
+        chart.setBackgroundPaint(new Color(0.0F, 0.0F, 0.0F, 0.0F));
 
         final XYPlot plot = chart.getXYPlot();
         
@@ -82,22 +81,42 @@ public class WaveformViewer extends SwingVarEditor<double[]>{
 		try
 		{
 			final XYPlot plot =getEditorComponent().getChart().getXYPlot();
-			XYSeriesCollection xyDataset = (XYSeriesCollection) plot.getDataset();
-			xyDataset.removeAllSeries();
-			XYSeries seriesXY = new XYSeries(variable.getName());	
-			double[] arr = variable.getValue();
-			int i = 0;
-			for(double a:arr)
-			{							
-				seriesXY.add(i*step, a);
-				i++;
-			}
-			xyDataset.addSeries(seriesXY);
+			plot.setDataset(variable.getValue());
 		}
 		catch(Exception e)
 		{
 			
 		}
 	}
+    /**
+     * Indicates whether and how this component should resize horizontally if the container panel
+     * allows resizing. If multiple components in the same panel support resizing, the amount of
+     * extra space available will be shared between all components depending on the returned weight
+     * (from 0 for no resizing to 1 for maximum resizing).<br/>
+     * By default, this value is 1.0 (horizontal resizing is always allowed to fill up the maximum
+     * amount of space)
+     * 
+     * @return a value from 0 (no resize allowed) to 1 (resize as much as possible)
+     */
+	@Override
+    public double getComponentHorizontalResizeFactor()
+    {
+        return 1.0;
+    }
+    
+    /**
+     * Indicates whether and how this component should resize vertically if the container panel
+     * allows resizing. If multiple components in the same panel support resizing, the amount of
+     * extra space available will be shared between all components depending on the returned weight
+     * (from 0 for no resizing to 1 for maximum resizing).<br/>
+     * By default, this value is 0.0 (no vertical resizing)
+     * 
+     * @return a value from 0 (no resize allowed) to 1 (resize as much as possible)
+     */
+	@Override
+    public double getComponentVerticalResizeFactor()
+    {
+        return 1.0;
+    }
 
 }

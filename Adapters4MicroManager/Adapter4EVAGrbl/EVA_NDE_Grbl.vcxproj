@@ -79,7 +79,7 @@
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">false</LinkIncremental>
     <LinkIncremental Condition="'$(Configuration)|$(Platform)'=='Release|x64'">false</LinkIncremental>
   </PropertyGroup>
-   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
       <AdditionalIncludeDirectories>%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -96,7 +96,7 @@
       <DataExecutionPrevention>
       </DataExecutionPrevention>
     </Link>
-		    <PostBuildEvent>
+    <PostBuildEvent>
       <Command>copy "$(TargetPath)" ..\..\bin_$(Platform)
 copy "$(TargetPath)" ..\..\DeviceKit\DeviceTest\$(Platform)\$(Configuration)
 copy "$(TargetPath)" "C:\Program Files\Micro-Manager-1.4"
@@ -123,7 +123,7 @@ copy "$(TargetPath)" "C:\Program Files\Micro-Manager-1.4"
       <DataExecutionPrevention>
       </DataExecutionPrevention>
     </Link>
-		    <PostBuildEvent>
+    <PostBuildEvent>
       <Command>copy "$(TargetPath)" ..\..\bin_$(Platform)
 copy "$(TargetPath)" ..\..\DeviceKit\DeviceTest\$(Platform)\$(Configuration)
 copy "$(TargetPath)" "C:\Program Files\Micro-Manager-1.4"
@@ -146,14 +146,14 @@ copy "$(TargetPath)" "C:\Program Files\Micro-Manager-1.4"
       <DataExecutionPrevention>
       </DataExecutionPrevention>
     </Link>
-		    <PostBuildEvent>
+    <PostBuildEvent>
       <Command>copy "$(TargetPath)" ..\..\bin_$(Platform)
 copy "$(TargetPath)" ..\..\DeviceKit\DeviceTest\$(Platform)\$(Configuration)
 copy "$(TargetPath)" "C:\Program Files\Micro-Manager-1.4"
 </Command>
     </PostBuildEvent>
   </ItemDefinitionGroup>
- <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <Midl>
       <TargetEnvironment>X64</TargetEnvironment>
     </Midl>
@@ -172,7 +172,7 @@ copy "$(TargetPath)" "C:\Program Files\Micro-Manager-1.4"
       <DataExecutionPrevention>
       </DataExecutionPrevention>
     </Link>
-	    <PostBuildEvent>
+    <PostBuildEvent>
       <Command>copy "$(TargetPath)" ..\..\bin_$(Platform)
 copy "$(TargetPath)" ..\..\DeviceKit\DeviceTest\$(Platform)\$(Configuration)
 copy "$(TargetPath)" "C:\Program Files\Micro-Manager-1.4"
@@ -181,15 +181,10 @@ copy "$(TargetPath)" "C:\Program Files\Micro-Manager-1.4"
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="EVA_NDE_Grbl.cpp" />
-    <ClCompile Include="..\..\MMDevice\DeviceUtils.cpp" />
-    <ClCompile Include="..\..\MMDevice\ModuleInterface.cpp" />
-    <ClCompile Include="..\..\MMDevice\Property.cpp" />
     <ClCompile Include="XYStage.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EVA_NDE_Grbl.h" />
-    <ClInclude Include="..\..\MMDevice\DeviceBase.h" />
-    <ClInclude Include="..\..\MMDevice\ModuleInterface.h" />
     <ClInclude Include="XYStage.h" />
   </ItemGroup>
   <ItemGroup>

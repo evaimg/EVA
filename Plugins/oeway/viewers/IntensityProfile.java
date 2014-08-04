@@ -14,9 +14,6 @@ import icy.gui.util.ComponentUtil;
 import icy.gui.util.GuiUtil;
 import icy.image.IcyBufferedImage;
 import icy.roi.BooleanMask2D;
-import icy.roi.ROI;
-import plugins.kernel.roi.roi2d.ROI2DLine;
-import plugins.kernel.roi.roi2d.ROI2DShape;
 import icy.sequence.DimensionId;
 import icy.sequence.Sequence;
 import icy.system.thread.ThreadUtil;
@@ -26,8 +23,6 @@ import java.awt.BasicStroke;
 import java.awt.Color;
 import java.awt.Dimension;
 import java.awt.Insets;
-import java.awt.Paint;
-import java.awt.Point;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
 import java.awt.geom.Point2D;
@@ -52,20 +47,15 @@ import javax.swing.SwingConstants;
 import org.jfree.chart.ChartFactory;
 import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
-import org.jfree.chart.ChartRenderingInfo;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.labels.StandardXYSeriesLabelGenerator;
 import org.jfree.chart.plot.Marker;
 import org.jfree.chart.plot.PlotOrientation;
-import org.jfree.chart.plot.ValueMarker;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
 import org.jfree.data.xy.XYDataItem;
 import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
-import org.jfree.ui.RectangleAnchor;
-import org.jfree.ui.TextAnchor;
-
 import javax.swing.event.ChangeEvent;
 import javax.swing.event.ChangeListener;
 public class IntensityProfile  {
@@ -89,7 +79,6 @@ public class IntensityProfile  {
 	
 	CheckComboBox optionComboBox;
 	
-	ROI associatedROI = null;
 	private Sequence sequence;
 	
 	boolean rowMode = true;
@@ -355,7 +344,7 @@ public class IntensityProfile  {
 		mainCanvas.add( GuiUtil.createPageBoxPanel(GuiUtil.createLineBoxPanel(optionComboBox,exportToFileBtn),chartPanel,GuiUtil.createLineBoxPanel(rowOColBtn,slider,maxIndexLbl) )) ;
 
 		// NOW DO SOME OPTIONAL CUSTOMISATION OF THE CHART...
-        chart.setBackgroundPaint(Color.white);
+		chart.setBackgroundPaint(new Color(0.0F, 0.0F, 0.0F, 0.0F));
 
 //        final StandardLegend legend = (StandardLegend) chart.getLegend();
   //      legend.setDisplaySeriesShapes(true);
@@ -424,7 +413,7 @@ public class IntensityProfile  {
 		//set painter
 		final XYPlot plot = chart.getXYPlot();
 		int size = xyDataset.getSeries().size();
-		if(paintersSize!=size)
+		if(paintersSize<size)
 		{
 			if(size ==1 ){
 				plot.getRenderer().setSeriesPaint(0, Color.blue);
@@ -497,25 +486,7 @@ public class IntensityProfile  {
 	
 	int runCount =0;
 	private void updateChartThreaded() { 	
-		
-		// check if ROI still exist in a sequence
-		
-		//removeAllHorizontalRangeMarker();
-		
-		if ( associatedROI != null )
-		{
-			if ( associatedROI.getSequences().size() == 0 )
-			{
-				associatedROI = null;
-			}
-		}
-		
-		// create dataSet		
-
-		//xyDataset.removeAllSeries();		
-
-		// check z to display
-		
+	
 		int currentZ = 0;
 		int currentT = 0;
 		
@@ -525,6 +496,7 @@ public class IntensityProfile  {
 		if ( currentZ < 0 ) currentZ = 0; // 3D return -1.
 		if ( currentT < 0 ) currentT = 0;
 		
+		ArrayList<Point2D> pointList;
 		
 		if(rowMode)
 		{
@@ -534,10 +506,14 @@ public class IntensityProfile  {
 				slider.setValue( lineIndex);
 				return;
 			}
-			Point2D p1 = new Point2D.Double(0,lineIndex );
-			Point2D p2 = new Point2D.Double(sequence.getWidth(),lineIndex);
-			associatedROI = new ROI2DLine(p1,p2);
 			pixelSize = sequence.getPixelSizeX();
+			pointList = new ArrayList<Point2D>();
+			int size = sequence.getSizeX();
+			for(int i = 0;i<size;i++)
+			{
+				pointList.add(new Point2D.Double(i,lineIndex));
+			}
+			
 		}else
 		{
 			if (lineIndex >sequence.getWidth()-1)
@@ -546,75 +522,40 @@ public class IntensityProfile  {
 				slider.setValue( lineIndex);
 				return;
 			}
-			Point2D p1 = new Point2D.Double(lineIndex, 0);
-			Point2D p2 = new Point2D.Double(lineIndex, sequence.getHeight());
-			associatedROI = new ROI2DLine(p1,p2);
 			pixelSize = sequence.getPixelSizeY();
+			pointList = new ArrayList<Point2D>();
+			int size = sequence.getSizeY();
+			for(int i = 0;i<size;i++)
+			{
+				pointList.add(new Point2D.Double(lineIndex,i));
+			}
 		}
-		
-		sequence.addROI(associatedROI);
-		
-		if ( associatedROI != null )
-		{
 
-			// compute chart
-	        try
-	        {
-				Sequence sequence = associatedROI.getSequences().get( 0 );
-
-				ROI2DShape roiShape = (ROI2DShape) associatedROI;
-				ArrayList<Point2D> pointList = roiShape.getPoints();
+		// compute chart
+        try
+        {
+			if(pointList.size()>1)
+			{
+				computeLineProfile( pointList, currentT, currentZ , sequence );
 				
-				if(pointList.size()>1)
+				if ( optionComboBox.isItemSelected( OPTION_meanAlongZ ) )
 				{
-					
-					
-					computeLineProfile( pointList, currentT, currentZ , sequence );
-					
-					if ( optionComboBox.isItemSelected( OPTION_meanAlongZ ) )
-					{
-						computeZMeanLineProfile( pointList, currentT, sequence );
-					}
-					if ( optionComboBox.isItemSelected( OPTION_meanAlongT ) )
-					{
-						computeTMeanLineProfile( pointList, currentZ , sequence );
-					}
-
-					updateChannelPainters();
-					chart.fireChartChanged();
-
+					computeZMeanLineProfile( pointList, currentT, sequence );
 				}
-				
-				
-				
-//				if(runCount >10)
-//				{
-//					//disable autorange
-//					chart.getXYPlot().getRangeAxis(0).setAutoRange(false);
-//					chart.getXYPlot().getDomainAxis(0).setAutoRange(false);	
-//				}
-//				else
-//				{
-//					//disable autorange
-//					chart.getXYPlot().getRangeAxis(0).setAutoRange(true);
-//					chart.getXYPlot().getDomainAxis(0).setAutoRange(true);	
-//					runCount++;
-//				}
-				
-				
-	        }
-	        finally
-	        {
-			sequence.removeROI(associatedROI);
-			associatedROI= null;
-	        }
+				if ( optionComboBox.isItemSelected( OPTION_meanAlongT ) )
+				{
+					computeTMeanLineProfile( pointList, currentZ , sequence );
+				}
+
+				updateChannelPainters();
+				chart.fireChartChanged();
+
+			}
 			
-		}
-
-
-
-        
-
+        }
+        finally
+        {
+        }
 	}
 	public void updateXYNav()
 	{
@@ -647,8 +588,6 @@ public class IntensityProfile  {
 		{
 			XYSeries seriesXY = new XYSeries("Mean of surface c"+c );
 			double value = getValueForSurface( boolMask, image , c );
-			drawHorizontalSurfaceValue( value , c );
-
 			seriesXY.add( 0, value );
 			//seriesXY.add( 100, value );
 			xyDataset.addSeries(seriesXY);
@@ -850,8 +789,6 @@ public class IntensityProfile  {
 				
 		Profile profile = getValueForPointList( pointList , sequence.getImage( currentT , currentZ ) );
 
-		drawVerticalROIBreakBar( profile );
-
 		boolean found=false;
 		for( int c= 0 ; c < sequence.getSizeC() ; c++ )
 		{
@@ -885,93 +822,12 @@ public class IntensityProfile  {
 		
 	}
 
-	private void drawVerticalROIBreakBar(Profile profile) {
 
-		final XYPlot plot = chart.getXYPlot();
-
-		for ( Marker marker : markerDomainList )
-		{
-			plot.removeDomainMarker(marker);
-		}
-		
-		if ( profile.roiLineBreaks.size() <=1 ) return;
-		
-		int nb = 1;
-		for ( Integer i : profile.roiLineBreaks )
-		{
-			final Marker start = new ValueMarker( i );
-			markerDomainList.add( start );
-			start.setPaint(Color.black);
-			start.setLabel( "" + nb );
-			start.setLabelAnchor(RectangleAnchor.TOP_RIGHT);
-			start.setLabelTextAnchor(TextAnchor.TOP_LEFT);
-			plot.addDomainMarker(start);
-			nb++;
-		}
-		
-	}
-
-	void removeAllHorizontalRangeMarker()
-	{
-		ThreadUtil.invokeNow( new Runnable() {
-			
-			@Override
-			public void run() {
-
-				final XYPlot plot = chart.getXYPlot();
-				for ( Marker marker : markerRangeList )
-				{
-					plot.removeRangeMarker(marker);
-				}		
-				
-			}
-		} );
-	}
-	private void drawHorizontalSurfaceValue( final double value , final int c ) {
-
-		ThreadUtil.invokeNow( new Runnable() {
-			
-			@Override
-			public void run() {
-
-				final XYPlot plot = chart.getXYPlot();
-				
-				final Marker start = new ValueMarker( value );
-				markerRangeList.add( start );
-				start.setLabel("channel "+c + " mean value: " +value );
-				
-				start.setPaint(Color.black);
-				switch ( c ) {
-				case 0:
-					start.setPaint(Color.red);
-					start.setLabelAnchor(RectangleAnchor.BOTTOM_LEFT);
-					start.setLabelTextAnchor(TextAnchor.TOP_LEFT);
-					break;
-				case 1:
-					start.setPaint(Color.green.darker() );	
-					start.setLabelAnchor(RectangleAnchor.BOTTOM_LEFT);
-					start.setLabelTextAnchor(TextAnchor.TOP_LEFT);
-					break;
-				case 2:
-					start.setPaint(Color.blue);	
-					start.setLabelAnchor(RectangleAnchor.BOTTOM_LEFT);
-					start.setLabelTextAnchor(TextAnchor.TOP_LEFT);
-					break;
-				}
-				start.setLabelPaint( start.getPaint() );
-				plot.addRangeMarker(start);
-			}
-		});
-		
-		
-	}
-	
 	class Profile
 	{
 		double[][] values;
-		ArrayList<Integer> roiLineBreaks = new ArrayList<Integer>();	
 	}
-	
+
 	private Profile getValueForPointList( ArrayList<Point2D> pointList , IcyBufferedImage image ) {
 				
 		ArrayList<double[][]> dataList = new ArrayList<double[][]>();
@@ -1004,7 +860,6 @@ public class IntensityProfile  {
 		
 		Profile profile = new Profile();
 		profile.values = data;
-		profile.roiLineBreaks = roiLineBreaks;
 		return profile;
 
 	}

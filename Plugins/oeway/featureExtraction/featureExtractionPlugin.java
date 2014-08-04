@@ -35,9 +35,6 @@ public abstract class featureExtractionPlugin extends PluginActionable implement
 	EzVarDoubleArrayNative			varDoubleInput=new EzVarDoubleArrayNative("input",null, true);
 	EzVarDoubleArrayNative			varDoubleOutput=new EzVarDoubleArrayNative("output",null, true);
 	
-	EzVarInteger varLenIn = new  EzVarInteger("input length");
-	EzVarInteger varLenOut = new  EzVarInteger("output length");
-	
     LinkedHashMap<String,Object> optionDict = new LinkedHashMap<String,Object>();
     
 	@Override
@@ -86,8 +83,6 @@ public abstract class featureExtractionPlugin extends PluginActionable implement
 			try
 			{
 				varDoubleOutput.setValue(process(varDoubleInput.getValue(),new Point5D.Integer(-1,-1,-1,-1,-1)));
-				varLenIn.setValue(varDoubleInput.getValue().length);
-				varLenOut.setValue(varDoubleOutput.getValue().length);
 			}
 			catch(Exception e)
 			{
@@ -141,8 +136,6 @@ public abstract class featureExtractionPlugin extends PluginActionable implement
 	@Override
 	public void declareOutput(VarList outputMap) {
 		outputMap.add(varDoubleOutput.getVariable());
-		outputMap.add(varLenIn.getVariable());
-		outputMap.add(varLenOut.getVariable());
 		
 	}
 	

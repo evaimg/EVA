@@ -231,29 +231,18 @@ copy "$(TargetPath)" "C:\Program Files\Micro-Manager-1.4"
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="EVA_NDE_PicoCamera.cpp" />
-    <ClCompile Include="..\..\MMDevice\DeviceUtils.cpp" />
-    <ClCompile Include="..\..\MMDevice\ImgBuffer.cpp" />
-    <ClCompile Include="..\..\MMDevice\ModuleInterface.cpp" />
-    <ClCompile Include="..\..\MMDevice\Property.cpp" />
     <ClCompile Include="Pico\PS3000Acon.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EVA_NDE_PicoCamera.h" />
-    <ClInclude Include="..\..\MMDevice\DeviceBase.h" />
-    <ClInclude Include="..\..\MMDevice\DeviceUtils.h" />
-    <ClInclude Include="..\..\MMDevice\ImgBuffer.h" />
-    <ClInclude Include="..\..\MMDevice\MMDevice.h" />
-    <ClInclude Include="..\..\MMDevice\ModuleInterface.h" />
-    <ClInclude Include="..\..\MMDevice\Property.h" />
     <ClInclude Include="Pico\picoStatus.h" />
     <ClInclude Include="Pico\ps3000aApi.h" />
     <ClInclude Include="Pico\PS3000Acon.h" />
-    <ClInclude Include="WriteCompactTiffRGB.h" />
   </ItemGroup>
   <ItemGroup>
     <Library Include="Pico\x64\PS3000A.lib" />
   </ItemGroup>
-    <ItemGroup>
+  <ItemGroup>
     <ProjectReference Include="..\..\MMDevice\MMDevice-SharedRuntime.vcxproj">
       <Project>{b8c95f39-54bf-40a9-807b-598df2821d55}</Project>
     </ProjectReference>

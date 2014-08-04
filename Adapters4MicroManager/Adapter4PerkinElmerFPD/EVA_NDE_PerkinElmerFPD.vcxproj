@@ -24,7 +24,7 @@
     <Keyword>Win32Proj</Keyword>
     <ProjectName>EVA_NDE_PerkinElmerFPD</ProjectName>
   </PropertyGroup>
-   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
+  <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
     <ConfigurationType>DynamicLibrary</ConfigurationType>
     <CharacterSet>MultiByte</CharacterSet>
@@ -83,7 +83,7 @@
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
     <ClCompile>
       <Optimization>Disabled</Optimization>
-      <AdditionalIncludeDirectories>XIS_SDK/$(Platform);%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>XIS_SDK;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;_USRDLL;MODULE_EXPORTS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <MinimalRebuild>true</MinimalRebuild>
       <BasicRuntimeChecks>EnableFastChecks</BasicRuntimeChecks>
@@ -96,10 +96,10 @@
       <SubSystem>Windows</SubSystem>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
-	  <AdditionalLibraryDirectories>$(ProjectDir)\XIS_SDK\$(Platform)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)\XIS_SDK\$(Platform)</AdditionalLibraryDirectories>
       <AdditionalDependencies>XISL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-	<PostBuildEvent>
+    <PostBuildEvent>
       <Command>
 		copy "$(TargetPath)" ..\..\bin_$(Platform)
 		copy "$(TargetPath)" ..\..\DeviceKit\DeviceTest\$(Platform)\$(Configuration)
@@ -127,10 +127,10 @@
       <SubSystem>Windows</SubSystem>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
-	  <AdditionalLibraryDirectories>$(ProjectDir)\XIS_SDK\$(Platform)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)\XIS_SDK\$(Platform)</AdditionalLibraryDirectories>
       <AdditionalDependencies>XISL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-	<PostBuildEvent>
+    <PostBuildEvent>
       <Command>
 		copy "$(TargetPath)" ..\..\bin_$(Platform)
 		copy "$(TargetPath)" ..\..\DeviceKit\DeviceTest\$(Platform)\$(Configuration)
@@ -154,10 +154,10 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
-	  	  <AdditionalLibraryDirectories>$(ProjectDir)\XIS_SDK\$(Platform)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)\XIS_SDK\$(Platform)</AdditionalLibraryDirectories>
       <AdditionalDependencies>XISL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-	<PostBuildEvent>
+    <PostBuildEvent>
       <Command>
 		copy "$(TargetPath)" ..\..\bin_$(Platform)
 		copy "$(TargetPath)" ..\..\DeviceKit\DeviceTest\$(Platform)\$(Configuration)
@@ -184,10 +184,10 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <DataExecutionPrevention>
       </DataExecutionPrevention>
-	  	  <AdditionalLibraryDirectories>$(ProjectDir)\XIS_SDK\$(Platform)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>$(ProjectDir)\XIS_SDK\$(Platform)</AdditionalLibraryDirectories>
       <AdditionalDependencies>XISL.lib;%(AdditionalDependencies)</AdditionalDependencies>
     </Link>
-	<PostBuildEvent>
+    <PostBuildEvent>
       <Command>
 		copy "$(TargetPath)" ..\..\bin_$(Platform)
 		copy "$(TargetPath)" ..\..\DeviceKit\DeviceTest\$(Platform)\$(Configuration)
@@ -197,11 +197,13 @@
     </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="..\..\MMDevice\MMDevice.cpp" />
     <ClCompile Include="EVA_NDE_PerkinElmerFPD.cpp" />
     <ClCompile Include="..\..\MMDevice\DeviceUtils.cpp" />
     <ClCompile Include="..\..\MMDevice\ImgBuffer.cpp" />
     <ClCompile Include="..\..\MMDevice\ModuleInterface.cpp" />
     <ClCompile Include="..\..\MMDevice\Property.cpp" />
+    <ClCompile Include="XIS_SDK\XIS_func.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="EVA_NDE_PerkinElmerFPD.h" />
@@ -212,14 +214,6 @@
     <ClInclude Include="..\..\MMDevice\ModuleInterface.h" />
     <ClInclude Include="..\..\MMDevice\Property.h" />
     <ClInclude Include="XIS_SDK\Acq.h" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="XIS_func.c" />
-  </ItemGroup>
-    <ItemGroup>
-    <ProjectReference Include="..\..\MMDevice\MMDevice-SharedRuntime.vcxproj">
-      <Project>{b8c95f39-54bf-40a9-807b-598df2821d55}</Project>
-    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

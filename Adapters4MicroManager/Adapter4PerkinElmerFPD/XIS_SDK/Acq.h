@@ -55,7 +55,7 @@ typedef UINT ACQDESCPOS;
 #endif
 
 
-#define WINRESTSIZE					22
+#define WINRESTSIZE					34
 #define WINHARDWAREHEADERSIZE		32
 
 #define DETEKTOR_DATATYPE_18BIT 16

@@ -1,5 +1,8 @@
 package plugins.oeway.viewers;
 
+import org.jfree.data.xy.XYSeries;
+import org.jfree.data.xy.XYSeriesCollection;
+
 import plugins.adufour.vars.gui.VarEditor;
 import plugins.adufour.vars.gui.VarEditorFactory;
 import plugins.adufour.vars.gui.swing.TextField;
@@ -15,41 +18,44 @@ import plugins.adufour.vars.util.VarListener;
  * 
  */
 
-public class VarChart1D extends VarGenericArray<double[]>
+public class VarChart1D extends Var<XYSeriesCollection>
 {
-    public VarChart1D(String name, double[] defaultValue)
+    public VarChart1D(String name, XYSeriesCollection defaultValue)
     {
-        super(name, double[].class, defaultValue);
+        super(name, XYSeriesCollection.class, defaultValue);
     }
     
     @Override
-    public VarEditor<double[]> createVarEditor()
+    public VarEditor<XYSeriesCollection> createVarEditor()
     {
         return new WaveformViewer(this);//VarEditorFactory.getDefaultFactory().createTextField(this);
     }
-    
-    @Override
-    public Object parseComponent(String s)
+  
+    public void setValue(double[] newValue)
     {
-        return Double.parseDouble(s);
+    	
+		XYSeriesCollection dataset = new XYSeriesCollection();
+		XYSeries serie = new XYSeries("");
+		for(int i=0;i<newValue.length;i++)
+		{
+			serie.add(i, newValue[i]);
+		}
+		dataset.removeAllSeries();
+		dataset.addSeries(serie);
+		this.setValue(dataset);
+    	
     }
-    
-    @Override
-    public double[] getValue(boolean forbidNull)
+    public void setValue(double[][] newValue)
     {
-        // handle the case where the reference is not an array
-        
-        @SuppressWarnings("rawtypes")
-        Var reference = getReference();
-        
-        if (reference == null) return super.getValue(forbidNull);
-        
-        Object value = reference.getValue();
-        
-        if (value == null) return super.getValue(forbidNull);
-        
-        if (value instanceof Number) return new double[] { ((Number) value).doubleValue() };
-        
-        return (double[]) value;
+		XYSeriesCollection dataset = new XYSeriesCollection();
+		XYSeries serie = new XYSeries("");
+		for(int i=0;i<newValue.length;i++)
+		{
+			serie.add(newValue[0][i], newValue[1][i]);
+		}
+		dataset.removeAllSeries();
+		dataset.addSeries(serie);
+		this.setValue(dataset);
     }
+ 
 }
