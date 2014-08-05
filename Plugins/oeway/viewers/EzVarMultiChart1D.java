@@ -3,6 +3,9 @@ import java.awt.Container;
 import java.awt.GridBagConstraints;
 import java.awt.Insets;
 import javax.swing.JComponent;
+
+import org.jfree.data.xy.XYSeriesCollection;
+
 import plugins.adufour.ezplug.EzVar;
 
 import plugins.adufour.vars.gui.VarEditor;
@@ -12,14 +15,12 @@ import plugins.adufour.vars.gui.VarEditor;
  * @author Will Ouyang
  * 
  */
-public class EzVarChart1D extends EzVar<double[]>
+public class EzVarMultiChart1D extends EzVar<XYSeriesCollection>
 {
-    public EzVarChart1D(String varName) throws NullPointerException
+    public EzVarMultiChart1D(String varName) throws NullPointerException
     {
         this(varName, null, 0, false);
     }
-
-    
     /**
      * Creates a new integer variable with a given array of possible values
      * 
@@ -34,11 +35,19 @@ public class EzVarChart1D extends EzVar<double[]>
      * @throws NullPointerException
      *             if the defaultValues parameter is null
      */
-    private EzVarChart1D(String varName, double[][] defaultValues, int defaultValueIndex, boolean allowUserInput) throws NullPointerException
+    private EzVarMultiChart1D(String varName, XYSeriesCollection[] defaultValues, int defaultValueIndex, boolean allowUserInput) throws NullPointerException
     {
-        super(new VarLineChart(varName, defaultValues == null ? null : defaultValues[defaultValueIndex]), defaultValues, defaultValueIndex, allowUserInput);
+        super(new VarMultiLineChart(varName, defaultValues == null ? null : defaultValues[defaultValueIndex]), defaultValues, defaultValueIndex, allowUserInput);
     }
     
+    public void setValue(double[] newValue)
+    {
+    	((VarMultiLineChart)this.getVariable()).setValue(newValue);
+    }
+    public void setValue(double[][] newValue)
+    {
+    	((VarMultiLineChart)this.getVariable()).setValue(newValue);
+    }
     @Override
     protected void addTo(Container container)
     {
@@ -52,7 +61,7 @@ public class EzVarChart1D extends EzVar<double[]>
         
         gbc.gridwidth = GridBagConstraints.REMAINDER;
         
-        VarEditor<double[]> ed = getVarEditor();
+        VarEditor<XYSeriesCollection> ed = getVarEditor();
         ed.setEnabled(true); // activates listeners
         JComponent component = (JComponent) ed.getEditorComponent();
         component.setPreferredSize(ed.getPreferredSize());

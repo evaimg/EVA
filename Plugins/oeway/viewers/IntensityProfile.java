@@ -13,7 +13,6 @@ import icy.gui.component.IcySlider;
 import icy.gui.util.ComponentUtil;
 import icy.gui.util.GuiUtil;
 import icy.image.IcyBufferedImage;
-import icy.roi.BooleanMask2D;
 import icy.sequence.DimensionId;
 import icy.sequence.Sequence;
 import icy.system.thread.ThreadUtil;
@@ -49,7 +48,6 @@ import org.jfree.chart.ChartMouseEvent;
 import org.jfree.chart.ChartMouseListener;
 import org.jfree.chart.JFreeChart;
 import org.jfree.chart.labels.StandardXYSeriesLabelGenerator;
-import org.jfree.chart.plot.Marker;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
@@ -74,8 +72,6 @@ public class IntensityProfile  {
 	String OPTION_meanAlongZ = "Mean along Z";
 	String OPTION_meanAlongT = "Mean along T";	
 	
-	ArrayList<Marker> markerDomainList = new ArrayList<Marker>();
-	ArrayList<Marker> markerRangeList = new ArrayList<Marker>();
 	
 	CheckComboBox optionComboBox;
 	
@@ -159,8 +155,8 @@ public class IntensityProfile  {
             @Override
             public void actionPerformed(ActionEvent e)
             {
-        		int currentT = mainCanvas.getPositionT();
-        		int currentZ = mainCanvas.getPositionZ();
+//        		int currentT = mainCanvas.getPositionT();
+//        		int currentZ = mainCanvas.getPositionZ();
         		
 
         		JFileChooser jdir = new JFileChooser();  
@@ -580,88 +576,6 @@ public class IntensityProfile  {
         	indexLbl.setText(String.valueOf(slider.getValue()));
         	maxIndexLbl.setText(String.valueOf(sequence.getWidth()-1));
 		}
-	}
-
-	private void getValueForSurfaceAllComponent(BooleanMask2D boolMask, IcyBufferedImage image) {
-		
-		for( int c= 0 ; c < image.getSizeC() ; c++ )
-		{
-			XYSeries seriesXY = new XYSeries("Mean of surface c"+c );
-			double value = getValueForSurface( boolMask, image , c );
-			seriesXY.add( 0, value );
-			//seriesXY.add( 100, value );
-			xyDataset.addSeries(seriesXY);
-		}			
-		
-		
-	}
-
-	private void computeSurfaceProfileAlongZ(BooleanMask2D boolMask, Sequence sequence , int currentT ) {
-
-		for( int c= 0 ; c < sequence.getSizeC() ; c++ )
-		{
-			XYSeries seriesXY = new XYSeries("Mean along Z c" +c );
-			for ( int z = 0 ; z< sequence.getSizeZ() ; z++ )
-			{
-				double value = getValueForSurface( boolMask, sequence.getImage( currentT , z ) , c );				
-				seriesXY.add( z , value );
-			}
-			xyDataset.addSeries(seriesXY);
-		}			
-		
-	}
-
-	private void computeSurfaceProfileAlongT(BooleanMask2D boolMask, Sequence sequence , int currentZ ) {
-
-		for( int c= 0 ; c < sequence.getSizeC() ; c++ )
-		{
-			XYSeries seriesXY = new XYSeries("Mean along T c" +c + " z"+currentZ );
-			for ( int t = 0 ; t< sequence.getSizeT() ; t++ )
-			{
-				double value = getValueForSurface( boolMask, sequence.getImage( t , currentZ ) , c );				
-				seriesXY.add( t , value );
-			}
-			xyDataset.addSeries(seriesXY);
-		}			
-		
-	}
-
-	/**
-	 * Mean value of the surface
-	 */
-	private double getValueForSurface(BooleanMask2D boolMask, IcyBufferedImage image , int component )
-	{
-		double result=0;
-		
-		double[] imageData = Array1DUtil.arrayToDoubleArray( image.getDataXY( component ) , image.isSignedDataType() );
-
-		int minX = boolMask.bounds.x;
-		int minY = boolMask.bounds.y;
-		int maxX = boolMask.bounds.width + minX ;
-		int maxY = boolMask.bounds.height + minY ;
-		
-		int imageWidth = image.getWidth();
-		
-		int offset = 0;
-		for ( int y = minY ; y< maxY ; y++ )
-		{
-			for ( int x = minX ; x< maxX ; x++ )
-			{
-				//boolMask.contains(x, y)
-				//if ( boolMask.mask[(y-minY)*width+(x-minX)] == true )
-				if ( boolMask.mask[offset++] == true )
-				{
-					result+= imageData[y*imageWidth+x];
-				}
-
-			}
-		}
-		if ( offset != 0 )
-		{
-			result /= (double)offset;
-		}
-		
-		return result;
 	}
 
 	private void computeZMeanLineProfile(ArrayList<Point2D> pointList, int currentT , Sequence sequence) {

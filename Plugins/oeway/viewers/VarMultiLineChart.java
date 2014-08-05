@@ -4,12 +4,7 @@ import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
 import plugins.adufour.vars.gui.VarEditor;
-import plugins.adufour.vars.gui.VarEditorFactory;
-import plugins.adufour.vars.gui.swing.TextField;
-
 import plugins.adufour.vars.lang.Var;
-import plugins.adufour.vars.lang.VarGenericArray;
-import plugins.adufour.vars.util.VarListener;
 
 /**
  * Class defining a var chart with jfreechart
@@ -18,9 +13,9 @@ import plugins.adufour.vars.util.VarListener;
  * 
  */
 
-public class VarChart1D extends Var<XYSeriesCollection>
+public class VarMultiLineChart extends Var<XYSeriesCollection>
 {
-    public VarChart1D(String name, XYSeriesCollection defaultValue)
+    public VarMultiLineChart(String name, XYSeriesCollection defaultValue)
     {
         super(name, XYSeriesCollection.class, defaultValue);
     }
@@ -28,7 +23,7 @@ public class VarChart1D extends Var<XYSeriesCollection>
     @Override
     public VarEditor<XYSeriesCollection> createVarEditor()
     {
-        return new WaveformViewer(this);//VarEditorFactory.getDefaultFactory().createTextField(this);
+        return new MultiLineChartViewer(this);//VarEditorFactory.getDefaultFactory().createTextField(this);
     }
   
     public void setValue(double[] newValue)
