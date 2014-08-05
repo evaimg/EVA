@@ -358,9 +358,11 @@ int CEVA_NDE_PicoCamera::Initialize()
 	   pAct = new CPropertyAction (this, &CEVA_NDE_PicoCamera::OnChannelEnable);
 	   CreateProperty(propNameBuf, propValBufON, MM::String, false, pAct);
 
+
 	   AddAllowedValue(propNameBuf, propValBufON);
 	   AddAllowedValue(propNameBuf, propValBufOFF);
 	}
+
 
 		   // setup the buffer
    // ----------------
@@ -1227,7 +1229,7 @@ int CEVA_NDE_PicoCamera::OnChannelEnable(MM::PropertyBase* pProp, MM::ActionType
    else if (eAct == MM::AfterSet)
    {
       pProp->Get(val);
-	  int ch = 'A'-val.c_str()[0];
+	  int ch = val.c_str()[0]-'A';
 	  if(val.c_str()[4]=='N')
       {
 		  unit.channelSettings[ch].enabled = 1;
@@ -1236,8 +1238,11 @@ int CEVA_NDE_PicoCamera::OnChannelEnable(MM::PropertyBase* pProp, MM::ActionType
 	  {
 		  unit.channelSettings[ch].enabled = 0;
 	  }
+	  //to make sure there is a channel enabled
+	  if(GetNumberOfChannels()<=0)
+		  unit.channelSettings[0].enabled = 1;
 
-	    int nRet = ResizeImageBuffer();
+	  int nRet = ResizeImageBuffer();
 		   try
 	   {
 		  picoInitRapidBlock(&unit,sampleOffset_,timeout_);
