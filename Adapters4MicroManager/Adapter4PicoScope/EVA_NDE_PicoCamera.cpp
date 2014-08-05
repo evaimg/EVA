@@ -415,8 +415,8 @@ int CEVA_NDE_PicoCamera::SnapImage()
    catch( CMMError& e){
 	   return DEVICE_ERR;
    }
-   unsigned long nCompletedSamples;
-   unsigned long nCompletedCaptures;
+   uint32_t nCompletedSamples;
+   uint32_t nCompletedCaptures;
     try
    {
 	    MMThreadGuard g(imgPixelsLock_);
@@ -847,8 +847,8 @@ int CEVA_NDE_PicoCamera::ThreadRun (MM::MMTime startTime)
    MMThreadGuard g(imgPixelsLock_);
    short* pBuf = (short*) const_cast<unsigned char*>(img_.GetPixels());
 
-   unsigned long nCompletedSamples;
-   unsigned long nCompletedCaptures;
+   uint32_t nCompletedSamples;
+   uint32_t nCompletedCaptures;
    try
    {
 	   ret = picoRunRapidBlock(&unit,img_.Height(),img_.Width(),&nCompletedSamples,&nCompletedCaptures,pBuf);
