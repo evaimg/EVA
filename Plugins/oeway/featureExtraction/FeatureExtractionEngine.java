@@ -120,13 +120,6 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
 		updateFromConfigurations();
 		
 		for(Object o:guiList){
-			if(o instanceof EzVar<?>)
-			{
-				EzVar<?> v= (EzVar<?>)o;
-				if(inputMap_!=null)
-					if(!inputMap_.contains( v.getVariable()))
-						inputMap_.add(( v).getVariable());	
-			}
 			if(o instanceof Var<?>)
 			{
 				Var<?> v= (Var<?>)o;
@@ -136,9 +129,20 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
 			}
 			if(o instanceof EzComponent)
 			{
-				EzComponent v2= (EzComponent)o;
-				//if(!mainGroup.components.contains(v))
-				featureFuncOptions.addEzComponent( v2);
+				if(o instanceof EzVar<?>)
+				{
+					EzVar<?> v= (EzVar<?>)o;
+					featureFuncOptions.addEzComponent(v);
+					if(inputMap_!=null)
+						if(!inputMap_.contains( v.getVariable()))
+							inputMap_.add(( v).getVariable());	
+				}
+				else
+				{
+					EzComponent v2= (EzComponent)o;
+					//if(!mainGroup.components.contains(v))
+					featureFuncOptions.addEzComponent( v2);
+				}
 			}
 		}
 		lastfeatureFuncVar = featureFuncVar.getValue();
