@@ -669,7 +669,7 @@ void picoSetTimebase(UNIT *unit,uint32_t timebase_)
 }
 
 uint32_t _timeout=500; // 5s
-void picoInitRapidBlock(UNIT * unit,int32_t sampleOffset_,uint32_t timeout)
+void picoInitRapidBlock(UNIT * unit,int32_t sampleOffset_,uint32_t timeout, int extTriggerEnabled)
 {
 
 	int32_t maxSamples;
@@ -723,8 +723,10 @@ void picoInitRapidBlock(UNIT * unit,int32_t sampleOffset_,uint32_t timeout)
 	/* Trigger enabled
 	* Rising edge
 	* Threshold = 1000mV */
-
-	SetTrigger(unit, &sourceDetails, 1, &conditions, 1, &directions, &pulseWidth,sampleOffset_, 0, 0, 0, 0);
+	if(!extTriggerEnabled)
+		ps3000aSetSimpleTrigger(unit->handle,0,PS3000A_EXTERNAL,0,PS3000A_RISING,0,0);
+	else
+		SetTrigger(unit, &sourceDetails, 1, &conditions, 1, &directions, &pulseWidth,sampleOffset_, 0, 0, 0, 0);
 
 	//buffers[0] = (short*)malloc(BUFFER_SIZE * sizeof(short));
 	//buffers[1] = (short*)malloc(BUFFER_SIZE * sizeof(short));

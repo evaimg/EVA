@@ -185,6 +185,7 @@ public:
    int OnInputRange(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnTimeoutMs(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnChannelEnable(MM::PropertyBase* pProp, MM::ActionType eAct);
+   int OnExternalTrigger(MM::PropertyBase* pProp, MM::ActionType eAct);
 
    int GetChannelName(unsigned /* channel */, char* name);
    unsigned GetNumberOfChannels() const;
@@ -215,7 +216,7 @@ private:
 	long image_width;
 	long image_height;
    double ccdT_;
-	std::string triggerDevice_;
+   int isExternalTriggerOn_;
 
    bool stopOnOverflow_;
 

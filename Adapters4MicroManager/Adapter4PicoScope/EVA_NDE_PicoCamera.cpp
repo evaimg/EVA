@@ -158,7 +158,7 @@ CEVA_NDE_PicoCamera::CEVA_NDE_PicoCamera() :
    ccdT_ (0.0),
    nComponents_(1),
    pEVA_NDE_PicoResourceLock_(0),
-   triggerDevice_(""),
+   isExternalTriggerOn_(1),
    stopOnOverflow_(false),
    sampleOffset_(0),
    timeout_(5000)
@@ -363,6 +363,11 @@ int CEVA_NDE_PicoCamera::Initialize()
 	   AddAllowedValue(propNameBuf, propValBufOFF);
 	}
 
+   pAct = new CPropertyAction (this, &CEVA_NDE_PicoCamera::OnExternalTrigger);
+   propName = "ExternalTrigger";
+   CreateProperty(propName.c_str(), "ON", MM::String, false, pAct);
+   AddAllowedValue(propName.c_str(), "ON");
+   AddAllowedValue(propName.c_str(), "OFF");
 
 		   // setup the buffer
    // ----------------
@@ -412,7 +417,7 @@ int CEVA_NDE_PicoCamera::SnapImage()
    //rapid block mode
    try
    {
-	  picoInitRapidBlock(&unit,sampleOffset_,timeout_);
+	   picoInitRapidBlock(&unit,sampleOffset_,timeout_,isExternalTriggerOn_);
    }
    catch( CMMError& e){
 	   return DEVICE_ERR;
@@ -776,7 +781,13 @@ int CEVA_NDE_PicoCamera::StartSequenceAcquisition(long numImages, double interva
    imageCounter_ = 0;
 
    //rapid block mode
-   picoInitRapidBlock(&unit,sampleOffset_,timeout_);
+	try
+	{
+		picoInitRapidBlock(&unit,sampleOffset_,timeout_,isExternalTriggerOn_);
+	}
+	catch( CMMError& e){
+		return DEVICE_ERR;
+	}
 
    thd_->Start(numImages,interval_ms);
    stopOnOverflow_ = stopOnOverflow;
@@ -1178,20 +1189,6 @@ int CEVA_NDE_PicoCamera::OnSampleOffset(MM::PropertyBase* pProp, MM::ActionType 
    return DEVICE_OK;
 }
 
-int CEVA_NDE_PicoCamera::OnTriggerDevice(MM::PropertyBase* pProp, MM::ActionType eAct)
-{
-
-   if (eAct == MM::BeforeGet)
-   {
-      pProp->Set(triggerDevice_.c_str());
-   }
-   else if (eAct == MM::AfterSet)
-   {
-      pProp->Get(triggerDevice_);
-   }
-   return DEVICE_OK;
-}
-
 
 int CEVA_NDE_PicoCamera::OnIsSequenceable(MM::PropertyBase* pProp, MM::ActionType eAct)
 {
@@ -1216,7 +1213,43 @@ int CEVA_NDE_PicoCamera::OnIsSequenceable(MM::PropertyBase* pProp, MM::ActionTyp
    return DEVICE_OK;
 }
 
-
+int CEVA_NDE_PicoCamera::OnExternalTrigger(MM::PropertyBase* pProp, MM::ActionType eAct)
+{
+   std::string val = "OFF";
+   if (eAct == MM::BeforeGet)
+   {
+      if (isExternalTriggerOn_) 
+      {
+         val = "ON";
+      }
+	  else
+	  {
+		 val = "OFF";
+	  }
+      pProp->Set(val.c_str());
+   }
+   else if (eAct == MM::AfterSet)
+   {
+      
+      pProp->Get(val);
+	  if (val.compare("ON")==0) 
+      {
+         isExternalTriggerOn_ = 1;
+      }
+	  else
+	  {
+		  isExternalTriggerOn_ = 0;
+	  }
+		try
+	   {
+		  picoInitRapidBlock(&unit,sampleOffset_,timeout_,isExternalTriggerOn_);
+	   }
+	   catch( CMMError& e){
+		   return DEVICE_ERR;
+	   }
+   }
+   return DEVICE_OK;
+}
 int CEVA_NDE_PicoCamera::OnChannelEnable(MM::PropertyBase* pProp, MM::ActionType eAct)
 {
    std::string val = "ON";
@@ -1245,7 +1278,7 @@ int CEVA_NDE_PicoCamera::OnChannelEnable(MM::PropertyBase* pProp, MM::ActionType
 	  int nRet = ResizeImageBuffer();
 		   try
 	   {
-		  picoInitRapidBlock(&unit,sampleOffset_,timeout_);
+		  picoInitRapidBlock(&unit,sampleOffset_,timeout_,isExternalTriggerOn_);
 	   }
 	   catch( CMMError& e){
 		   return DEVICE_ERR;
