@@ -117,6 +117,7 @@ public abstract class featureExtractionPlugin extends PluginActionable implement
 				EzVar<?> v= (EzVar<?>)o;
 				if(!inputMap.contains( v.getVariable())){
 					inputMap.add(v.getVariable());	
+					v.getVariable().addListener(listener);
 				}
 			}
 			if(o instanceof Var<?>)
@@ -124,7 +125,10 @@ public abstract class featureExtractionPlugin extends PluginActionable implement
 				Var<?> v= (Var<?>)o;
 				if(inputMap!=null)
 					if(!inputMap.contains(v))
+					{
 						inputMap.add(v);
+						v.addListener(listener);
+					}
 			}			
 		}
 
