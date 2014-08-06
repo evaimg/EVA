@@ -133,6 +133,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
 				{
 					EzVar<?> v= (EzVar<?>)o;
 					featureFuncOptions.addEzComponent(v);
+					addEzComponent(v);
 					if(inputMap_!=null)
 						if(!inputMap_.contains( v.getVariable()))
 							inputMap_.add(( v).getVariable());	
@@ -142,13 +143,13 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
 					EzComponent v2= (EzComponent)o;
 					//if(!mainGroup.components.contains(v))
 					featureFuncOptions.addEzComponent( v2);
+					addEzComponent( v2);
 				}
 			}
 		}
 		lastfeatureFuncVar = featureFuncVar.getValue();
-		
 		featureFuncOptions.setVisible(featureFuncOptions.components.size()>0);
-			
+		
     }
 
     public void buildFeatureFuncList()

@@ -23,31 +23,38 @@ public class ArraySplitor extends Plugin implements Block{
 
 	@Override
 	public void run() {
-		double[] input = varDoubleInput.getValue();
-		int sizeTocopyA = input.length>=varLenA.getValue()?varLenA.getValue():input.length;
-
-		if(sizeTocopyA>0)
+		try
 		{
-			double[] output1 = new double[sizeTocopyA];
-			for(int i=0;i<sizeTocopyA;i++)
-				output1[i] = input[i];
-			varDoubleOutputA.setValue(output1);
+			double[] input = varDoubleInput.getValue();
+			int sizeTocopyA = input.length>=varLenA.getValue()?varLenA.getValue():input.length;
+	
+			if(sizeTocopyA>0)
+			{
+				double[] output1 = new double[sizeTocopyA];
+				for(int i=0;i<sizeTocopyA;i++)
+					output1[i] = input[i];
+				varDoubleOutputA.setValue(output1);
+			}
+			else
+			{
+				varDoubleOutputA.setValue(new double[]{});
+			}
+			
+			int sizeTocopyB = (input.length-sizeTocopyA)>=varLenB.getValue()?varLenB.getValue():(input.length-sizeTocopyA);
+			if(sizeTocopyB>0)
+			{
+				double[] output2 = new double[sizeTocopyB];
+				for(int i=0;i< sizeTocopyB;i++)
+					output2[i] = input[sizeTocopyA+i];
+				varDoubleOutputB.setValue(output2);
+			}
+			else
+				varDoubleOutputB.setValue(new double[]{});
 		}
-		else
+		catch(Exception e)
 		{
-			varDoubleOutputA.setValue(new double[]{});
+			
 		}
-		
-		int sizeTocopyB = (input.length-sizeTocopyA)>=varLenB.getValue()?varLenB.getValue():(input.length-sizeTocopyA);
-		if(sizeTocopyB>0)
-		{
-			double[] output2 = new double[sizeTocopyB];
-			for(int i=0;i< sizeTocopyB;i++)
-				output2[i] = input[sizeTocopyA+i];
-			varDoubleOutputB.setValue(output2);
-		}
-		else
-			varDoubleOutputB.setValue(new double[]{});
 
 	}
 
