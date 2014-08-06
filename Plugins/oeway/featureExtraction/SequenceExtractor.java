@@ -6,6 +6,7 @@ import icy.main.Icy;
 import icy.sequence.DimensionId;
 import icy.sequence.Sequence;
 import icy.sequence.SequenceEvent;
+import icy.sequence.SequenceEvent.SequenceEventSourceType;
 import icy.sequence.SequenceListener;
 import icy.type.DataType;
 import icy.type.collection.array.Array1DUtil;
@@ -48,6 +49,8 @@ public class SequenceExtractor extends EzPlug implements Iterator<double[]>,Bloc
 	private EzVarSequence seqVar = new EzVarSequence("Input");
 	private EzVarDoubleArrayNative outputVar = new EzVarDoubleArrayNative("Output",null, false);
 	private EzVarBoolean exportAllVar = new EzVarBoolean("Export all data",false);
+	
+	private Sequence lastSequence=null;
 	Sequence outputSeq = null;
 	public SequenceExtractor()
 	{
@@ -379,7 +382,87 @@ public class SequenceExtractor extends EzPlug implements Iterator<double[]>,Bloc
 		tVar.getVariable().addListener(listener);
 		cVar.getVariable().addListener(listener);
 		dirVar.getVariable().addListener(listener);
-		seqVar.getVariable().addListener(listener);
+		
+		final SequenceListener seqListener = new SequenceListener(){
+			@Override
+			public void sequenceChanged(SequenceEvent sequenceEvent) {
+				if(sequenceEvent.getSourceType()==SequenceEventSourceType.SEQUENCE_DATA)
+				{
+					len.x = seq.getSizeX();
+					len.y = seq.getSizeY();
+					len.z = seq.getSizeZ();
+					len.t = seq.getSizeT();
+					len.c = seq.getSizeC();
+					dt = seq.getDataType_();
+					run();
+				}
+			}
+
+			@Override
+			public void sequenceClosed(Sequence sequence) {
+				
+			}
+		};
+		try
+		{
+			seqVar.getValue().addListener(seqListener);
+			lastSequence = seqVar.getValue();
+		}
+		catch(Exception e)
+		{
+			
+		}
+		
+		VarListener SeqVarlistener = new VarListener()
+		{
+			@Override
+			public void valueChanged(Var source, Object oldValue, Object newValue) {
+				try{
+					lastSequence.removeListener(seqListener);
+				}
+				catch(Exception e)
+				{
+					
+				}
+				finally
+				{
+					try
+					{
+						seqVar.getValue().addListener(seqListener);
+						lastSequence = seqVar.getValue();
+					}
+					catch(Exception e)
+					{
+						
+					}
+				}
+			}
+	
+			@Override
+			public void referenceChanged(Var source, Var oldReference,
+					Var newReference) {
+				try{
+					lastSequence.removeListener(seqListener);
+				}
+				catch(Exception e)
+				{
+					
+				}
+				finally
+				{
+					try
+					{
+						seqVar.getValue().addListener(seqListener);
+						lastSequence = seqVar.getValue();
+					}
+					catch(Exception e)
+					{
+						
+					}
+				}
+			}
+		};
+		seqVar.getVariable().addListener(SeqVarlistener);
 	}
 	@Override
 	public void declareOutput(VarList outputMap) {

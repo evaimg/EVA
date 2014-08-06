@@ -97,5 +97,34 @@ public class LineChartViewer extends SwingVarEditor<double[]>{
 			
 		}
 	}
-
+    /**
+     * Indicates whether and how this component should resize horizontally if the container panel
+     * allows resizing. If multiple components in the same panel support resizing, the amount of
+     * extra space available will be shared between all components depending on the returned weight
+     * (from 0 for no resizing to 1 for maximum resizing).<br/>
+     * By default, this value is 1.0 (horizontal resizing is always allowed to fill up the maximum
+     * amount of space)
+     * 
+     * @return a value from 0 (no resize allowed) to 1 (resize as much as possible)
+     */
+	@Override
+    public double getComponentHorizontalResizeFactor()
+    {
+        return 1.0;
+    }
+    
+    /**
+     * Indicates whether and how this component should resize vertically if the container panel
+     * allows resizing. If multiple components in the same panel support resizing, the amount of
+     * extra space available will be shared between all components depending on the returned weight
+     * (from 0 for no resizing to 1 for maximum resizing).<br/>
+     * By default, this value is 0.0 (no vertical resizing)
+     * 
+     * @return a value from 0 (no resize allowed) to 1 (resize as much as possible)
+     */
+	@Override
+    public double getComponentVerticalResizeFactor()
+    {
+        return 1.0;
+    }
 }
