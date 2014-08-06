@@ -226,35 +226,43 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
     @Override
     protected void execute()
     {
-    	stopFlag = false;
-        if(selectedExtractionFunc==null)
-        {
-			MessageDialog.showDialog("Extraction Function is not available",
+    	try
+    	{
+	    	stopFlag = false;
+	        if(selectedExtractionFunc==null)
+	        {
+				MessageDialog.showDialog("Extraction Function is not available",
+						MessageDialog.ERROR_MESSAGE);
+				return ;
+	        } 
+	        if(extractDir.getValue()==DimensionId.NULL)
+	        {
+	        	extractDir.setValue(DimensionId.Z);
+				MessageDialog.showDialog("Unsupported extraction direction.",
+						MessageDialog.ERROR_MESSAGE);
+				return ;
+	        } 
+	        
+	    	Sequence[] seqs = Extract(input.getValue(true), true);
+	    	if(concatDir.getValue() != DimensionId.NULL)
+	    		outputVar.setValue(mergeSequences(seqs,concatDir.getValue()));
+	    	else
+	    		outputVar.setValue(mergeSequences(seqs,DimensionId.C));
+	    	
+	        if (getUI() != null)
+	        {
+	        	if(concatDir.getValue() != DimensionId.NULL)
+	        		addSequence(outputVar.getValue());
+	        	else
+	        		for(Sequence seq:seqs)
+	        			addSequence(seq);
+	        }
+    	}
+    	catch(Exception e)
+    	{
+    		MessageDialog.showDialog("Error occured.",
 					MessageDialog.ERROR_MESSAGE);
-			return ;
-        } 
-        if(extractDir.getValue()==DimensionId.NULL)
-        {
-        	extractDir.setValue(DimensionId.Z);
-			MessageDialog.showDialog("Unsupported extraction direction.",
-					MessageDialog.ERROR_MESSAGE);
-			return ;
-        } 
-        
-    	Sequence[] seqs = Extract(input.getValue(true), true);
-    	if(concatDir.getValue() != DimensionId.NULL)
-    		outputVar.setValue(mergeSequences(seqs,concatDir.getValue()));
-    	else
-    		outputVar.setValue(mergeSequences(seqs,DimensionId.C));
-    	
-        if (getUI() != null)
-        {
-        	if(concatDir.getValue() != DimensionId.NULL)
-        		addSequence(outputVar.getValue());
-        	else
-        		for(Sequence seq:seqs)
-        			addSequence(seq);
-        }
+    	}
         
     }
     
@@ -426,7 +434,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
 		}
         
 		boolean errorExit = false;
-		final ProgressFrame pf = new ProgressFrame("Extracting features...");
+		//final ProgressFrame pf = new ProgressFrame("Extracting features...");
     	while(input.hasNext() )
     	{
         	try{
@@ -450,7 +458,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
     			}
     		}
     	}
-    	pf.close();
+    	//pf.close();
         try
         {
             for (Future<?> future : futures)

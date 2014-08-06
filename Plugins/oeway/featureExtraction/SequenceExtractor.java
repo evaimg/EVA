@@ -11,6 +11,7 @@ import icy.sequence.SequenceListener;
 import icy.type.DataType;
 import icy.type.collection.array.Array1DUtil;
 import icy.type.point.Point5D;
+import icy.type.point.Point5D.Integer;
 
 import java.util.Iterator;
 
@@ -29,6 +30,7 @@ public class SequenceExtractor extends EzPlug implements Iterator<double[]>,Bloc
 
 	private Sequence seq;
 	private DimensionId dir;
+	private Point5D.Integer lastPos;
 	private Point5D.Integer cur;
 	private Point5D.Integer len;
 	private DataType dt;
@@ -54,6 +56,9 @@ public class SequenceExtractor extends EzPlug implements Iterator<double[]>,Bloc
 	Sequence outputSeq = null;
 	public SequenceExtractor()
 	{
+		cur = new Point5D.Integer();
+		len = new Point5D.Integer();
+		dir = DimensionId.X;
 
 	}
 	public SequenceExtractor(Sequence sequence,DimensionId direction)
@@ -100,75 +105,74 @@ public class SequenceExtractor extends EzPlug implements Iterator<double[]>,Bloc
 		cur.z = 0;
 		cur.t = 0;
 		cur.c = 0;
-		
-		len.x = seq.getSizeX();
-		len.y = seq.getSizeY();
-		len.z = seq.getSizeZ();
-		len.t = seq.getSizeT();
-		len.c = seq.getSizeC();
-        switch (dir)
-        {
-	        case X:
-	            cur.x = len.x;
-	            dataXY = (Object)seq.getDataXY(cur.t, cur.z, cur.c);
-	            break;
-	        case Y:
-	        	cur.y = len.y;
-	        	dataXY = (Object)seq.getDataXY(cur.t, cur.z, cur.c);
-	            break;
-            case T:
-            	cur.t = len.t;
-            	dataXYZT = (Object[][]) seq.getDataXYZT(cur.c);
-	            break;
-            case Z:
-            	cur.z = len.z;
-            	dataXYZ = (Object[])seq.getDataXYZ(cur.t, cur.c);
-	            break;
-            case C:
-            	cur.c = len.c;
-            	dataXYC = (Object[])seq.getDataXYC(cur.t, cur.z);
-	            break;
-            default:
-                throw new UnsupportedOperationException("Direction not supported");
-        }
-        
-        dt = seq.getDataType_();
+		if(seq!=null)
+		{		
+			len.x = seq.getSizeX();
+			len.y = seq.getSizeY();
+			len.z = seq.getSizeZ();
+			len.t = seq.getSizeT();
+			len.c = seq.getSizeC();
+			dt = seq.getDataType_();
+			lastPos = null;
+			updateDataBuffer();
+		}
       
         if(len.x*len.y*len.z*len.t*len.c>0)
         	stop = false;
 	}
-	
-	public int IncreaseAxis(DimensionId Axis)
+	public void updateDataBuffer()
 	{
         switch (dir)
         {
 	        case X:
 	        case Y:
-	        	if(Axis == DimensionId.T ||
-	        		Axis == DimensionId.Z ||
-	        		Axis == DimensionId.C 
+	        	if(lastPos!=null)
+	        	if(lastPos.x == cur.x &&
+	        		lastPos.z == cur.z &&
+	        		lastPos.c == cur.c
 	        	)
+	        		break;
 	        	dataXY = (Object)seq.getDataXY(cur.t, cur.z, cur.c);
 	            break;
             case T:
-	        	if(Axis == DimensionId.C)
+	        	if(lastPos!=null)
+	        	if(lastPos.c == cur.c)
+	        		break;
             	dataXYZT = (Object[][]) seq.getDataXYZT(cur.c);
 	            break;
             case Z:
-	        	if(Axis == DimensionId.T ||
-        			Axis == DimensionId.C 
+	        	if(lastPos!=null)
+	        	if(
+	        		lastPos.t == cur.t &&
+	        		lastPos.c == cur.c
 	        	)
+	        		break;
             	dataXYZ = (Object[])seq.getDataXYZ(cur.t, cur.c);
 	            break;
             case C:
-	        	if(Axis == DimensionId.T ||
-        			Axis == DimensionId.Z
+	        	if(lastPos!=null)
+	        	if(
+	        		lastPos.z == cur.z &&
+	        		lastPos.t == cur.t
 	        	)
+	        		break;
             	dataXYC = (Object[])seq.getDataXYC(cur.t, cur.z);
 	            break;
             default:
                 throw new UnsupportedOperationException("Direction not supported");
         }
+        if(lastPos == null)
+        	lastPos = new Point5D.Integer();
+        lastPos.x = cur.x;
+        lastPos.y = cur.y;
+        lastPos.z = cur.z;
+        lastPos.t = cur.t;
+        lastPos.c = cur.c;
+	}
+	public int IncreaseAxis(DimensionId Axis)
+	{
+		
+
         switch (Axis)
         {
 	        case X:
@@ -267,6 +271,7 @@ public class SequenceExtractor extends EzPlug implements Iterator<double[]>,Bloc
 	
 	public void set(double[] input, int offset)
 	{
+		updateDataBuffer();
         switch (dir)
         {
 	        case X:
@@ -296,6 +301,7 @@ public class SequenceExtractor extends EzPlug implements Iterator<double[]>,Bloc
 	public double[] get()
 	{
 		double [] output;
+		updateDataBuffer();
         switch (dir)
         {
 	        case X:
@@ -355,6 +361,12 @@ public class SequenceExtractor extends EzPlug implements Iterator<double[]>,Bloc
 	}
 	@Override
 	public void declareInput(VarList inputMap) {
+		xVar.setMinValue(0);
+		yVar.setMinValue(0);
+		zVar.setMinValue(0);
+		tVar.setMinValue(0);
+		cVar.setMinValue(0);
+		
 		inputMap.add(xVar.getVariable());
 		inputMap.add(yVar.getVariable());
 		inputMap.add(zVar.getVariable());
@@ -388,12 +400,7 @@ public class SequenceExtractor extends EzPlug implements Iterator<double[]>,Bloc
 			public void sequenceChanged(SequenceEvent sequenceEvent) {
 				if(sequenceEvent.getSourceType()==SequenceEventSourceType.SEQUENCE_DATA)
 				{
-					len.x = seq.getSizeX();
-					len.y = seq.getSizeY();
-					len.z = seq.getSizeZ();
-					len.t = seq.getSizeT();
-					len.c = seq.getSizeC();
-					dt = seq.getDataType_();
+					updateBound();
 					run();
 				}
 			}
@@ -429,11 +436,16 @@ public class SequenceExtractor extends EzPlug implements Iterator<double[]>,Bloc
 					try
 					{
 						seqVar.getValue().addListener(seqListener);
-						lastSequence = seqVar.getValue();
+						if(seq!=seqVar.getValue())
+						{
+							updateBound();
+						}
+						
+						run();
 					}
 					catch(Exception e)
 					{
-						
+						seq = seqVar.getValue();
 					}
 				}
 			}
@@ -446,14 +458,18 @@ public class SequenceExtractor extends EzPlug implements Iterator<double[]>,Bloc
 				}
 				catch(Exception e)
 				{
-					
+					seq = seqVar.getValue();
 				}
 				finally
 				{
 					try
 					{
 						seqVar.getValue().addListener(seqListener);
-						lastSequence = seqVar.getValue();
+						if(seq!=seqVar.getValue())
+						{
+							updateBound();
+						}
+						run();
 					}
 					catch(Exception e)
 					{
@@ -461,8 +477,33 @@ public class SequenceExtractor extends EzPlug implements Iterator<double[]>,Bloc
 					}
 				}
 			}
+
+
 		};
 		seqVar.getVariable().addListener(SeqVarlistener);
+	}			
+	private void updateBound() {
+		seq = seqVar.getValue();
+		if(seq!=null)
+		{
+			
+			lastSequence = seqVar.getValue();
+			len.x = seq.getSizeX();
+			len.y = seq.getSizeY();
+			len.z = seq.getSizeZ();
+			len.t = seq.getSizeT();
+			len.c = seq.getSizeC();
+			xVar.setMaxValue(len.x);
+			yVar.setMaxValue(len.y);
+			zVar.setMaxValue(len.z);
+			tVar.setMaxValue(len.t);
+			cVar.setMaxValue(len.c);
+			
+			dt = seq.getDataType_();
+			lastPos = null;		
+			if(len.x*len.y*len.z*len.t*len.c>0)
+	        	stop = false;
+		}
 	}
 	@Override
 	public void declareOutput(VarList outputMap) {
@@ -472,23 +513,27 @@ public class SequenceExtractor extends EzPlug implements Iterator<double[]>,Bloc
 	public void run() {
 		try
 		{
-			seq = seqVar.getValue();
-		
+			if(seq == null)
+			{
+				if(seqVar.getValue()!=null)
+					updateBound();
+				else
+				{
+					outputVar.setValue(new double[]{});
+					return;
+				}
+			}
 			dir = dirVar.getValue();
-			cur = new Point5D.Integer();
-			len = new Point5D.Integer();
-			reset();
-			
 			cur.x = xVar.getValue();
 			cur.y = yVar.getValue();
 			cur.z = zVar.getValue();
 			cur.c = cVar.getValue();
 			cur.t = tVar.getValue();
-			
 			outputVar.setValue(get());
 		}
 		catch(Exception e)
 		{
+			outputVar.setValue(new double[]{});
 			e.printStackTrace();
 			 if (!isHeadLess())
 			  {
