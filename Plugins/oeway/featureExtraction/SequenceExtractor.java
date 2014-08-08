@@ -11,8 +11,6 @@ import icy.sequence.SequenceListener;
 import icy.type.DataType;
 import icy.type.collection.array.Array1DUtil;
 import icy.type.point.Point5D;
-import icy.type.point.Point5D.Integer;
-
 import java.util.Iterator;
 
 import plugins.adufour.blocks.lang.Block;
@@ -97,6 +95,16 @@ public class SequenceExtractor extends EzPlug implements Iterator<double[]>,Bloc
 	public Point5D.Integer getCursor()
 	{
 		return cur;
+	}
+	public double[] getCursorDouble()
+	{
+		double[] p = new double[5];
+		p[0] = cur.x;
+		p[1] = cur.y;
+		p[2] = cur.z;
+		p[3] = cur.t;
+		p[4] = cur.c;
+		return p;
 	}
 	public void reset()
 	{

@@ -8,14 +8,12 @@ import plugins.adufour.blocks.lang.Block;
 import plugins.adufour.blocks.util.VarList;
 import plugins.adufour.ezplug.EzVar;
 import plugins.adufour.ezplug.EzVarDoubleArrayNative;
-import plugins.adufour.ezplug.EzVarInteger;
 import plugins.adufour.vars.lang.Var;
 import plugins.adufour.vars.util.VarListener;
 import icy.gui.dialog.MessageDialog;
 import icy.plugin.PluginDescriptor;
 import icy.plugin.PluginLauncher;
 import icy.plugin.abstract_.PluginActionable;
-import icy.type.point.Point5D;
 import icy.util.StringUtil;
 
 
@@ -35,8 +33,11 @@ public abstract class featureExtractionPlugin extends PluginActionable implement
 	EzVarDoubleArrayNative			varDoubleInput=new EzVarDoubleArrayNative("input",null, true);
 	EzVarDoubleArrayNative			varDoubleOutput=new EzVarDoubleArrayNative("output",null, true);
 	
+	EzVarDoubleArrayNative			varDoublePos=new EzVarDoubleArrayNative("Pos",null, true);
+	
     LinkedHashMap<String,Object> optionDict = new LinkedHashMap<String,Object>();
     
+    private final double[] currentPos = new double[5];
 	@Override
 	public void initialize(HashMap<String,Object> options,ArrayList<Object> optionUI) {
 
@@ -82,7 +83,26 @@ public abstract class featureExtractionPlugin extends PluginActionable implement
 		{
 			try
 			{
-				varDoubleOutput.setValue(process(varDoubleInput.getValue(),new Point5D.Integer(-1,-1,-1,-1,-1)));
+
+				try
+				{
+					double[] val = varDoublePos.getVariable().getValue();
+					currentPos[0]=val[0];
+					currentPos[1]=val[1];
+					currentPos[2]=val[2];
+					currentPos[3]=val[3];
+					currentPos[4]=val[4];
+				}
+				catch(Exception e)
+				{
+					currentPos[0]=-1;
+					currentPos[1]=-1;
+					currentPos[2]=-1;
+					currentPos[3]=-1;
+					currentPos[4]=-1;
+				}
+
+				varDoubleOutput.setValue(process(varDoubleInput.getValue(),currentPos));
 			}
 			catch(Exception e)
 			{
@@ -133,7 +153,7 @@ public abstract class featureExtractionPlugin extends PluginActionable implement
 		}
 
 		inputMap.add(varDoubleInput.getVariable());
-		
+		inputMap.add(varDoublePos.getVariable());
 		
 		varDoubleInput.getVariable().addListener(listener);
 	}

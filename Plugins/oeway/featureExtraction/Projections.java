@@ -1,15 +1,11 @@
 package plugins.oeway.featureExtraction;
 
 import icy.math.ArrayMath;
-import icy.type.point.Point5D;
-
 import java.util.ArrayList;
 import java.util.HashMap;
 
 import plugins.adufour.ezplug.EzLabel;
-import plugins.adufour.ezplug.EzVar;
 import plugins.adufour.ezplug.EzVarBoolean;
-import plugins.adufour.ezplug.EzVarListener;
 import plugins.adufour.vars.lang.Var;
 import plugins.adufour.vars.util.VarListener;
 
@@ -37,7 +33,7 @@ public class Projections extends featureExtractionPlugin {
 		options.put(FEATURE_GROUPS, new String[]{"output1","output2"});
 	}
 	@Override
-	public double[] process(double[] input, Point5D position) {
+	public double[] process(double[] input, double[] position) {
 		double[] output = new double[]{
 				ArrayMath.min(input),
 				ArrayMath.mean(input),

@@ -79,15 +79,14 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
     String[] groupNames = new String[]{""};
     
     String lastfeatureFuncVar = "";
+    String groupName = "Options";
     public void createFeatureFunc() throws InstantiationException, IllegalAccessException{
     	
     	if(lastfeatureFuncVar.equals(featureFuncVar.getValue()))
     		return;
-    	
-		selectedExtractionFunc = pluginList.get(featureFuncVar.getValue()).newInstance();
-		
+		selectedExtractionFunc = pluginList.get(featureFuncVar.getValue()).newInstance();	
 		featureFuncOptions.components.clear();
-
+		
 		for(Object o:guiList){
 			if(o instanceof EzVar<?>)
 			{
@@ -116,8 +115,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
 		{
 			e.printStackTrace();
 		}
-		//featureFuncOptions.addEzComponent(featureFuncOptions);
-		updateFromConfigurations();
+		ArrayList<EzComponent> uis = new ArrayList<EzComponent>();
 		
 		for(Object o:guiList){
 			if(o instanceof Var<?>)
@@ -129,11 +127,12 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
 			}
 			if(o instanceof EzComponent)
 			{
+				uis.add((EzComponent)o);
 				if(o instanceof EzVar<?>)
 				{
 					EzVar<?> v= (EzVar<?>)o;
-					featureFuncOptions.addEzComponent(v);
-					addEzComponent(v);
+					//featureFuncOptions.addEzComponent(v);
+					
 					if(inputMap_!=null)
 						if(!inputMap_.contains( v.getVariable()))
 							inputMap_.add(( v).getVariable());	
@@ -142,14 +141,24 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
 				{
 					EzComponent v2= (EzComponent)o;
 					//if(!mainGroup.components.contains(v))
-					featureFuncOptions.addEzComponent( v2);
-					addEzComponent( v2);
+					//featureFuncOptions.addEzComponent( v2);
+					
 				}
 			}
 		}
+		
+		EzComponent[] uig = new EzComponent[uis.size()];
+		for(int i=0;i<uis.size();i++)
+		{
+			uig[i] = uis.get(i);
+		}
+		featureFuncOptions.setVisible(false);
+		featureFuncOptions.dispose();
+		featureFuncOptions = new EzGroup(groupName,uig);
+		groupName +=" ";
+		addEzComponent(featureFuncOptions);
 		lastfeatureFuncVar = featureFuncVar.getValue();
 		featureFuncOptions.setVisible(featureFuncOptions.components.size()>0);
-		
     }
 
     public void buildFeatureFuncList()
@@ -367,7 +376,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
     	if(input.hasNext())
     	{
         	try{
-        		double[] o=featureFunc.process(input.get(),input.getCursor());
+        		double[] o=featureFunc.process(input.get(),input.getCursorDouble());
                 featureCount = o.length/groupCount;
     		}
     		catch(Exception e){
@@ -439,7 +448,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
     	while(input.hasNext() )
     	{
         	try{
-    			double[] o = featureFunc.process(input.next(),input.getCursor());
+    			double[] o = featureFunc.process(input.next(),input.getCursorDouble());
     			int offset = 0;
         		for(SequenceExtractor sai:seqAIList)
         		{

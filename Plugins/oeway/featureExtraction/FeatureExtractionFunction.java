@@ -1,18 +1,13 @@
 package plugins.oeway.featureExtraction;
-
-import icy.type.point.Point5D;
-
 import java.util.ArrayList;
 import java.util.HashMap;
-
-import plugins.adufour.ezplug.EzComponent;
 
 public interface FeatureExtractionFunction{
 	//initialize
 	public void initialize(HashMap<String,Object> options,ArrayList<Object> optionUI );
 
 	//extract features
-	public double[] process(double[] input, Point5D position);
+	public double[] process(double[] input, double[] position);
 	
 	//start batch process
 	public void batchBegin();
