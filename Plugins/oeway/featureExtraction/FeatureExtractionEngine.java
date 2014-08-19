@@ -164,18 +164,24 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
     public void buildFeatureFuncList()
     {
     	pluginList = getPluginList();
-    	String tmp[] = new String[pluginList.size()];
-    	int i=0;
+    	String tmp[] = new String[pluginList.size()+1];
+    	tmp[0]="";
+    	int i=1;
     	for (Iterator<String> iter = pluginList.keySet().iterator(); iter.hasNext();) {
     		tmp[i++]=(String) iter.next();
     	}
     	featureFuncVar.setDefaultValues(tmp, 0, false);
     	//featureFuncVar = new EzVarText("Extraction Function", tmp, 0, false);
+
         featureFuncVar.addVarChangeListener(new EzVarListener<String>(){
+        	boolean firstSkip = false;
 			@Override
 			public void variableChanged(EzVar<String> source, String newValue) {
 				try {
-					createFeatureFunc();	
+					if(!firstSkip)
+						firstSkip = true;
+					else
+						createFeatureFunc();	
 				} catch (Exception e1) {
 					e1.printStackTrace();
 					return ;
@@ -190,7 +196,6 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
 					String newValue) {
 				try {
 					createFeatureFunc();
-			    	
 				} catch (Exception e1) {
 					e1.printStackTrace();
 					return ;
@@ -203,7 +208,6 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
 					Var<? extends String> newReference) {
 				try {
 					createFeatureFunc();
-			    	
 				} catch (Exception e1) {
 					e1.printStackTrace();
 					return ;
@@ -224,13 +228,13 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
     protected void initialize()
     {
     	getUI().setParametersIOVisible(false);
+    	buildFeatureFuncList();
     	addEzComponent(input);
     	addEzComponent(extractDir);
     	addEzComponent(featureFuncVar); 
     	addEzComponent(featureFuncOptions);
     	addEzComponent(concatDir);
-    	buildFeatureFuncList();
-
+    	featureFuncOptions.setVisible(false);
     }
     
     @Override

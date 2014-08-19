@@ -7,10 +7,8 @@ import java.awt.Insets;
 import javax.swing.JComponent;
 
 import plugins.adufour.ezplug.EzVar;
-import plugins.adufour.vars.gui.VarEditor;
-
 import plugins.tprovoost.scripteditor.scriptblock.VarScriptEditorV3;
-import plugins.tprovoost.scripteditor.scriptblock.VarScriptPython;
+
 
 /**
  * Class defining a EzChart with jfreechart
@@ -26,8 +24,7 @@ public class EzVarPythonScript extends EzVar<String>
     }
     public EzVarPythonScript(String varName, String defaultValue) throws NullPointerException
     {
-    	super(new VarScriptPython(varName, defaultValue), null, 0, false);
-
+    	super(new VarPythonScript(varName, defaultValue), new String[]{defaultValue}, 0, false);
     }
     
     /**
@@ -46,7 +43,7 @@ public class EzVarPythonScript extends EzVar<String>
      */
     private EzVarPythonScript(String varName, String[] defaultValues, int defaultValueIndex, boolean allowUserInput) throws NullPointerException
     {
-        super(new VarScriptPython(varName, defaultValues == null ? null : defaultValues[defaultValueIndex]), defaultValues, defaultValueIndex, allowUserInput);
+        super(new VarPythonScript(varName, defaultValues == null ? null : defaultValues[defaultValueIndex]), defaultValues, defaultValueIndex, allowUserInput);
     }
     
     @Override
@@ -58,10 +55,10 @@ public class EzVarPythonScript extends EzVar<String>
         gbc.fill = GridBagConstraints.HORIZONTAL;
         gbc.weightx = 1;
         gbc.gridwidth = GridBagConstraints.REMAINDER;
-        VarScriptPython v = (VarScriptPython) getVariable();
+        VarPythonScript v = (VarPythonScript) getVariable();
         VarScriptEditorV3 ed = v.getEditor();
         JComponent component = (JComponent) ed.getPanelIn();
-        component.setPreferredSize(ed.getPreferredSize());
+        //component.setPreferredSize(ed.getPreferredSize());
         container.add(component, gbc);
     }
 }
