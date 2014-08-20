@@ -177,6 +177,25 @@ public class SequenceExtractor extends EzPlug implements Iterator<double[]>,Bloc
         lastPos.t = cur.t;
         lastPos.c = cur.c;
 	}
+	public long getTotalCount()
+	{
+        switch (dir)
+        {
+	        case X:
+	        	return len.y*len.z*len.c*len.t;
+	        case Y:
+	        	return len.x*len.z*len.c*len.t;
+            case T:
+            	return len.x*len.y*len.z*len.c;
+            case Z:
+            	return len.x*len.y*len.c*len.t;
+            case C:
+            	return len.x*len.y*len.z*len.t;
+            default:
+                throw new UnsupportedOperationException("Direction not supported");
+        }
+
+	}
 	public int IncreaseAxis(DimensionId Axis)
 	{
 		
@@ -374,7 +393,6 @@ public class SequenceExtractor extends EzPlug implements Iterator<double[]>,Bloc
 		zVar.setMinValue(0);
 		tVar.setMinValue(0);
 		cVar.setMinValue(0);
-		
 		inputMap.add(xVar.getVariable());
 		inputMap.add(yVar.getVariable());
 		inputMap.add(zVar.getVariable());
@@ -501,12 +519,12 @@ public class SequenceExtractor extends EzPlug implements Iterator<double[]>,Bloc
 			len.z = seq.getSizeZ();
 			len.t = seq.getSizeT();
 			len.c = seq.getSizeC();
-			xVar.setMaxValue(len.x);
-			yVar.setMaxValue(len.y);
-			zVar.setMaxValue(len.z);
-			tVar.setMaxValue(len.t);
-			cVar.setMaxValue(len.c);
-			
+//			xVar.setMaxValue(len.x);
+//			yVar.setMaxValue(len.y);
+//			zVar.setMaxValue(len.z);
+//			tVar.setMaxValue(len.t);
+//			cVar.setMaxValue(len.c);
+
 			dt = seq.getDataType_();
 			lastPos = null;		
 			if(len.x*len.y*len.z*len.t*len.c>0)

@@ -227,7 +227,6 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
     @Override
     protected void initialize()
     {
-    	getUI().setParametersIOVisible(false);
     	buildFeatureFuncList();
     	addEzComponent(input);
     	addEzComponent(extractDir);
@@ -449,8 +448,12 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
         
 		boolean errorExit = false;
 		//final ProgressFrame pf = new ProgressFrame("Extracting features...");
-    	while(input.hasNext() )
+		long cpt = 0;
+		long totoalCount = input.getTotalCount();
+		super.getUI().setProgressBarMessage("");
+    	while(input.hasNext() && !stopFlag )
     	{
+    		
         	try{
     			double[] o = featureFunc.process(input.next(),input.getCursorDouble());
     			int offset = 0;
@@ -471,6 +474,9 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
     				break;
     			}
     		}
+        	cpt++;
+        	super.getUI().setProgressBarValue((double)cpt/totoalCount);
+	  		super.getUI().setProgressBarMessage(Long.toString(cpt)+"/"+ Long.toString(totoalCount));
     	}
     	//pf.close();
         try

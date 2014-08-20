@@ -14,6 +14,7 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 	Processor myProcessor;
 	VarPythonScript inputScript;
 	String lastScript="";
+	HashMap<String,Object> options= null;
 	@Override
 	public void initialize(HashMap<String,Object> options, ArrayList<Object> optionUI) {
 		EzVarPythonScript ezps = new EzVarPythonScript("Script",
@@ -29,7 +30,9 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 	            "\t#do something here\n\n" +
 	            "\treturn output");
 		inputScript = (VarPythonScript) ezps.getVariable();
+		inputScript.engine.put("options", options);
 		optionUI.add(ezps);
+		this.options = options;
 	}
     interface Processor {
         double[] process(double[] input, double[] position);
@@ -38,6 +41,8 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
     {
       	try
         {
+      		inputScript.engine.clear();
+      		inputScript.engine.put("options", options);
             inputScript.evaluate();
         }
         catch (ScriptException e)
