@@ -1,5 +1,6 @@
 code_seg = """
 
+import traceback
 import sys
 import numpy as np
 while not channel.isclosed():
@@ -15,7 +16,14 @@ while not channel.isclosed():
 	# Note that we make a copy because frombuffer returns a read-only array
 	input = np.frombuffer(dataString, dtype=dtype).copy()
 	position = np.frombuffer(positionString, dtype=dtype).copy()
-	output = process(input.astype(np.float64),position)
+	try:
+		output = process(input.astype(np.float64),position)
+	except:
+		print("*********************traceback info for process**********************")
+		print("********************************************************************")
+		traceback.print_exc()
+		print("********************************************************************")
+		print("********************************************************************")
 	channel.send(['d',sys.byteorder, output.tostring(), positionString])
 
 """

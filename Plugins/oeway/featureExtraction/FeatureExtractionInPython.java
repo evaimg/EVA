@@ -4,9 +4,11 @@ import icy.file.FileUtil;
 import icy.system.IcyHandledException;
 
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
@@ -33,7 +35,25 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 	EzVarText interpreterVar;
 	String template = "";
 	HashMap<String,String> library;
+	public void writeFile(String path, String content)
+	{
+		BufferedWriter writer = null;
+        try {
+            //create a temporary file
 
+            File outputFile = new File(path);
+            writer = new BufferedWriter(new FileWriter(outputFile));
+			writer.write(content);
+        } catch (Exception e1) {
+            e1.printStackTrace();
+        } finally {
+            try {
+                // Close the writer regardless of what happens...
+                writer.close();
+            } catch (Exception e1) {
+            }
+        }
+	}
 	public String readFile(String filename)
 	{
 	   String content = null;
@@ -45,7 +65,7 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 	       content = new String(chars);
 	       reader.close();
 	   } catch (IOException e) {
-	       e.printStackTrace();
+		   System.out.println("file not found:"+filename);
 	   }
 	   return content;
 	}
@@ -93,6 +113,10 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 		inputScript = (VarPythonScript) ezps.getVariable();
 		inputScript.engine.put("options", options);
 
+
+		String lastSaveContent = readFile(FileUtil.getApplicationDirectory()+FileUtil.separator+"scripts"+FileUtil.separator+"auto_save.txt");
+		inputScript.setValue(lastSaveContent);
+
 		this.options = options;
 		
 		library= new HashMap<String,String>();
@@ -117,7 +141,7 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 		
 
 		templateVar.setToolTipText("Save your customized file in 'ICY_ROOT/scripts' folder, "+
-				"naming it start with 'eva_' and end with '.py', "+
+				"naming it start with '"+"Jython"+"_' and end with '.py', "+
 				"then it will appear in the library");
 		
 		EzVarListener<String> listener= new EzVarListener<String>(){
@@ -183,26 +207,10 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 					
 					templateVar.setDefaultValues(libs, 0, false);
 					
-					if(templateVar.getValue().equals("default"))
-					{
-						if(interpreterVar.getValue().equals("CPython"))
-						{
-							String code = "import numpy as np\n"+
-										"def process(input, position):\n"+
-										"\toutput = input\n"+
-										"\t#do something here\n\n" +
-										"\treturn output\n";
-							inputScript.setValue(code);
-						}
-						else
-							inputScript.setValue(inputScript.getDefaultValue());
-					}
-					else
-						if(library.containsKey(templateVar.getValue()))
-					{
-						String scriptString = readFile(library.get(templateVar.getValue()));
-						inputScript.setValue(scriptString);
-					}
+					templateVar.setToolTipText("Save your customized file in 'ICY_ROOT/scripts' folder, "+
+								"naming it start with '"+interpreterVar.getValue()+"_' and end with '.py', "+
+								"then it will appear in the library");
+
 				}
 				catch(Exception e)
 				{	
@@ -259,6 +267,9 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
     {
     	try
     	{
+
+    		writeFile(FileUtil.getApplicationDirectory()+FileUtil.separator+"scripts"+FileUtil.separator+"auto_save.txt",inputScript.getValue());
+    		
 	      	try
 	        {
 	      		inputScript.engine.clear();
@@ -292,8 +303,8 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 			return input;
 		if(lastScript.hashCode()!=inputScript.getValue().hashCode())
 		{
-			lastScript = inputScript.getValue();
 			compile();
+			lastScript = inputScript.getValue();
 		}
 		return myProcessor.process(input,position);
 	}
