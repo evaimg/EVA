@@ -227,7 +227,9 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
     @Override
     protected void initialize()
     {
+    	
     	buildFeatureFuncList();
+    	extractDir.setValue(DimensionId.X);
     	addEzComponent(input);
     	addEzComponent(extractDir);
     	addEzComponent(featureFuncVar); 
@@ -250,7 +252,7 @@ public class FeatureExtractionEngine extends EzPlug implements Block, EzStoppabl
 	        } 
 	        if(extractDir.getValue()==DimensionId.NULL)
 	        {
-	        	extractDir.setValue(DimensionId.Z);
+	        	extractDir.setValue(DimensionId.X);
 				MessageDialog.showDialog("Unsupported extraction direction.",
 						MessageDialog.ERROR_MESSAGE);
 				return ;

@@ -20,4 +20,8 @@ public class VarPythonScript extends VarScript
 	{
 		engine.eval(getValue());
 	}
+	public void evaluate(String code) throws ScriptException
+	{
+		engine.eval(code);
+	}	
 }

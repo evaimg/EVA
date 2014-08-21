@@ -1,0 +1,43 @@
+code_seg = """
+
+import sys
+import numpy as np
+while not channel.isclosed():
+	[typecode, byteorder, dataString, positionString] = channel.receive()
+	# construct the Numpy data type out of the endianness and array typecode
+	if byteorder == 'big':
+		dtype = '>'
+	else:
+		dtype = '<'
+	dtype += typecode
+	
+	# create a 2d Numpy array out of the data
+	# Note that we make a copy because frombuffer returns a read-only array
+	input = np.frombuffer(dataString, dtype=dtype).copy()
+	position = np.frombuffer(positionString, dtype=dtype).copy()
+	output = process(input.astype(np.float64),position)
+	channel.send(['d',sys.byteorder, output.tostring(), positionString])
+
+"""
+
+from java.lang import Math
+import copy
+from org.python.modules import jarray
+from icy.main import Icy
+from icy.sequence import Sequence
+from icyexecnetgateway import IcyExecnetGateway, unpack_image
+from array import array
+import sys
+gateway = IcyExecnetGateway()
+gateway.remote_exec(code+code_seg)
+def process(input, position):
+	'''
+	input: 1d array
+	position: 1d array indicate current position, format: [x,y,z,t,c]
+	'''
+	gateway.send(['d',sys.byteorder, input.tostring(), position.tostring()])
+	[typecode, byteorder, dataString, positionString] = gateway.receive()
+	output = array(typecode, dataString)
+	if sys.byteorder <> byteorder:
+		output.byteswap()
+	return output
