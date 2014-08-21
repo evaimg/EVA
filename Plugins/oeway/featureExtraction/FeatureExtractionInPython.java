@@ -212,6 +212,7 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 			}
 			
 		};
+		
 		interpreterVar = new EzVarText("Python Interpreter", new String[]{"CPython","Jython"},false);
 		interpreterVar.addVarChangeListener(listener2);
 		
@@ -219,6 +220,24 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 		templateVar.setValue("default");
 		interpreterVar.setValue("Jython");
 		
+		
+		HashMap<String,String> library_tmp = new HashMap<String,String>();
+		
+		for(String s:library.keySet())
+		{
+			if(s.contains(interpreterVar.getValue()))
+			{
+				library_tmp.put(s, library.get(s));
+			}
+		}
+		library_tmp.put("default","");
+		String[] libs = new String[library_tmp.size()];
+		int i =0;
+		for(String s:library_tmp.keySet())
+		{
+			libs[i++] = s;
+		}
+		templateVar.setDefaultValues(libs, 0, false);
 		optionUI.add(interpreterVar);
 		optionUI.add(templateVar);
 		optionUI.add(ezps);
