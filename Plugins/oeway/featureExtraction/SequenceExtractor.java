@@ -45,7 +45,7 @@ public class SequenceExtractor extends EzPlug implements Iterator<double[]>,Bloc
 	private EzVarInteger zVar = new EzVarInteger("z");
 	private EzVarInteger tVar = new EzVarInteger("t");
 	private EzVarInteger cVar = new EzVarInteger("c");
-    private final EzVarEnum<DimensionId> dirVar  = new EzVarEnum<DimensionId>("Extract Along", new DimensionId[]{DimensionId.X,DimensionId.Y,DimensionId.Z,DimensionId.T,DimensionId.C}, DimensionId.Z);
+    private final EzVarEnum<DimensionId> dirVar  = new EzVarEnum<DimensionId>("Extract Along", new DimensionId[]{DimensionId.X,DimensionId.Y,DimensionId.Z,DimensionId.T,DimensionId.C}, DimensionId.X);
 	private EzVarSequence seqVar = new EzVarSequence("Input");
 	private EzVarDoubleArrayNative outputVar = new EzVarDoubleArrayNative("Output",null, false);
 	private EzVarBoolean exportAllVar = new EzVarBoolean("Export all data",false);
