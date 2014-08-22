@@ -35,6 +35,7 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 	EzVarText interpreterVar;
 	String template = "";
 	HashMap<String,String> library;
+	String lastSaveContent= "";
 	public void writeFile(String path, String content)
 	{
 		BufferedWriter writer = null;
@@ -114,12 +115,13 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 		inputScript.engine.put("options", options);
 
 
-		String lastSaveContent = readFile(FileUtil.getApplicationDirectory()+FileUtil.separator+"scripts"+FileUtil.separator+"auto_save.txt");
+		lastSaveContent = readFile(FileUtil.getApplicationDirectory()+FileUtil.separator+"scripts"+FileUtil.separator+"auto_save.txt");
 		inputScript.setValue(lastSaveContent);
 
 		this.options = options;
 		
 		library= new HashMap<String,String>();
+		library.put("auto-save","");
 		library.put("default","");
 		File folder = new File(FileUtil.getApplicationDirectory()+FileUtil.separator+"scripts");
 		if(folder.exists())
@@ -165,6 +167,10 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 						else
 							inputScript.setValue(inputScript.getDefaultValue());
 					}
+					else if(templateVar.getValue().equals("auto-save"))
+					{
+						inputScript.setValue(lastSaveContent);
+					}
 					else
 						if(library.containsKey(templateVar.getValue()))
 					{
@@ -187,6 +193,8 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 			public void variableChanged(EzVar<String> source, String newValue) {
 				try
 				{
+					String content = inputScript.getValue();
+					String lastLib = templateVar.getValue();
 					HashMap<String,String> library_tmp = new HashMap<String,String>();
 					
 					for(String s:library.keySet())
@@ -196,6 +204,7 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 							library_tmp.put(s, library.get(s));
 						}
 					}
+					library_tmp.put("auto-save","");
 					library_tmp.put("default","");
 					String[] libs = new String[library_tmp.size()];
 					int i =0;
@@ -203,13 +212,32 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 					{
 						libs[i++] = s;
 					}
-					
-					
 					templateVar.setDefaultValues(libs, 0, false);
 					
 					templateVar.setToolTipText("Save your customized file in 'ICY_ROOT/scripts' folder, "+
 								"naming it start with '"+interpreterVar.getValue()+"_' and end with '.py', "+
 								"then it will appear in the library");
+					if(!lastLib.equals("default"))
+						inputScript.setValue(content);
+					
+					if(lastLib.equals("auto-save")||lastLib.equals("default"))
+						templateVar.setValue(lastLib);
+					else
+					{
+						templateVar.setValue("default");
+						if(interpreterVar.getValue().equals("CPython"))
+						{
+							String code = "import numpy as np\n"+
+										"def process(input, position):\n"+
+										"\toutput = input\n"+
+										"\t#do something here\n\n" +
+										"\treturn output\n";
+							inputScript.setValue(code);
+						}
+						else
+							inputScript.setValue(inputScript.getDefaultValue());
+					}
+							
 
 				}
 				catch(Exception e)
@@ -224,13 +252,11 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 		interpreterVar = new EzVarText("Python Interpreter", new String[]{"CPython","Jython"},false);
 		interpreterVar.addVarChangeListener(listener2);
 		
-		templateVar.addVarChangeListener(listener);
-		templateVar.setValue("default");
+
+
 		interpreterVar.setValue("Jython");
 		
-		
 		HashMap<String,String> library_tmp = new HashMap<String,String>();
-		
 		for(String s:library.keySet())
 		{
 			if(s.contains(interpreterVar.getValue()))
@@ -238,6 +264,7 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 				library_tmp.put(s, library.get(s));
 			}
 		}
+		library_tmp.put("auto-save","");
 		library_tmp.put("default","");
 		String[] libs = new String[library_tmp.size()];
 		int i =0;
@@ -245,7 +272,11 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 		{
 			libs[i++] = s;
 		}
+		
 		templateVar.setDefaultValues(libs, 0, false);
+		templateVar.setValue("auto-save");
+		templateVar.addVarChangeListener(listener);
+		
 		optionUI.add(interpreterVar);
 		optionUI.add(templateVar);
 		optionUI.add(ezps);
@@ -269,7 +300,7 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
     	{
 
     		writeFile(FileUtil.getApplicationDirectory()+FileUtil.separator+"scripts"+FileUtil.separator+"auto_save.txt",inputScript.getValue());
-    		
+    		lastSaveContent = inputScript.getValue();
 	      	try
 	        {
 	      		inputScript.engine.clear();
