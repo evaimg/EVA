@@ -1,6 +1,11 @@
 package plugins.oeway.featureExtraction;
 
 import icy.file.FileUtil;
+import icy.main.Icy;
+import icy.swimmingPool.SwimmingObject;
+import icy.swimmingPool.SwimmingPoolEvent;
+import icy.swimmingPool.SwimmingPoolEventType;
+import icy.swimmingPool.SwimmingPoolListener;
 import icy.system.IcyHandledException;
 
 import java.io.BufferedReader;
@@ -24,9 +29,11 @@ import plugins.adufour.ezplug.EzVar;
 import plugins.adufour.ezplug.EzVarBoolean;
 import plugins.adufour.ezplug.EzVarListener;
 import plugins.adufour.ezplug.EzVarText;
+import plugins.adufour.vars.lang.Var;
+import plugins.adufour.vars.util.VarListener;
 
 
-public class FeatureExtractionInPython extends featureExtractionPlugin {
+public class FeatureExtractionInPython extends featureExtractionPlugin implements SwimmingPoolListener {
 	Processor myProcessor;
 	VarPythonScript inputScript;
 	String lastScript="";
@@ -90,6 +97,7 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 			}
 	@Override
 	public void initialize(HashMap<String,Object> options, ArrayList<Object> optionUI) {
+		Icy.getMainInterface().getSwimmingPool().addListener( this );
 		try {
 			template = readFromJARFile("CPython_ExenetTemplate.txt");
 		} catch (IOException e) {
@@ -109,7 +117,7 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 	            "\toutput=copy.deepcopy(input)\n\n" +
 	            "\t#do something here\n\n" +
 	            "\treturn output");
-		templateVar = new EzVarText("Library", new String[]{}, 0, false);
+		templateVar = new EzVarText("Template", new String[]{}, 0, false);
 		
 		inputScript = (VarPythonScript) ezps.getVariable();
 		inputScript.engine.put("options", options);
@@ -123,6 +131,8 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 		library= new HashMap<String,String>();
 		library.put("auto-save","");
 		library.put("default","");
+		library.put("swimming-pool-sync","");
+		library.put("none","");
 		File folder = new File(FileUtil.getApplicationDirectory()+FileUtil.separator+"scripts");
 		if(folder.exists())
 		{
@@ -146,12 +156,15 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 				"naming it start with '"+"Jython"+"_' and end with '.py', "+
 				"then it will appear in the library");
 		
-		EzVarListener<String> listener= new EzVarListener<String>(){
+		VarListener<String> listener= new VarListener<String>(){
 
-			@Override
-			public void variableChanged(EzVar<String> source, String newValue) {
+			private void variableChanged() {
 				try
 				{
+					if(templateVar.getValue().startsWith("CPython"))
+						interpreterVar.setValue("CPython");
+					else if(templateVar.getValue().startsWith("Jython"))
+						interpreterVar.setValue("Jython");
 					
 					if(templateVar.getValue().equals("default"))
 					{
@@ -169,7 +182,12 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 					}
 					else if(templateVar.getValue().equals("auto-save"))
 					{
+						lastSaveContent = readFile(FileUtil.getApplicationDirectory()+FileUtil.separator+"scripts"+FileUtil.separator+"auto_save.txt");
 						inputScript.setValue(lastSaveContent);
+					}
+					else if(templateVar.getValue().equals("swimming-pool-sync") || templateVar.getValue().equals("none") )
+					{
+
 					}
 					else
 						if(library.containsKey(templateVar.getValue()))
@@ -177,6 +195,7 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 						String scriptString = readFile(library.get(templateVar.getValue()));
 						inputScript.setValue(scriptString);
 					}
+
 				}
 				catch(Exception e)
 				{	
@@ -184,47 +203,41 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 				}
 				
 			}
+
+			@Override
+			public void valueChanged(Var<String> source, String oldValue,
+					String newValue) {
+				variableChanged();
+				
+			}
+
+			@Override
+			public void referenceChanged(Var<String> source,
+					Var<? extends String> oldReference,
+					Var<? extends String> newReference) {
+				variableChanged();
+				
+			}
 			
 		};
 		
-		EzVarListener<String> listener2= new EzVarListener<String>(){
+		VarListener<String> listener2= new VarListener<String>(){
 
-			@Override
-			public void variableChanged(EzVar<String> source, String newValue) {
+			private void variableChanged() {
 				try
 				{
 					String content = inputScript.getValue();
 					String lastLib = templateVar.getValue();
-					HashMap<String,String> library_tmp = new HashMap<String,String>();
-					
-					for(String s:library.keySet())
-					{
-						if(s.contains(interpreterVar.getValue()))
-						{
-							library_tmp.put(s, library.get(s));
-						}
-					}
-					library_tmp.put("auto-save","");
-					library_tmp.put("default","");
-					String[] libs = new String[library_tmp.size()];
-					int i =0;
-					for(String s:library_tmp.keySet())
-					{
-						libs[i++] = s;
-					}
-					templateVar.setDefaultValues(libs, 0, false);
-					
+
 					templateVar.setToolTipText("Save your customized file in 'ICY_ROOT/scripts' folder, "+
 								"naming it start with '"+interpreterVar.getValue()+"_' and end with '.py', "+
 								"then it will appear in the library");
-					if(!lastLib.equals("default"))
-						inputScript.setValue(content);
+					inputScript.setValue(content);
 					
 					if(lastLib.equals("auto-save")||lastLib.equals("default"))
 						templateVar.setValue(lastLib);
 					else
 					{
-						templateVar.setValue("default");
 						if(interpreterVar.getValue().equals("CPython"))
 						{
 							String code = "import numpy as np\n"+
@@ -237,7 +250,20 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 						else
 							inputScript.setValue(inputScript.getDefaultValue());
 					}
-							
+					if(templateVar.getValue().equals("default"))
+					{
+						if(interpreterVar.getValue().equals("CPython"))
+						{
+							String code = "import numpy as np\n"+
+										"def process(input, position):\n"+
+										"\toutput = input\n"+
+										"\t#do something here\n\n" +
+										"\treturn output\n";
+							inputScript.setValue(code);
+						}
+						else
+							inputScript.setValue(inputScript.getDefaultValue());
+					}		
 
 				}
 				catch(Exception e)
@@ -246,36 +272,40 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 				}
 				
 			}
+
+			@Override
+			public void valueChanged(Var<String> source, String oldValue,
+					String newValue) {
+				variableChanged();
+				
+			}
+
+			@Override
+			public void referenceChanged(Var<String> source,
+					Var<? extends String> oldReference,
+					Var<? extends String> newReference) {
+				variableChanged();
+				
+			}
 			
 		};
 		
-		interpreterVar = new EzVarText("Python Interpreter", new String[]{"CPython","Jython"},false);
-		interpreterVar.addVarChangeListener(listener2);
-		
-
-
+		interpreterVar = new EzVarText("Interpreter", new String[]{"CPython","Jython"},false);
+		interpreterVar.getVariable().addListener(listener2);
+	
 		interpreterVar.setValue("Jython");
 		
-		HashMap<String,String> library_tmp = new HashMap<String,String>();
-		for(String s:library.keySet())
-		{
-			if(s.contains(interpreterVar.getValue()))
-			{
-				library_tmp.put(s, library.get(s));
-			}
-		}
-		library_tmp.put("auto-save","");
-		library_tmp.put("default","");
-		String[] libs = new String[library_tmp.size()];
+		
+		String[] libs = new String[library.size()];
 		int i =0;
-		for(String s:library_tmp.keySet())
+		for(String s:library.keySet())
 		{
 			libs[i++] = s;
 		}
-		
 		templateVar.setDefaultValues(libs, 0, false);
+		
 		templateVar.setValue("auto-save");
-		templateVar.addVarChangeListener(listener);
+		templateVar.getVariable().addListener(listener);
 		
 		optionUI.add(interpreterVar);
 		optionUI.add(templateVar);
@@ -332,12 +362,38 @@ public class FeatureExtractionInPython extends featureExtractionPlugin {
 	public double[] process(double[] input, double[] position) {
 		if(input !=null && input.length==0)
 			return input;
-		if(lastScript.hashCode()!=inputScript.getValue().hashCode())
+		if(!lastScript.equals(inputScript.getValue()))
 		{
 			compile();
 			lastScript = inputScript.getValue();
+			SwimmingObject swimmingObject = new SwimmingObject( inputScript );
+			// add the object in the swimming pool
+			Icy.getMainInterface().getSwimmingPool().add( swimmingObject );	
 		}
-		return myProcessor.process(input,position);
+		double[] ret = null;
+		try
+		{
+			ret = myProcessor.process(input,position);
+		}
+		catch(Exception e)
+		{
+			lastScript = lastScript+"_"; //force to recompile
+		}
+		return ret;
+	}
+	@Override
+	public void swimmingPoolChangeEvent(SwimmingPoolEvent event) {
+		// an object has been added in the swimming pool !
+		if ( event.getType() == SwimmingPoolEventType.ELEMENT_ADDED && templateVar.getValue().equals("swimming-pool-sync") )
+		{
+			// Can we manage this type ?
+			if ( event.getResult().getObject() instanceof VarPythonScript )
+			{
+				VarPythonScript s = (VarPythonScript) event.getResult().getObject();
+				inputScript.setValue(s.getValue());
+			}
+		}
+		
 	}
 
 }
