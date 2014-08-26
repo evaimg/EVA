@@ -64,18 +64,23 @@ public class FeatureExtractionInPython extends featureExtractionPlugin implement
 	}
 	public String readFile(String filename)
 	{
-	   String content = null;
-	   File file = new File(filename); 
-	   try {
-	       FileReader reader = new FileReader(file);
-	       char[] chars = new char[(int) file.length()];
-	       reader.read(chars);
-	       content = new String(chars);
-	       reader.close();
-	   } catch (IOException e) {
-		   System.out.println("file not found:"+filename);
-	   }
-	   return content;
+		String all = "";
+		 try
+		 {
+				BufferedReader reader = new BufferedReader(new FileReader(filename));
+				
+				String line;
+				while ((line = reader.readLine()) != null)
+				{
+					all += (line + "\n");
+				}
+				reader.close();
+		 }
+		 catch(Exception e)
+		 {
+			 
+		 }
+	   return all;
 	}
 	public String readFromJARFile(String filename)
 			throws IOException
@@ -316,7 +321,7 @@ public class FeatureExtractionInPython extends featureExtractionPlugin implement
 
 		
 		String retString  = "code=\'\'\'\n";
-		retString+= code;
+		retString+= code.replace("\\", "\\\\");
 		retString+= "\n\'\'\'\n";
 		retString+= template;
 		return retString;
@@ -340,7 +345,16 @@ public class FeatureExtractionInPython extends featureExtractionPlugin implement
 	      			inputScript.evaluate(packExecnetCode(inputScript.getValue()));
 	      		}
 	      		else
-	      			inputScript.evaluate();
+	      		{
+	      			String code ="try:\n"+
+		      					"\tif not os.path.exists('scripts'):\n"+
+		      					"\t\tos.mkdir('scripts')\n"+
+		      					"\tos.chdir('./scripts')\n"+
+		      					"except:\n"+
+		      					"\tpass\n";
+	      					
+	      			inputScript.evaluate(code+inputScript.getValue());
+	      		}
 	      		
 	        }
 	        catch (ScriptException e)
@@ -357,7 +371,16 @@ public class FeatureExtractionInPython extends featureExtractionPlugin implement
     	}
         
     }
-
+	//start batch process
+	@Override
+	public void batchBegin(){
+		compile();
+	};
+	//stop batch process
+	@Override
+	public void batchEnd(){
+		
+	};
 	@Override
 	public double[] process(double[] input, double[] position) {
 		if(input !=null && input.length==0)
@@ -377,7 +400,7 @@ public class FeatureExtractionInPython extends featureExtractionPlugin implement
 		}
 		catch(Exception e)
 		{
-			lastScript = lastScript+"_"; //force to recompile
+			lastScript = lastScript+" "; //force to recompile
 		}
 		return ret;
 	}

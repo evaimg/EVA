@@ -1,8 +1,19 @@
-code_seg = """
+code_seg1 = """
 
 import traceback
 import sys
 import numpy as np
+import os
+try:
+	if not os.path.exists("scripts"):
+		os.mkdir("scripts")
+	os.chdir("./scripts")
+except:
+	pass
+
+"""
+code_seg2 = """
+
 while not channel.isclosed():
 	[typecode, byteorder, dataString, positionString] = channel.receive()
 	# construct the Numpy data type out of the endianness and array typecode
@@ -37,7 +48,7 @@ from icyexecnetgateway import IcyExecnetGateway, unpack_image
 from array import array
 import sys
 gateway = IcyExecnetGateway()
-gateway.remote_exec(code+code_seg)
+gateway.remote_exec(code_seg1+code+code_seg2)
 def process(input, position):
 	'''
 	input: 1d array
