@@ -182,9 +182,23 @@ public:
    int OnTimebase(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnTimeInterval(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnRowCount(MM::PropertyBase* pProp, MM::ActionType eAct);
-   int OnInputRange(MM::PropertyBase* pProp, MM::ActionType eAct);
+
+   int OnInputRangeA(MM::PropertyBase* pProp, MM::ActionType eAct);
+   int OnInputRangeB(MM::PropertyBase* pProp, MM::ActionType eAct);
+   int OnInputRangeC(MM::PropertyBase* pProp, MM::ActionType eAct);
+   int OnInputRangeD(MM::PropertyBase* pProp, MM::ActionType eAct);
+
+	int OnChannelEnableA(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int OnChannelEnableB(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int OnChannelEnableC(MM::PropertyBase* pProp, MM::ActionType eAct);
+	int OnChannelEnableD(MM::PropertyBase* pProp, MM::ActionType eAct);
+
+	int OnSignalGeneratorMode(MM::PropertyBase* pProp, MM::ActionType eAct);
+
+	int OnSignalGeneratorFrequency(MM::PropertyBase* pProp, MM::ActionType eAct);
+
    int OnTimeoutMs(MM::PropertyBase* pProp, MM::ActionType eAct);
-   int OnChannelEnable(MM::PropertyBase* pProp, MM::ActionType eAct);
+
    int OnExternalTrigger(MM::PropertyBase* pProp, MM::ActionType eAct);
 
    int GetChannelName(unsigned /* channel */, char* name);
@@ -217,6 +231,17 @@ private:
 	long image_height;
    double ccdT_;
    int isExternalTriggerOn_;
+
+   std::string channelEnableA_;
+   std::string channelEnableB_;
+   std::string channelEnableC_;
+   std::string channelEnableD_;
+
+   std::string signalGeneratorMode_;
+
+   long generatorfrequency_;
+   char gerneratorChar_;
+
 
    bool stopOnOverflow_;
 

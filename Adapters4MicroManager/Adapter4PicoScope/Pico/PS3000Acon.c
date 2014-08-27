@@ -651,7 +651,17 @@ void picoSetVoltages(UNIT * unit,short rangeSet)
 	}
 	SetDefaults(unit);	// Put these changes into effect
 }
-
+void picoSetVoltage(UNIT * unit,short rangeSet, int ch)
+{
+    if (ch < unit->channelCount) 
+	{
+		if (rangeSet >= unit->firstRange && rangeSet <= unit->lastRange)
+			unit->channelSettings[ch].range = rangeSet;
+		else
+			unit->channelSettings[ch].range = unit->lastRange;
+		SetDefaults(unit);	// Put these changes into effect
+	}
+}
 int32_t timeInterval;
 
 void picoSetTimebase(UNIT *unit,uint32_t timebase_)
@@ -2039,6 +2049,179 @@ void SetSignalGenerator(UNIT unit)
 
 
 
+/****************************************************************************
+* Sets the signal generator
+* - allows user to set frequency and waveform
+* - allows for custom waveform (values -32768..32767) 
+* - of up to 8192 samples int32_t (PS3x04B & PS3x05B) 16384 samples int32_t (PS3x06B)
+******************************************************************************/
+void PicoSetSignalGenerator(UNIT unit, char ch, uint32_t frequency)
+{
+	PICO_STATUS status;
+	short waveform;
+	char fileName [128]="waveform.txt";
+	FILE * fp = NULL;
+	short *arbitraryWaveform;
+	int32_t waveformSize = 0;
+	uint32_t pkpk = 4000000;
+	int32_t offset = 0;
+	short choice;
+	double delta;
+
+
+	//do
+	//{
+	//	printf("\nSignal Generator\n================\n");
+	//	printf("0 - SINE         1 - SQUARE\n");
+	//	printf("2 - TRIANGLE     3 - DC VOLTAGE\n");
+	//	if(unit.sigGen == SIGGEN_AWG)
+	//	{
+	//		printf("4 - RAMP UP      5 - RAMP DOWN\n");
+	//		printf("6 - SINC         7 - GAUSSIAN\n");
+	//		printf("8 - HALF SINE    A - AWG WAVEFORM\n");
+	//	}
+	//	printf("F - SigGen Off\n\n");
+
+	//	//ch = //_getch();
+
+		if (ch >= '0' && ch <='9')
+			choice = ch -'0';
+		else
+			ch = toupper(ch);
+	//}
+	//while(unit.sigGen == SIGGEN_FUNCTGEN && ch != 'F' && (ch < '0' || ch > '3') || unit.sigGen == SIGGEN_AWG && ch != 'A' && ch != 'F' && (ch < '0' || ch > '8')  );
+
+
+
+	if(ch == 'F')				// If we're going to turn off siggen
+	{
+		printf("Signal generator Off\n");
+		waveform = 8;		// DC Voltage
+		pkpk = 0;				// 0V
+		waveformSize = 0;
+	}
+	else
+		if (ch == 'A' && unit.sigGen == SIGGEN_AWG)		// Set the AWG
+		{
+			arbitraryWaveform = (short*)malloc( unit.AWGFileSize * sizeof(short));
+			memset(arbitraryWaveform, 0, unit.AWGFileSize * sizeof(short));
+
+			waveformSize = 0;
+
+			/*printf("Select a waveform file to load: ");
+			scanf_s("%s", fileName, 128);*/
+
+			if (fopen_s(&fp, fileName, "r") == 0) 
+			{ // Having opened file, read in data - one number per line (max 8192 lines for PS3x04B & PS3x05B devices, 16384 for PS3x06B), with values in (0..4095)
+				while (EOF != fscanf_s(fp, "%hi", (arbitraryWaveform + waveformSize))&& waveformSize++ < unit.AWGFileSize - 1);
+				fclose(fp);
+				printf("File successfully loaded\n");
+			} 
+			else 
+			{
+				printf("Invalid filename\n");
+				return;
+			}
+		}
+		else			// Set one of the built in waveforms
+		{
+			switch (choice)
+			{
+			case 0:
+				waveform = PS3000A_SINE;
+				break;
+
+			case 1:
+				waveform = PS3000A_SQUARE;
+				break;
+
+			case 2:
+				waveform = PS3000A_TRIANGLE;
+				break;
+
+			case 3:
+				waveform = PS3000A_DC_VOLTAGE;
+				offset = frequency;
+				if (offset < 0 || offset > 2000000)
+					offset = 0;
+				break;
+
+			case 4:
+				waveform = PS3000A_RAMP_UP;
+				break;
+
+			case 5:
+				waveform = PS3000A_RAMP_DOWN;
+				break;
+
+			case 6:
+				waveform = PS3000A_SINC;
+				break;
+
+			case 7:
+				waveform = PS3000A_GAUSSIAN;
+				break;
+
+			case 8:
+				waveform = PS3000A_HALF_SINE;
+				break;
+
+			default:
+				waveform = PS3000A_SINE;
+				break;
+			}
+		}
+
+		if(waveform < 8 || (ch == 'A' && unit.sigGen == SIGGEN_AWG))				// Find out frequency if required
+		{
+			 if (frequency <= 0 || frequency > 1000000)
+				 frequency = 1;
+		}
+
+		if (waveformSize > 0)		
+		{
+			delta = ((1.0 * frequency * waveformSize) / unit.AWGFileSize) * (4294967296.0 * 5e-8); // delta >= 10
+
+			status = ps3000aSetSigGenArbitrary(	unit.handle, 
+				0,												// offset voltage
+				pkpk,									// PkToPk in microvolts. Max = 4uV  +2v to -2V
+				(uint32_t)delta,			// start delta
+				(uint32_t)delta,			// stop delta
+				0, 
+				0, 
+				arbitraryWaveform, 
+				waveformSize, 
+				(PS3000A_SWEEP_TYPE)0,
+				(PS3000A_EXTRA_OPERATIONS)0, 
+				PS3000A_SINGLE, 
+				0, 
+				0, 
+				PS3000A_SIGGEN_RISING,
+				PS3000A_SIGGEN_NONE, 
+				0);
+
+			printf(status?"\nps3000aSetSigGenArbitrary: Status Error 0x%x \n":"", (unsigned int)status);		// If status != 0, show the error
+		} 
+		else 
+		{
+			status = ps3000aSetSigGenBuiltIn(unit.handle, 
+				offset, 
+				pkpk, 
+				waveform, 
+				(float)frequency, 
+				(float)frequency, 
+				0, 
+				0, 
+				(PS3000A_SWEEP_TYPE)0, 
+				(PS3000A_EXTRA_OPERATIONS)0, 
+				0, 
+				0, 
+				(PS3000A_SIGGEN_TRIG_TYPE)0, 
+				(PS3000A_SIGGEN_TRIG_SOURCE)0, 
+				0);
+			printf(status?"\nps3000aSetSigGenBuiltIn: Status Error 0x%x \n":"", (unsigned int)status);		// If status != 0, show the error
+		}
+}
 
 /****************************************************************************
 * DisplaySettings 

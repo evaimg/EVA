@@ -318,9 +318,7 @@ public class FeatureExtractionInPython extends featureExtractionPlugin implement
 	}
 	public String packExecnetCode(String code)
 	{
-
-		
-		String retString  = "code=\'\'\'\n";
+		String retString  = "# -*- coding: utf-8 -*-\n" + "code=\'\'\'\n";
 		retString+= code.replace("\\", "\\\\");
 		retString+= "\n\'\'\'\n";
 		retString+= template;

@@ -161,7 +161,8 @@ CEVA_NDE_PicoCamera::CEVA_NDE_PicoCamera() :
    isExternalTriggerOn_(1),
    stopOnOverflow_(false),
    sampleOffset_(0),
-   timeout_(5000)
+   timeout_(5000),
+   generatorfrequency_(1)
 {
 
    // call the base class method to set-up default error codes/messages
@@ -336,32 +337,87 @@ int CEVA_NDE_PicoCamera::Initialize()
 	return DEVICE_NOT_CONNECTED;
 	picoInitBlock(&unit,sampleOffset_);
 
-   pAct = new CPropertyAction (this, &CEVA_NDE_PicoCamera::OnInputRange);
-   CreateProperty("InputRange", "0", MM::Integer, false, pAct);
-   //add input range
-   	for (int i = unit.firstRange; i <= unit.lastRange; i++) 
-	{
-		AddAllowedValue("InputRange",  CDeviceUtils::ConvertToString(inputRanges[i]));
+   pAct = new CPropertyAction (this, &CEVA_NDE_PicoCamera::OnInputRangeA);
+
+   if(unit.channelCount>0)
+   {
+	   CreateProperty("InputRange A", "0", MM::Integer, false, pAct);
+	   //add input range
+   		for (int i = unit.firstRange; i <= unit.lastRange; i++) 
+		{
+			AddAllowedValue("InputRange A",  CDeviceUtils::ConvertToString(inputRanges[i]));
+		}
+   }
+   if(unit.channelCount>1)
+   {
+	   pAct = new CPropertyAction (this, &CEVA_NDE_PicoCamera::OnInputRangeB);
+	   CreateProperty("InputRange B", "0", MM::Integer, false, pAct);
+	   //add input range
+   		for (int i = unit.firstRange; i <= unit.lastRange; i++) 
+		{
+			AddAllowedValue("InputRange B",  CDeviceUtils::ConvertToString(inputRanges[i]));
+		}
+   }
+
+      if(unit.channelCount>2)
+   {
+	   pAct = new CPropertyAction (this, &CEVA_NDE_PicoCamera::OnInputRangeC);
+	   CreateProperty("InputRange C", "0", MM::Integer, false, pAct);
+	   //add input range
+   		for (int i = unit.firstRange; i <= unit.lastRange; i++) 
+		{
+			AddAllowedValue("InputRange C",  CDeviceUtils::ConvertToString(inputRanges[i]));
+		}
+	  }
+
+	     if(unit.channelCount>3)
+   {
+	   pAct = new CPropertyAction (this, &CEVA_NDE_PicoCamera::OnInputRangeD);
+	   CreateProperty("InputRange D", "0", MM::Integer, false, pAct);
+	   //add input range
+   		for (int i = unit.firstRange; i <= unit.lastRange; i++) 
+		{
+			AddAllowedValue("InputRange D",  CDeviceUtils::ConvertToString(inputRanges[i]));
+		}
+	 }
+
+
+
+
+	if(unit.channelCount>0)
+   {
+	   channelEnableA_ = "ON";
+	pAct = new CPropertyAction (this, &CEVA_NDE_PicoCamera::OnChannelEnableA);
+	CreateProperty("Channel A", "ON", MM::String, false, pAct);
+	AddAllowedValue("Channel A", "ON");
+	AddAllowedValue("Channel A", "OFF");
 	}
-	short ch;
-	for (ch = 0; ch < unit.channelCount ; ch++)
-	{
-	   char propNameBuf[30]= "Channel A";
-	   propNameBuf[8] +=ch;
 
-	   char propValBufON[30]= "A--ON";
-	   propValBufON[0] +=ch;
-
-	   char propValBufOFF[30]= "A--OFF";
-	   propValBufOFF[0] +=ch;
-
-	   pAct = new CPropertyAction (this, &CEVA_NDE_PicoCamera::OnChannelEnable);
-	   CreateProperty(propNameBuf, propValBufON, MM::String, false, pAct);
-
-
-	   AddAllowedValue(propNameBuf, propValBufON);
-	   AddAllowedValue(propNameBuf, propValBufOFF);
+	if(unit.channelCount>1)
+   {
+	   channelEnableB_ = "ON";
+	pAct = new CPropertyAction (this, &CEVA_NDE_PicoCamera::OnChannelEnableB);
+	CreateProperty("Channel B", "ON", MM::String, false, pAct);
+	AddAllowedValue("Channel B", "ON");
+	AddAllowedValue("Channel B", "OFF");
 	}
+	if(unit.channelCount>2)
+   {
+	   channelEnableC_ = "ON";
+	pAct = new CPropertyAction (this, &CEVA_NDE_PicoCamera::OnChannelEnableC);
+	CreateProperty("Channel C", "ON", MM::String, false, pAct);
+	AddAllowedValue("Channel C", "ON");
+	AddAllowedValue("Channel C", "OFF");
+	}
+	if(unit.channelCount>3)
+   {
+	   channelEnableD_ = "ON";
+	pAct = new CPropertyAction (this, &CEVA_NDE_PicoCamera::OnChannelEnableD);
+	CreateProperty("Channel D", "ON", MM::String, false, pAct);
+	AddAllowedValue("Channel D", "ON");
+	AddAllowedValue("Channel D", "OFF");
+	}
+
 
    pAct = new CPropertyAction (this, &CEVA_NDE_PicoCamera::OnExternalTrigger);
    propName = "ExternalTrigger";
@@ -369,6 +425,45 @@ int CEVA_NDE_PicoCamera::Initialize()
    AddAllowedValue(propName.c_str(), "ON");
    AddAllowedValue(propName.c_str(), "OFF");
 
+   pAct = new CPropertyAction (this, &CEVA_NDE_PicoCamera::OnExternalTrigger);
+   propName = "ExternalTrigger";
+   CreateProperty(propName.c_str(), "ON", MM::String, false, pAct);
+   AddAllowedValue(propName.c_str(), "ON");
+   AddAllowedValue(propName.c_str(), "OFF");
+
+   
+
+   if(unit.sigGen !=SIGGEN_NONE)
+   {
+	   signalGeneratorMode_ = "OFF";
+	   pAct = new CPropertyAction (this, &CEVA_NDE_PicoCamera::OnSignalGeneratorMode);
+	   propName = "SignalGenerator Mode";
+	   CreateProperty(propName.c_str(), "SINE", MM::String, false, pAct);
+	   AddAllowedValue(propName.c_str(), "OFF");
+	   AddAllowedValue(propName.c_str(), "SINE");
+	   AddAllowedValue(propName.c_str(), "SQUARE");
+	   AddAllowedValue(propName.c_str(), "TRIANGLE");
+	   AddAllowedValue(propName.c_str(), "DC VOLTAGE");
+	   if(unit.sigGen == SIGGEN_AWG)
+	   {
+		   AddAllowedValue(propName.c_str(), "RAMP UP");
+		   AddAllowedValue(propName.c_str(), "RAMP DOWN");
+		   AddAllowedValue(propName.c_str(), "SINC");
+		   AddAllowedValue(propName.c_str(), "GAUSSIAN");
+		   AddAllowedValue(propName.c_str(), "HALF SINE");
+		   AddAllowedValue(propName.c_str(), "AWG WAVEFORM");
+	   }
+
+	      //frequency
+	   pAct = new CPropertyAction (this, &CEVA_NDE_PicoCamera::OnSignalGeneratorFrequency);
+	   nRet = CreateProperty("SignalGenerator Frequency", "1", MM::Integer, false, pAct);
+	   assert(nRet == DEVICE_OK);
+	   SetPropertyLimits("SignalGenerator Frequency",1,1000000);
+   }
+
+
+
+   PicoSetSignalGenerator(unit, 'F',1);
 		   // setup the buffer
    // ----------------
    nRet = ResizeImageBuffer();
@@ -812,7 +907,7 @@ int CEVA_NDE_PicoCamera::InsertImage()
    md.put(MM::g_Keyword_Metadata_ROI_X, CDeviceUtils::ConvertToString( (long) roiX_)); 
    md.put(MM::g_Keyword_Metadata_ROI_Y, CDeviceUtils::ConvertToString( (long) roiY_)); 
 
-   imageCounter_++;
+   imageCounter_+=1;
 
    char buf[MM::MaxStrLength];
    GetProperty(MM::g_Keyword_Binning, buf);
@@ -828,21 +923,21 @@ int CEVA_NDE_PicoCamera::InsertImage()
 
    // This method inserts a new image into the circular buffer (residing in MMCore)
    //int ret = GetCoreCallback()->InsertMultiChannel(this, pI, 1, w, h, b, &md ); // Inserting the md causes crash in debug builds
-   //int c = GetNumberOfChannels();
-   int ret = GetCoreCallback()->InsertImage(this, pI, w, h, b, md.Serialize().c_str());
- //    int ret=0;
-	//for(int i=0;i<c;i++)
-	//	ret = GetCoreCallback()->InsertMultiChannel(this, GetImageBuffer(i),i, w, h, b, &md);
+   int c = GetNumberOfChannels();
+   //int ret = GetCoreCallback()->InsertImage(this, pI, w, h, b, md.Serialize().c_str());
+   int ret=0;
+
+	ret = GetCoreCallback()->InsertMultiChannel(this, pI,c, w, h, b);
 
    if (!stopOnOverflow_ && ret == DEVICE_BUFFER_OVERFLOW)
    {
       // do not stop on overflow - just reset the buffer
       GetCoreCallback()->ClearImageBuffer(this);
       // don't process this same image again...
-      return GetCoreCallback()->InsertImage(this, pI, w, h, b, md.Serialize().c_str(), false);
+      //return GetCoreCallback()->InsertImage(this, pI, w, h, b, md.Serialize().c_str(), false);
 	  //for(int i=0;i<c;i++)
-		 //ret = GetCoreCallback()->InsertMultiChannel(this, GetImageBuffer(i),i, w, h, b, &md);
-	  //return ret;
+	  ret = GetCoreCallback()->InsertMultiChannel(this, pI,c, w, h, b,false);
+	  return ret;
    } else
       return ret;
 
@@ -857,22 +952,23 @@ int CEVA_NDE_PicoCamera::ThreadRun (MM::MMTime startTime)
 
    int ret=DEVICE_ERR;
 
-   MMThreadGuard g(imgPixelsLock_);
-   short* pBuf = (short*) const_cast<unsigned char*>(img_.GetPixels());
+   //MMThreadGuard g(imgPixelsLock_);
+   //short* pBuf = (short*) const_cast<unsigned char*>(img_.GetPixels());
 
-   uint32_t nCompletedSamples;
-   uint32_t nCompletedCaptures;
-   try
-   {
-	   ret = picoRunRapidBlock(&unit,img_.Height(),img_.Width(),&nCompletedSamples,&nCompletedCaptures,pBuf);
-   }
-   catch( CMMError& e){
-	   return DEVICE_ERR;
-   }
-   if (ret != DEVICE_OK)
-   {
-      return ret;
-   }
+   //uint32_t nCompletedSamples;
+   //uint32_t nCompletedCaptures;
+   //try
+   //{
+	  // ret = picoRunRapidBlock(&unit,img_.Height(),img_.Width(),&nCompletedSamples,&nCompletedCaptures,pBuf);
+   //}
+   //catch( CMMError& e){
+	  // return DEVICE_ERR;
+   //}
+   //if (ret != DEVICE_OK)
+   //{
+   //   return ret;
+   //}
+   ret = SnapImage();
    ret = InsertImage();
 
    if (ret != DEVICE_OK)
@@ -1065,7 +1161,7 @@ int CEVA_NDE_PicoCamera::OnRowCount(MM::PropertyBase* pProp, MM::ActionType eAct
 /**
 * Handles "Input Range" property.
 */
-int CEVA_NDE_PicoCamera::OnInputRange(MM::PropertyBase* pProp, MM::ActionType eAct)
+int CEVA_NDE_PicoCamera::OnInputRangeA(MM::PropertyBase* pProp, MM::ActionType eAct)
 {
 
    if (eAct == MM::AfterSet)
@@ -1083,11 +1179,101 @@ int CEVA_NDE_PicoCamera::OnInputRange(MM::PropertyBase* pProp, MM::ActionType eA
 			 }
 		}
 		if(indexFound>0)
-			picoSetVoltages(&unit,indexFound);
+			picoSetVoltage(&unit,indexFound,0);
    }
    else if (eAct == MM::BeforeGet)
    {
 	   pProp->Set((long)inputRanges[unit.channelSettings[0].range]);
+   }
+
+   return DEVICE_OK;
+}
+/**
+* Handles "Input Range" property.
+*/
+int CEVA_NDE_PicoCamera::OnInputRangeB(MM::PropertyBase* pProp, MM::ActionType eAct)
+{
+
+   if (eAct == MM::AfterSet)
+   {
+	  long value;
+      pProp->Get(value);
+		if ( (value < 1) || (MAX_SAMPLE_LENGTH < value))
+			return DEVICE_ERR;  // invalid image size
+		int indexFound = -1;
+		for (int i = unit.firstRange; i <= unit.lastRange; i++) 
+		{
+			 if(value==inputRanges[i])
+			 {
+				 indexFound = i;
+			 }
+		}
+		if(indexFound>0)
+			picoSetVoltage(&unit,indexFound,1);
+   }
+   else if (eAct == MM::BeforeGet)
+   {
+	   pProp->Set((long)inputRanges[unit.channelSettings[1].range]);
+   }
+
+   return DEVICE_OK;
+}
+/**
+* Handles "Input Range" property.
+*/
+int CEVA_NDE_PicoCamera::OnInputRangeC(MM::PropertyBase* pProp, MM::ActionType eAct)
+{
+
+   if (eAct == MM::AfterSet)
+   {
+	  long value;
+      pProp->Get(value);
+		if ( (value < 1) || (MAX_SAMPLE_LENGTH < value))
+			return DEVICE_ERR;  // invalid image size
+		int indexFound = -1;
+		for (int i = unit.firstRange; i <= unit.lastRange; i++) 
+		{
+			 if(value==inputRanges[i])
+			 {
+				 indexFound = i;
+			 }
+		}
+		if(indexFound>0)
+			picoSetVoltage(&unit,indexFound,2);
+   }
+   else if (eAct == MM::BeforeGet)
+   {
+	   pProp->Set((long)inputRanges[unit.channelSettings[2].range]);
+   }
+
+   return DEVICE_OK;
+}
+/**
+* Handles "Input Range" property.
+*/
+int CEVA_NDE_PicoCamera::OnInputRangeD(MM::PropertyBase* pProp, MM::ActionType eAct)
+{
+
+   if (eAct == MM::AfterSet)
+   {
+	  long value;
+      pProp->Get(value);
+		if ( (value < 1) || (MAX_SAMPLE_LENGTH < value))
+			return DEVICE_ERR;  // invalid image size
+		int indexFound = -1;
+		for (int i = unit.firstRange; i <= unit.lastRange; i++) 
+		{
+			 if(value==inputRanges[i])
+			 {
+				 indexFound = i;
+			 }
+		}
+		if(indexFound>0)
+			picoSetVoltage(&unit,indexFound,3);
+   }
+   else if (eAct == MM::BeforeGet)
+   {
+	   pProp->Set((long)inputRanges[unit.channelSettings[3].range]);
    }
 
    return DEVICE_OK;
@@ -1212,6 +1398,98 @@ int CEVA_NDE_PicoCamera::OnIsSequenceable(MM::PropertyBase* pProp, MM::ActionTyp
    }
    return DEVICE_OK;
 }
+int CEVA_NDE_PicoCamera::OnSignalGeneratorMode(MM::PropertyBase* pProp, MM::ActionType eAct)
+{
+   if (eAct == MM::BeforeGet)
+   {
+	   pProp->Set(signalGeneratorMode_.c_str());
+   }
+   else if (eAct == MM::AfterSet)
+   {   		//	printf("0 - SINE         1 - SQUARE\n");
+		//	printf("2 - TRIANGLE     3 - DC VOLTAGE\n");
+		//	if(unit.sigGen == SIGGEN_AWG)
+		//	{
+		//		printf("4 - RAMP UP      5 - RAMP DOWN\n");
+		//		printf("6 - SINC         7 - GAUSSIAN\n");
+		//		printf("8 - HALF SINE    A - AWG WAVEFORM\n");
+		//	}
+		//	printf("F - SigGen Off\n\n");
+      
+      pProp->Get(signalGeneratorMode_);
+	  if (signalGeneratorMode_.compare("OFF")==0) 
+      {
+		  gerneratorChar_ = 'F';
+      }
+	  else if (signalGeneratorMode_.compare("SINE")==0) 
+      {
+		  gerneratorChar_ = '0';
+      }
+	  else if (signalGeneratorMode_.compare("SQUARE")==0) 
+      {
+		  gerneratorChar_ = '1';
+      }
+	  else if (signalGeneratorMode_.compare("TRIANGLE")==0) 
+      {
+		  gerneratorChar_ = '2';
+      }
+	  else if (signalGeneratorMode_.compare("DC VOLTAGE")==0) 
+      {
+		  gerneratorChar_ = '3';
+      }
+	  else if (signalGeneratorMode_.compare("RAMP UP")==0) 
+      {
+		  gerneratorChar_ = '4';
+      }
+	  else if (signalGeneratorMode_.compare("RAMP DOWN")==0) 
+      {
+		  gerneratorChar_ = '5';
+      }
+	  else if (signalGeneratorMode_.compare("SINC")==0) 
+      {
+		  gerneratorChar_ = '6';
+      }
+	  else if (signalGeneratorMode_.compare("GAUSSIAN")==0) 
+      {
+		  gerneratorChar_ = '7';
+      }
+	  else if (signalGeneratorMode_.compare("HALF SINE")==0) 
+      {
+		  gerneratorChar_ = '8';
+      }
+	  else if (signalGeneratorMode_.compare("AWG WAVEFORM")==0) 
+      {
+		  gerneratorChar_ = 'A';
+      }
+	  else
+	  {
+		  signalGeneratorMode_ = "OFF";
+		  gerneratorChar_ = 'F';
+	  }
+
+	   PicoSetSignalGenerator(unit,gerneratorChar_,generatorfrequency_);
+
+   }
+   return DEVICE_OK;
+}
+
+/**
+* Handles "SampleLength" property.
+*/
+int CEVA_NDE_PicoCamera::OnSignalGeneratorFrequency(MM::PropertyBase* pProp, MM::ActionType eAct)
+{
+
+   if (eAct == MM::AfterSet)
+   {
+      pProp->Get(generatorfrequency_);
+	  PicoSetSignalGenerator(unit,gerneratorChar_,generatorfrequency_);
+   }
+   else if (eAct == MM::BeforeGet)
+   {
+	 pProp->Set(generatorfrequency_);
+   }
+
+   return DEVICE_OK;
+}
 
 int CEVA_NDE_PicoCamera::OnExternalTrigger(MM::PropertyBase* pProp, MM::ActionType eAct)
 {
@@ -1250,30 +1528,141 @@ int CEVA_NDE_PicoCamera::OnExternalTrigger(MM::PropertyBase* pProp, MM::ActionTy
    }
    return DEVICE_OK;
 }
-int CEVA_NDE_PicoCamera::OnChannelEnable(MM::PropertyBase* pProp, MM::ActionType eAct)
+int CEVA_NDE_PicoCamera::OnChannelEnableA(MM::PropertyBase* pProp, MM::ActionType eAct)
 {
-   std::string val = "ON";
    if (eAct == MM::BeforeGet)
    {
-      val = "";
-
-      pProp->Set(val.c_str());
+      pProp->Set(channelEnableA_.c_str());
    }
    else if (eAct == MM::AfterSet)
    {
-      pProp->Get(val);
-	  int ch = val.c_str()[0]-'A';
-	  if(val.c_str()[4]=='N')
+      pProp->Get(channelEnableA_);
+	  if(channelEnableA_.compare("ON")==0)
       {
-		  unit.channelSettings[ch].enabled = 1;
+		  unit.channelSettings[0].enabled = 1;
       }
 	  else
 	  {
-		  unit.channelSettings[ch].enabled = 0;
+		  unit.channelSettings[0].enabled = 0;
 	  }
 	  //to make sure there is a channel enabled
 	  if(GetNumberOfChannels()<=0)
+	  {
+		  channelEnableA_ = "ON";
 		  unit.channelSettings[0].enabled = 1;
+	  }
+
+	  int nRet = ResizeImageBuffer();
+		   try
+	   {
+		  picoInitRapidBlock(&unit,sampleOffset_,timeout_,isExternalTriggerOn_);
+	   }
+	   catch( CMMError& e){
+		   return DEVICE_ERR;
+	   }
+	   if (nRet != DEVICE_OK)
+		  return nRet;
+   }
+   return DEVICE_OK;
+}
+int CEVA_NDE_PicoCamera::OnChannelEnableB(MM::PropertyBase* pProp, MM::ActionType eAct)
+{
+
+   if (eAct == MM::BeforeGet)
+   {
+		pProp->Set(channelEnableB_.c_str());
+   }
+   else if (eAct == MM::AfterSet)
+   {
+        pProp->Get(channelEnableB_);
+	  if(channelEnableB_.compare("ON")==0)
+      {
+		  unit.channelSettings[1].enabled = 1;
+      }
+	  else
+	  {
+		  unit.channelSettings[1].enabled = 0;
+	  }
+	  //to make sure there is a channel enabled
+	  if(GetNumberOfChannels()<=0)
+	  {
+		  channelEnableA_ = "ON";
+		  unit.channelSettings[0].enabled = 1;
+	  }
+
+	  int nRet = ResizeImageBuffer();
+		   try
+	   {
+		  picoInitRapidBlock(&unit,sampleOffset_,timeout_,isExternalTriggerOn_);
+	   }
+	   catch( CMMError& e){
+		   return DEVICE_ERR;
+	   }
+	   if (nRet != DEVICE_OK)
+		  return nRet;
+   }
+   return DEVICE_OK;
+}
+int CEVA_NDE_PicoCamera::OnChannelEnableC(MM::PropertyBase* pProp, MM::ActionType eAct)
+{
+   if (eAct == MM::BeforeGet)
+   {
+      pProp->Set(channelEnableC_.c_str());
+   }
+   else if (eAct == MM::AfterSet)
+   {
+      pProp->Get(channelEnableC_);
+	  if(channelEnableC_.compare("ON")==0)
+      {
+		  unit.channelSettings[2].enabled = 1;
+      }
+	  else
+	  {
+		  unit.channelSettings[2].enabled = 0;
+	  }
+	  //to make sure there is a channel enabled
+	  if(GetNumberOfChannels()<=0)
+	  {
+		  channelEnableA_ = "ON";
+		  unit.channelSettings[0].enabled = 1;
+	  }
+
+	  int nRet = ResizeImageBuffer();
+		   try
+	   {
+		  picoInitRapidBlock(&unit,sampleOffset_,timeout_,isExternalTriggerOn_);
+	   }
+	   catch( CMMError& e){
+		   return DEVICE_ERR;
+	   }
+	   if (nRet != DEVICE_OK)
+		  return nRet;
+   }
+   return DEVICE_OK;
+}
+int CEVA_NDE_PicoCamera::OnChannelEnableD(MM::PropertyBase* pProp, MM::ActionType eAct)
+{
+   if (eAct == MM::BeforeGet)
+   {
+      pProp->Set(channelEnableD_.c_str());
+   }
+   else if (eAct == MM::AfterSet)
+   {
+      pProp->Get(channelEnableD_);
+	  if(channelEnableD_.compare("ON")==0)
+      {
+		  unit.channelSettings[3].enabled = 1;
+      }
+	  else
+	  {
+		  unit.channelSettings[3].enabled = 0;
+	  }
+	  //to make sure there is a channel enabled
+	  if(GetNumberOfChannels()<=0)
+	  {
+		  channelEnableA_ = "ON";
+		  unit.channelSettings[0].enabled = 1;
+	  }
 
 	  int nRet = ResizeImageBuffer();
 		   try
