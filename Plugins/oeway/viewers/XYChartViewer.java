@@ -12,16 +12,16 @@ import org.jfree.chart.labels.StandardXYSeriesLabelGenerator;
 import org.jfree.chart.plot.PlotOrientation;
 import org.jfree.chart.plot.XYPlot;
 import org.jfree.chart.renderer.xy.XYLineAndShapeRenderer;
+import org.jfree.data.xy.XYSeries;
 import org.jfree.data.xy.XYSeriesCollection;
 
 import plugins.adufour.vars.gui.swing.SwingVarEditor;
 import plugins.adufour.vars.lang.Var;
 
-public class MultiLineChartViewer extends SwingVarEditor<XYSeriesCollection>{
-	
-	public MultiLineChartViewer(Var<XYSeriesCollection> v) {
+public class XYChartViewer extends SwingVarEditor<double[][]>{
+	double step=1.0;
+	public XYChartViewer(Var<double[][]> v) {
 		super(v);
-		setComponentResizeable(true);
 	}
 	@Override
 	protected JComponent createEditorComponent() {
@@ -38,11 +38,11 @@ public class MultiLineChartViewer extends SwingVarEditor<XYSeriesCollection>{
         chart.getXYPlot().getDomainAxis(0).setAxisLineVisible(false);
         chart.getXYPlot().setDomainCrosshairPaint(Color.red);
         chart.getXYPlot().setRangeCrosshairPaint(Color.red);
-        chart.getXYPlot().setDomainCrosshairVisible(true);
-        chart.getXYPlot().setDomainCrosshairLockedOnData(false);
-        chart.getXYPlot().setRangeCrosshairVisible(true);
-        chart.getXYPlot().setRangeCrosshairLockedOnData(false);
-		
+       chart.getXYPlot().setDomainCrosshairVisible(true);
+       chart.getXYPlot().setDomainCrosshairLockedOnData(false);
+       chart.getXYPlot().setRangeCrosshairVisible(true);
+       chart.getXYPlot().setRangeCrosshairLockedOnData(false);
+	       
         XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) chart.getXYPlot().getRenderer();
         renderer.setLegendItemToolTipGenerator(
             new StandardXYSeriesLabelGenerator("Legend {0}"));
@@ -85,7 +85,17 @@ public class MultiLineChartViewer extends SwingVarEditor<XYSeriesCollection>{
 		try
 		{
 			final XYPlot plot =getEditorComponent().getChart().getXYPlot();
-			plot.setDataset(variable.getValue());
+
+			XYSeriesCollection xyDataset = (XYSeriesCollection) plot.getDataset();
+			xyDataset.removeAllSeries();
+			XYSeries seriesXY = new XYSeries(variable.getName(),false,true);	
+			
+			double[][] arr = variable.getValue();
+			for(int i=0;i<arr[0].length;i++)
+			{							
+				seriesXY.add(arr[0][i],arr[1][i]);
+			}
+			xyDataset.addSeries(seriesXY);
 		}
 		catch(Exception e)
 		{
@@ -122,5 +132,4 @@ public class MultiLineChartViewer extends SwingVarEditor<XYSeriesCollection>{
     {
         return 1.0;
     }
-
 }

@@ -299,6 +299,8 @@ public class IntensityProfile  {
 			       chart.getXYPlot().setDomainCrosshairLockedOnData(true);
 			       chart.getXYPlot().setRangeCrosshairVisible(true);
 			       chart.getXYPlot().setRangeCrosshairLockedOnData(true);
+			        chart.getXYPlot().getRangeAxis(0).setAxisLineVisible(true);
+			        chart.getXYPlot().getDomainAxis(0).setAxisLineVisible(false);
 			}
 
 			@Override
@@ -454,7 +456,14 @@ public class IntensityProfile  {
 	{
 		chart.setAntiAlias( true );
 		chart.setTextAntiAlias( true );
-		updateChannelOptions();
+		try
+		{
+			updateChannelOptions();
+		}
+		catch(Exception e)
+		{
+			
+		}
 		
 	//	updateChartThreaded();
 		if ( updateRunnable == null )

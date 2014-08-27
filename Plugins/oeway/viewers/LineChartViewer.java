@@ -34,9 +34,14 @@ public class LineChartViewer extends SwingVarEditor<double[]>{
 		chartPanel = new PanningChartPanel(chart, 512, 300, 300, 150, 10000, 10000, false, false, true, false, true, true);	
         chart.getXYPlot().getRangeAxis(0).setAutoRange(true);
         chart.getXYPlot().getDomainAxis(0).setAutoRange(true);	
-       
+        chart.getXYPlot().getRangeAxis(0).setAxisLineVisible(true);
+        chart.getXYPlot().getDomainAxis(0).setAxisLineVisible(false);
         chart.getXYPlot().setDomainCrosshairPaint(Color.red);
         chart.getXYPlot().setRangeCrosshairPaint(Color.red);
+        chart.getXYPlot().setDomainCrosshairVisible(true);
+        chart.getXYPlot().setDomainCrosshairLockedOnData(false);
+        chart.getXYPlot().setRangeCrosshairVisible(true);
+        chart.getXYPlot().setRangeCrosshairLockedOnData(false);
 		
         XYLineAndShapeRenderer renderer = (XYLineAndShapeRenderer) chart.getXYPlot().getRenderer();
         renderer.setLegendItemToolTipGenerator(
