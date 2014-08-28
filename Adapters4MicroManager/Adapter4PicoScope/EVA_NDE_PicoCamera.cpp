@@ -88,8 +88,8 @@ BOOL APIENTRY DllMain( HANDLE /*hModule*/,
 MODULE_API void InitializeModuleData()
 {
    RegisterDevice(g_CameraDeviceName, MM::CameraDevice, "EVA_NDE_Pico camera");
-   RegisterDevice("MedianFilter", MM::ImageProcessorDevice, "MedianFilter");
-   RegisterDevice(g_DADeviceName, MM::SignalIODevice, "EVA_NDE_Pico DA");
+   //RegisterDevice("MedianFilter", MM::ImageProcessorDevice, "MedianFilter");
+   //RegisterDevice(g_DADeviceName, MM::SignalIODevice, "EVA_NDE_Pico DA");
    RegisterDevice(g_HubDeviceName, MM::HubDevice, "EVA_NDE_Pico hub");
 }
 
@@ -162,7 +162,8 @@ CEVA_NDE_PicoCamera::CEVA_NDE_PicoCamera() :
    stopOnOverflow_(false),
    sampleOffset_(0),
    timeout_(5000),
-   generatorfrequency_(1)
+   generatorfrequency_(1),
+   generatorP2P_(4.0)
 {
 
    // call the base class method to set-up default error codes/messages
@@ -458,13 +459,14 @@ int CEVA_NDE_PicoCamera::Initialize()
 	   pAct = new CPropertyAction (this, &CEVA_NDE_PicoCamera::OnSignalGeneratorFrequency);
 	   nRet = CreateProperty("SignalGenerator Frequency", "1", MM::Integer, false, pAct);
 	   assert(nRet == DEVICE_OK);
-	   SetPropertyLimits("SignalGenerator Frequency",1,1000000);
+	   SetPropertyLimits("SignalGenerator Frequency",1,1000000);	     
+	   //peak to peak
+	   pAct = new CPropertyAction (this, &CEVA_NDE_PicoCamera::OnSignalGeneratorPeak2Peak);
+	   nRet = CreateProperty("SignalGenerator Peak2Peak", "4.0", MM::Float, false, pAct);
+	   assert(nRet == DEVICE_OK);
    }
 
-
-
-   PicoSetSignalGenerator(unit, 'F',1);
-		   // setup the buffer
+	// setup the buffer
    // ----------------
    nRet = ResizeImageBuffer();
    if (nRet != DEVICE_OK)
@@ -1466,14 +1468,14 @@ int CEVA_NDE_PicoCamera::OnSignalGeneratorMode(MM::PropertyBase* pProp, MM::Acti
 		  gerneratorChar_ = 'F';
 	  }
 
-	   PicoSetSignalGenerator(unit,gerneratorChar_,generatorfrequency_);
+	   PicoSetSignalGenerator(unit,gerneratorChar_,generatorfrequency_,generatorP2P_);
 
    }
    return DEVICE_OK;
 }
 
 /**
-* Handles "SampleLength" property.
+* Handles "generator frequency" property.
 */
 int CEVA_NDE_PicoCamera::OnSignalGeneratorFrequency(MM::PropertyBase* pProp, MM::ActionType eAct)
 {
@@ -1481,7 +1483,7 @@ int CEVA_NDE_PicoCamera::OnSignalGeneratorFrequency(MM::PropertyBase* pProp, MM:
    if (eAct == MM::AfterSet)
    {
       pProp->Get(generatorfrequency_);
-	  PicoSetSignalGenerator(unit,gerneratorChar_,generatorfrequency_);
+	  PicoSetSignalGenerator(unit,gerneratorChar_,generatorfrequency_,generatorP2P_);
    }
    else if (eAct == MM::BeforeGet)
    {
@@ -1490,7 +1492,24 @@ int CEVA_NDE_PicoCamera::OnSignalGeneratorFrequency(MM::PropertyBase* pProp, MM:
 
    return DEVICE_OK;
 }
+/**
+* Handles "peak to peak" property.
+*/
+int CEVA_NDE_PicoCamera::OnSignalGeneratorPeak2Peak(MM::PropertyBase* pProp, MM::ActionType eAct)
+{
 
+   if (eAct == MM::AfterSet)
+   {
+      pProp->Get(generatorP2P_);
+	  PicoSetSignalGenerator(unit,gerneratorChar_,generatorfrequency_,generatorP2P_);
+   }
+   else if (eAct == MM::BeforeGet)
+   {
+	 pProp->Set(generatorP2P_);
+   }
+
+   return DEVICE_OK;
+}
 int CEVA_NDE_PicoCamera::OnExternalTrigger(MM::PropertyBase* pProp, MM::ActionType eAct)
 {
    std::string val = "OFF";

@@ -2055,7 +2055,7 @@ void SetSignalGenerator(UNIT unit)
 * - allows for custom waveform (values -32768..32767) 
 * - of up to 8192 samples int32_t (PS3x04B & PS3x05B) 16384 samples int32_t (PS3x06B)
 ******************************************************************************/
-void PicoSetSignalGenerator(UNIT unit, char ch, uint32_t frequency)
+void PicoSetSignalGenerator(UNIT unit, char ch, uint32_t frequency,double pk2pk)
 {
 	PICO_STATUS status;
 	short waveform;
@@ -2063,11 +2063,12 @@ void PicoSetSignalGenerator(UNIT unit, char ch, uint32_t frequency)
 	FILE * fp = NULL;
 	short *arbitraryWaveform;
 	int32_t waveformSize = 0;
-	uint32_t pkpk = 4000000;
+	
 	int32_t offset = 0;
 	short choice;
 	double delta;
 
+	uint32_t pkpk = pk2pk * 1000000;
 
 	//do
 	//{

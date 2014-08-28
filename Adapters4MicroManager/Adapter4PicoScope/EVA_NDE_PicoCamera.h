@@ -196,7 +196,7 @@ public:
 	int OnSignalGeneratorMode(MM::PropertyBase* pProp, MM::ActionType eAct);
 
 	int OnSignalGeneratorFrequency(MM::PropertyBase* pProp, MM::ActionType eAct);
-
+	int OnSignalGeneratorPeak2Peak(MM::PropertyBase* pProp, MM::ActionType eAct);
    int OnTimeoutMs(MM::PropertyBase* pProp, MM::ActionType eAct);
 
    int OnExternalTrigger(MM::PropertyBase* pProp, MM::ActionType eAct);
@@ -239,6 +239,7 @@ private:
 
    std::string signalGeneratorMode_;
 
+   double generatorP2P_;
    long generatorfrequency_;
    char gerneratorChar_;
 
