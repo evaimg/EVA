@@ -69,7 +69,7 @@ public class EvaScanner extends MicroscopePlugin {
 	/** Number of slices */
 	private int _slices = 1;
 	/** Interval between slices. */
-	private double _intervalz = 1.0D;
+	private double _intervalt = 1.0D;
 	private double _intervalxy =1.0D;
 	private String currentSeqName="";
 	private int _rowCount=1;
@@ -150,11 +150,10 @@ public class EvaScanner extends MicroscopePlugin {
 	 * @param img
 	 * @see createVideo()
 	 */
-	private boolean createVideo(int sliceNum, double stepSize) {
+	private boolean createVideo(int sliceNum) {
 		video = new Sequence();
 		try
 		{
-			_intervalxy = stepSize;
 			_slices = sliceNum;
 	        Calendar calendar = Calendar.getInstance();
 			video.setName(currentSeqName + "__" + calendar.get(Calendar.MONTH) + "_" + calendar.get(Calendar.DAY_OF_MONTH) + "_"
@@ -162,9 +161,10 @@ public class EvaScanner extends MicroscopePlugin {
 	                + calendar.get(Calendar.MINUTE) + "_" + calendar.get(Calendar.SECOND));
 
 	        //video.setTimeInterval(1e-12); //1G Hz Sample Rate
-	        video.setPixelSizeX(_intervalxy);
-	        video.setPixelSizeY(_intervalxy);
-	        video.setPixelSizeZ(_intervalz);
+	        video.setPixelSizeX(1.0); //ns-->us
+	        video.setPixelSizeY(_intervalxy*1000);
+	        video.setPixelSizeZ(_intervalxy*1000);
+	        video.setTimeInterval(_intervalt*1e-6);
 	        
 			video.setAutoUpdateChannelBounds(false);
 			// sets listener on the frame in order to remove this plugin
@@ -256,7 +256,7 @@ public class EvaScanner extends MicroscopePlugin {
 			_capturedCount = 0;
 			super.run();
 
-			createVideo(_slices,_intervalxy);
+			createVideo(_slices);
 			
 			try {
 				if (!alreadyCapturing)
@@ -698,6 +698,7 @@ public class EvaScanner extends MicroscopePlugin {
 					  		}
 					  		else if(tmp[0].equals("stepsize")){
 					  			_intervalxy = stepSize.getValue();
+					  			_intervalt  =Double.parseDouble(mCore.getProperty(picoCameraLabel, "TimeIntervalNs"));
 					  			_stepSize =  Double.parseDouble(tmp[1]);
 					  			stepSize.setValue(_stepSize);	
 					  		}					  		
@@ -943,7 +944,15 @@ public class EvaScanner extends MicroscopePlugin {
 		public void clean()
 		{
 			// use this method to clean local variables or input streams (if any) to avoid memory leaks
-			
+			try
+			{
+				for(Viewer v : controlPanel.getViewers())
+					v.close();
+			}
+			catch(Exception e)
+			{
+				
+			}
 		}
 		
 		@Override
